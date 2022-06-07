@@ -95,7 +95,7 @@ set C2PA_PRIVATE_KEY=$(cat my_es256_private_key)
 set C2PA_PUB_CERT=$(cat my_es256_certs)
 ```
 
-Both the `private_key` and `sign_cert` should be in PEM format. The `sign_cert` should contain a PEM certificate chain starting for the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate.  See the "sample" folder for example certificates.
+Both the `private_key` and `sign_cert` should be in PEM format. The `sign_cert` should contain a PEM certificate chain starting for the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate. See the ["sample" folder](https://github.com/contentauth/c2patool/tree/main/sample) for example certificates.
 
 To create your own temporary files for testing, you can execute the following command:
 
