@@ -72,12 +72,11 @@ c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"name": 
 
 Before you can add a manifest, you need to create an X.509 certificate. You can specify the path to the cert files in the following configuration fields:
 
-```
-private_key
-sign_cert
-```
+- `private_key`
+- `sign_cert`
 
 If you are using a signing algorithm other than the default `ps256`, you will need to specify it in `alg`, which can be set to one of the following:
+
 - `ps256`
 - `ps384`
 - `ps512`
