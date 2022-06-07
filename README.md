@@ -58,7 +58,7 @@ c2patool sample/config.json
 c2patool sample/config.json -o results.txt
 ```
 
-The config json can also be passed on the command line as string using the -c --config option
+The [manifest definition JSON](#manifest-definition-format) can also be passed on the command line as a string using the `-c` or `--config` option:
 
 ```shell
 c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"name": "Jane Doe"}}]}'
