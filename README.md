@@ -39,6 +39,8 @@ cargo build
 Writing or previewing a manifest requires you to provide a manifest definition, which is a JSON data structure
 that describes the manifest data. The JSON schema for this file is available at [`schemas/manifest-definition.json`](schemas/manifest-definition.json).
 
+**Note:** Any file references specified will be relative to the location of the manifest definition file.
+
 ### Creating certificates
 
 You should be able to test creating your own manifests using pre-built certificates supplied with this tool. However, if
@@ -46,9 +48,11 @@ you want to create your own official certificates, please reference the section 
 
 ## Usage
 
+**Note:** You can check out this repository locally to run the example code below.
+
 ### Displaying manifest data
 
-Invoking the tool with a path to an image file will output a JSON report of the manifests contained in the file.
+Invoking the tool with a path to an asset will output a JSON report of the manifests contained in the file.
 
 ```shell
 c2patool image.jpg
@@ -59,19 +63,19 @@ c2patool image.jpg
 The `-d` option will output a detailed JSON report of the internal C2PA structure.
 
 ```shell
-c2patool image.jpg  -d
+c2patool image.jpg -d
 ```
 
 ### Previewing a manifest
 
-If a path to a JSON config file is given, the tool will generate a new manifest using the values given in the definition. By default, this will print the results to stdout. You can save the results to a file by using the `-o` flag, followed by the path of the destination file.
+If a path to a JSON manifest definition file is given, the tool will generate a new manifest using the values given in the definition. This will print the report to stdout.
 
 ```shell
 # output to screen
-c2patool sample/config.json
+c2patool sample/test.json
 
-# save to file
-c2patool sample/config.json -o results.txt
+# redirect to file
+c2patool sample/test.json > report.json
 ```
 
 The [manifest definition](#manifest-definition-format) can also be passed on the command line as a string using the `-c` or `--config` option:
@@ -84,26 +88,26 @@ c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"name": 
 
 #### Writing the manifest
 
-You can add C2PA data to a file by passing a [manifest definition](#manifest-definition-format) JSON file together with a path to a JPEG or PNG file specified by the output (`-o`) flag.
+You can add C2PA data to a file by passing a [manifest definition](#manifest-definition-format) JSON file together with a path to a supported file extension (e.g. PNG) specified by the output (`-o`) flag.
 
-If the output file already exists, any C2PA data in that file will be replaced and the image maintained. If the output file doesn't exist, a parent file must be available for a source image.
+If the output file already exists, any C2PA data in that file will be replaced and the asset maintained. If the output doesn't exist and a parent file is available, the parent will be copied to the output and the C2PA data will be added.
 
 #### Overriding the parent file
 
-When using a JSON file, the parent file can be specified by passing `-p` or `--parent` with the path to the file. This allows adding the same manifest data to different source images.
+When using a JSON file, the parent file can be specified by passing `-p` or `--parent` with the path to the file. This allows adding the same manifest data to different parent assets.
 
 #### Usage notes
 
-If you are not changing an image and just adding C2PA data, use an existing output file and no parent. _Note that this will replace any existing C2PA data in the existing output file._ For instance:
+If you are not changing an asset and just adding C2PA data, use an existing output file and no parent. _Note that this will replace any existing C2PA data in the existing output file._ For instance:
 
 ```shell
-c2patool sample/config.json -o existing.jpg
+c2patool sample/test.json -o existing.jpg
 ```
 
-If you have edited an image and want to add C2PA data to it, pass the original as the parent and put the edited file at the output location to have the C2PA data added.
+If you have edited an asset and want to add C2PA data to it, pass the original as the parent and put the edited file at the output location to have the C2PA data added.
 
 ```shell
-c2patool sample/config.json -p original.jpg -o image-with-c2pa.jpg
+c2patool sample/test.json -p original.jpg -o image-with-c2pa.jpg
 ```
 
 ## Appendix
@@ -149,9 +153,3 @@ openssl req -new -newkey rsa:4096
 ```	
 
 **Note:** You may have need to update your `openssl` version if the above command does not work. You will likely need version 3.0 or later. You can check the version that is installed by typing `openssl version`.
-
-c2patool can also timestamp the embedded signature data.  This is useful for validating an asset when the embedded certificates have expired. If the config has a `ta_url` set, c2patool will attempt to timestamp the signature using the TA service at the provided URL. The TA must be [RFC3161](https://datatracker.ietf.org/doc/html/rfc3161) compliant. For example,
-
-```shell
-ta_url=http://timestamp.digicert.com
-```
