@@ -4,9 +4,7 @@
     "sign_cert": "es256_certs.pem",
     "ta": "http://timestamp.digicert.com",
     
-    "vendor": "myvendor",
     "claim_generator": "TestApp",
-    "title": "My Title",
     "assertions": [
         {
             "label": "stds.schema-org.CreativeWork",
@@ -18,8 +16,7 @@
                         "@type": "Person",
                         "name": "Joe Bloggs"
                     }
-                ],
-                "url": "https://contentauthenticity.org/"
+                ]
             }
         },
         {
@@ -28,12 +25,6 @@
                 "actions": [
                     {
                         "action": "c2pa.opened"
-                    },
-                    {
-                        "action": "c2pa.edited",
-                        "parameters": {
-                            "name": "brightnesscontrast"
-                        }
                     }
                 ],
                 "metadata": {
