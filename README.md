@@ -2,11 +2,15 @@
 
 c2patool is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_manifests). Currently, the tool supports:
 
-- Reading a JSON report of C2PA manifests in an JPEG or PNG image
-- Reading a low-level report of C2PA manifest data in a JPEG or PNG image
-- Previewing manifest data from a JSON config file
-- Adding a C2PA manifest to an existing JPEG or PNG image
-- Writing a C2PA manifest to a `.c2pa` manifest file
+- Reading a JSON report of C2PA manifests in [supported file formats](#supported-file-formats)
+- Reading a low-level report of C2PA manifest data in [supported file formats](#supported-file-formats)
+- Previewing manifest data from a [manifest definition](#manifest-definition-format)
+- Adding a C2PA manifest to [supported file formats](#supported-file-formats)
+
+## Supported file formats
+
+- `image/jpeg`
+- `image/png`
 
 ## Installation
 
@@ -28,17 +32,29 @@ git clone git@github.com:contentauth/c2patool.git
 cargo build
 ```
 
+## Optional prerequisites
+
+### Manifest definition format
+
+Writing or previewing a manifest requires you to provide a manifest definition, which is a JSON data structure
+that describes the manifest data. The JSON schema for this file is available at [`schemas/manifest-definition.json`](https://github.com/contentauth/c2patool/blob/main/schemas/manifest-definition.json).
+
+### Creating certificates
+
+You should be able to test creating your own manifests using pre-built certificates supplied with this tool. However, if
+you want to create your own official certificates, please reference the section titled ["Creating and using an X.509 certificate"](#creating-and-using-an-x509-certificate).
+
 ## Usage
 
 ### Displaying manifest data
 
-Invoking the tool with a path to an image file will output a JSON report of the manifests contained in the file. Supported file formats are `jpeg` and `png`. 
+Invoking the tool with a path to an image file will output a JSON report of the manifests contained in the file.
 
 ```shell
 c2patool image.jpg
 ```
 
-#### Detailed manifest report
+### Detailed manifest report
 
 The `-d` option will output a detailed JSON report of the internal C2PA structure.
 
@@ -58,7 +74,7 @@ c2patool sample/config.json
 c2patool sample/config.json -o results.txt
 ```
 
-The [manifest definition JSON](#manifest-definition-format) can also be passed on the command line as a string using the `-c` or `--config` option:
+The [manifest definition](#manifest-definition-format) can also be passed on the command line as a string using the `-c` or `--config` option:
 
 ```shell
 c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"name": "Jane Doe"}}]}'
@@ -66,9 +82,33 @@ c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"name": 
  
 ### Adding a manifest to a file
 
-#### Setup
+#### Writing the manifest
 
-##### Creating and using an X.509 certificate
+You can add C2PA data to a file by passing a [manifest definition](#manifest-definition-format) JSON file together with a path to a JPEG or PNG file specified by the output (`-o`) flag.
+
+If the output file already exists, any C2PA data in that file will be replaced and the image maintained. If the output file doesn't exist, a parent file must be available for a source image.
+
+#### Overriding the parent file
+
+When using a JSON file, the parent file can be specified by passing `-p` or `--parent` with the path to the file. This allows adding the same manifest data to different source images.
+
+#### Usage notes
+
+If you are not changing an image and just adding C2PA data, use an existing output file and no parent. _Note that this will replace any existing C2PA data in the existing output file._ For instance:
+
+```shell
+c2patool sample/config.json -o existing.jpg
+```
+
+If you have edited an image and want to add C2PA data to it, pass the original as the parent and put the edited file at the output location to have the C2PA data added.
+
+```shell
+c2patool sample/config.json -p original.jpg -o image-with-c2pa.jpg
+```
+
+## Appendix
+
+### Creating and using an X.509 certificate
 
 Before you can add a manifest, you need to create an X.509 certificate. You can specify the path to the cert files in the following configuration fields:
 
@@ -99,7 +139,7 @@ Both the `private_key` and `sign_cert` should be in PEM format. The `sign_cert` 
 To create your own temporary files for testing, you can execute the following command:
 
 ```shell
-sudo openssl req -new -newkey rsa:4096 
+openssl req -new -newkey rsa:4096 
    -sigopt rsa_padding_mode:pss \ 
    -days 180 \
    -extensions v3_ca \
@@ -115,134 +155,3 @@ c2patool can also timestamp the embedded signature data.  This is useful for val
 ```shell
 ta_url=http://timestamp.digicert.com
 ```
-
-##### Manifest definition format
-
-The manifest definition file is a JSON serialized file (`.json`). The schema for this type is as follows:
-
-```json
-{
-  "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "http://ns.adobe.com/cai/claim-definition/v1",
-  "type": "object",
-  "description": "Definition format for claim created with c2patool",
-  "examples": [
-    {
-      "vendor": "myvendor",
-      "claim_generator": "MyApp/0.1",
-      "parent": "image.jpg",
-      "ingredients": [],
-      "assertions": [
-        {
-          "label": "my.assertion",
-          "data": {
-            "any_tag": "whatever I want"
-          }
-        }
-      ],
-      "alg": "es256",
-      "private_key": "es256_private.key",
-      "sign_cert": "es256_certs.pem",
-      "ta_url": "http://timestamp.digicert.com"
-    }
-  ],
-  "required": ["assertions"],
-  "properties": {
-    "vendor": {
-      "type": "string",
-      "description": "Typically an Internet domain name (without the TLD) for the vendor (i.e. `adobe`, `nytimes`)"
-    },
-    "claim_generator": {
-      "type": "string",
-      "description": "A UserAgent string that will let a user know what software/hardware/system produced this Manifest - names should not contain spaces (defaults to c2patool)"
-    },
-    "title": {
-      "type": "string",
-      "description": "A human-readable string to be displayed as the tile for this Manifest (defaults to embedded file name)"
-    },
-    "credentials": {
-      "type": "object",
-      "description": "An array of W3C verifiable credentials objects defined in the c2pa assertion specification. Section 7"
-    },
-    "parent": {
-      "type": "string",
-      "format": "Local file system path",
-      "description": "A file path to the source image that was modified by this Manifest (if any)"
-    },
-    "Ingredients": {
-      "type": "array of string",
-      "format": "Array of local file system paths",
-      "description": "File paths to images that were used to modify the image referenced by this Manifest (if any)"
-    },
-    "assertions": {
-      "type": "object",
-      "description": "Objects with label, and data - standard c2pa labels must match values as defined in the c2pa assertion specification"
-    },
-    "alg": {
-      "type": "string",
-      "format": "Local file system path",
-      "description": "Signing algorithm: one of [ ps256 | ps384 | ps512 | es256 | es384 | es512 | ed25519]"
-    },
-    "ta_url": {
-      "type": "string",
-      "format": "http URL",
-      "description": "A URL to an RFC3161 compliant Time Stamp Authority"
-    },
-    "private_key": {
-      "type": "string",
-      "format": "Local file system path",
-      "description": "File path to a private key file"
-    },
-    "sign_cert": {
-      "type": "string",
-      "format": "Local file system path",
-      "description": "File path to signing cert file"
-    },
-    "base_path": {
-      "type": "string",
-      "format": "Local file system path",
-      "description": "File path to a folder to use as the base for relative paths in config"
-    }
-  },
-  "additionalProperties": false
-}
-```
-
-#### Writing the manifest
-
-You can add C2PA data to a file by passing a manifest definition JSON file together with a path to a JPEG or PNG file specified by the output (`-o`) flag.
-
-If the output file already exists, any C2PA data in that file will be replaced and the image maintained. If the output file doesn't exist, a parent file must be available for a source image.
-
-#### Overriding the parent file
-
-When using a JSON file, the parent file can be specified by passing `-p` or `--parent` with the path to the file. This allows adding the same manifest data to different source images.
-
-#### Usage notes
-
-If you are not changing an image and just adding C2PA data, use an existing output file and no parent. For instance:
-
-```shell
-c2patool sample/config.json -o existing.jpg
-```
-
-If you have edited an image and want to add C2PA data to it, pass the original as the parent and put the edited file at the output location to have the C2PA data added.
-
-```shell
-c2patool sample/config.json -p original.jpg -o image-with-c2pa.jpg
-```
-
-## Working with .c2pa manifest files
-
-If the extension of the output file is '.c2pa', a standalone manifest store will be written:
-
-```shell
-c2patool claim_image.jpg -o manifest.c2pa
-```
-
-These `.c2pa` manifest files can be read by c2patool and will generate reports.
-
-```shell
-c2patool manifest.c2pa
-```
-
