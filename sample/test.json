@@ -5,6 +5,7 @@
     "ta": "http://timestamp.digicert.com",
     
     "claim_generator": "TestApp",
+    "title": "My Title",
     "assertions": [
         {
             "label": "stds.schema-org.CreativeWork",
