@@ -38,11 +38,11 @@ jobs:
 
     - name: Log changelog stdout
       run: |
-        echo ${{ setps.changelog.outputs.stdout }}
+        echo ${{ steps.changelog.outputs.stdout }}
 
     - name: Log changelog stderr
       run: |
-        echo ${{ setps.changelog.outputs.stderr }}
+        echo ${{ steps.changelog.outputs.stderr }}
 
     - name: Stop after debugging
       uses: actions/github-script@v3
