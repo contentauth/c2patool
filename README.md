@@ -94,7 +94,7 @@ If the output file already exists, any C2PA data in that file will be replaced a
 
 #### Overriding the parent file
 
-When using a JSON file, the parent file can be specified by passing `-p` or `--parent` with the path to the file. This allows adding the same manifest data to different parent assets.
+When using a JSON file, the parent file can be specified by passing `-p` or `--parent` with the path to the file. This allows using the same manifest definition with different parent assets.
 
 #### Usage notes
 
