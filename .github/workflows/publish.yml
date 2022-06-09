@@ -36,9 +36,9 @@ jobs:
       with:
         run: git log --format="* %s" ${{ steps.get-latest-tag.outputs.tag }}..HEAD | grep -v "(IGNORE)"
 
-    - name: Log changelog stdout
-      run: |
-        echo ${{ steps.changelog.outputs.stdout }}
+    # - name: Log changelog stdout
+    #   run: |
+    #     echo ${{ steps.changelog.outputs.stdout }}
 
     - name: Log changelog stderr
       run: |
