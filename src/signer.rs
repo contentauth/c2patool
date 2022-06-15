@@ -38,6 +38,7 @@ pub fn get_c2pa_signer(config: &Config, base_path: &Path) -> Result<Box<dyn Sign
         private_key =
             Some(std::fs::read(&path).context(format!("Reading private key: {:?}", &path))?);
     }
+
     if private_key.is_none() {
         if let Ok(key) = env::var("C2PA_PRIVATE_KEY") {
             private_key = Some(key.as_bytes().to_vec());
@@ -48,6 +49,7 @@ pub fn get_c2pa_signer(config: &Config, base_path: &Path) -> Result<Box<dyn Sign
         let path = fix_relative_path(path, base_path);
         sign_cert = Some(std::fs::read(&path).context(format!("Reading sign cert: {:?}", &path))?);
     }
+
     if sign_cert.is_none() {
         if let Ok(cert) = env::var("C2PA_SIGN_CERT") {
             sign_cert = Some(cert.as_bytes().to_vec());
@@ -64,9 +66,11 @@ pub fn get_c2pa_signer(config: &Config, base_path: &Path) -> Result<Box<dyn Sign
 
     eprintln!(
         "\n\n-----------\n\n\
-        Note: Using default private key and signing certificate - this is only valid for development.\n\
+        Note: Using default private key and signing certificate, This is only valid for development.\n\
         A permanent key and cert should be provided in the manifest definition or in the environment variables\n");
+
     let signer = get_signer(DEFAULT_CERTS, DEFAULT_KEY, &alg, tsa_url)
         .context("Invalid certification data")?;
+
     Ok(signer)
 }
