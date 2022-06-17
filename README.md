@@ -171,7 +171,7 @@ The schema for this type is as follows:
 		},
 		"title": {
 			"type": "string",
-			"description": "A human-readable string to be displayed as the title for this Manifest.(defaults to the name of the file this manifest was embedded in)"
+			"description": "A human-readable string to be displayed as the title for this Manifest (defaults to the name of the file this manifest was embedded in)."
 		},
 		"credentials": {
 			"type": "object",
