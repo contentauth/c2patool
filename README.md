@@ -38,7 +38,7 @@ brew install c2patool
 
 ### Displaying manifest data
 
-Invoking the tool with a path to an asset will send a JSON report to stdout of the manifests contained in the file.
+Invoking the tool with a path to an asset will print a report describing the manifests contained in the file in JSON format to stdout.
 
 ```shell
 c2patool image.jpg
@@ -46,8 +46,7 @@ c2patool image.jpg
 
 ### Detailed manifest report
 
-The `-d` option will output a detailed JSON report of the internal C2PA structure.
-
+The `-d` option will print a detailed report describing the internal C2PA format of manifests contained in the file in JSON format to stdout.
 ```shell
 c2patool image.jpg -d
 ```
@@ -90,11 +89,11 @@ If the output file exists and no parent is specified, the output file will be up
 c2patool sample/test.json -o new_manifest.jpg
 ```
 
-#### Example of a Manifest Definition file
+#### Example of a manifest definition file
 
-Here's an example of a manifest definition that inserts a CreativeWork author assertion. If you copy this into a json file, you can use it as a test manifest definition.
+Here's an example of a manifest definition that inserts a CreativeWork author assertion. If you copy this into a JSON file, you can use it as a test manifest definition.
 
-```
+```json
 {
     "ta": "http://timestamp.digicert.com",
     
@@ -116,7 +115,7 @@ Here's an example of a manifest definition that inserts a CreativeWork author as
     ]
 }
 ```
-### Manifest Definition on command line
+### Manifest definition on command line
 
 The [manifest definition](#manifest-definition-format) can also be passed on the command line as a string using the `-c` or `--config` option.
 
@@ -128,8 +127,8 @@ c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"my_key"
 
 ### Manifest definition format
 
-The Manifest Definition file is a JSON formatted file with a .json extension. 
-Any relative file paths will be treated as relative to the location of the definition file unless a base_path field is specified.
+The manifest definition file is a JSON formatted file with a .json extension. 
+Any relative file paths will be treated as relative to the location of the definition file unless a `base_path` field is specified.
 
 The schema for this type is as follows:
 ```json
@@ -172,7 +171,7 @@ The schema for this type is as follows:
 		},
 		"title": {
 			"type": "string",
-			"description": "A human-readable string to be displayed as the tile for this Manifest.(defaults to the name of the file this manifest was embedded in)"
+			"description": "A human-readable string to be displayed as the title for this Manifest.(defaults to the name of the file this manifest was embedded in)"
 		},
 		"credentials": {
 			"type": "object",
@@ -227,7 +226,7 @@ The schema for this type is as follows:
 ### Creating and using an X.509 certificate
 
 You should be able to test creating your own manifests using pre-built certificates supplied with this tool. However, if
-you want to use your own generated certificates, you can You can specify the path to the cert files in the following configuration fields:
+you want to use your own generated certificates, you can specify the path to the cert files in the following configuration fields:
 
 - `private_key`
 - `sign_cert`
@@ -253,7 +252,6 @@ set C2PA_PUB_CERT=$(cat my_es256_certs)
 
 Both the `private_key` and `sign_cert` should be in PEM format. The `sign_cert` should contain a PEM certificate chain starting for the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate. See the ["sample" folder](https://github.com/contentauth/c2patool/tree/main/sample) for example certificates.
 
-
 To create your own temporary files for testing, you can execute the following command:
 
 ```shell
@@ -266,6 +264,6 @@ openssl req -new -newkey rsa:4096
    -nodes -x509 -keyout private.key -out certs.pem -sha256
 ```	
 
-Note: You may have need to update your `openssl` version if the above command does not work. You will likely need version 3.0 or later. You can check the version that is installed by typing `openssl version`.
+Note: You may need to update your `openssl` version if the above command does not work. You will likely need version 3.0 or later. You can check the version that is installed by typing `openssl version`.
 
 
