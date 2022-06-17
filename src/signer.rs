@@ -66,8 +66,8 @@ pub fn get_c2pa_signer(config: &Config, base_path: &Path) -> Result<Box<dyn Sign
 
     eprintln!(
         "\n\n-----------\n\n\
-        Note: Using default private key and signing certificate, This is only valid for development.\n\
-        A permanent key and cert should be provided in the manifest definition or in the environment variables\n");
+        Note: Using default private key and signing certificate. This is only valid for development.\n\
+        A permanent key and cert should be provided in the manifest definition or in the environment variables.\n");
 
     let signer = get_signer(DEFAULT_CERTS, DEFAULT_KEY, &alg, tsa_url)
         .context("Invalid certification data")?;
