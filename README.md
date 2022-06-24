@@ -194,7 +194,7 @@ The schema for this type is as follows:
 		"alg": {
 			"type": "string",
 			"format": "Local file system path",
-			"description": "Signing algorithm: one of [ ps256 | ps384 | ps512 | es256 | es384 | es512 | ed25519]. Defaults to ps256."
+			"description": "Signing algorithm: one of [ ps256 | ps384 | ps512 | es256 | es384 | es512 | ed25519]. Defaults to es256."
 		},
 		"ta_url": {
 			"type": "string",
@@ -231,7 +231,7 @@ you want to use your own generated certificates, you can specify the path to the
 - `private_key`
 - `sign_cert`
 
-If you are using a signing algorithm other than the default `ps256`, you will need to specify it in the manfifest defnition field `alg`, which can be set to one of the following:
+If you are using a signing algorithm other than the default `es256`, you will need to specify it in the manfifest defnition field `alg`, which can be set to one of the following:
 
 - `ps256`
 - `ps384`
