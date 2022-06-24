@@ -58,7 +58,7 @@ struct CliArgs {
     #[structopt(
         short = "d",
         long = "detailed",
-        help = "Display detailed c2pa formatted manifest data."
+        help = "Display detailed C2PA-formatted manifest data."
     )]
     detailed: bool,
 
