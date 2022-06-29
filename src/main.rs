@@ -250,11 +250,6 @@ fn main() -> Result<()> {
     let mut base_dir = PathBuf::from(".");
 
     if let Some(path) = args.path.clone() {
-        if !path.exists() {
-            eprintln!("File not found {:?}", path);
-            exit(1);
-        }
-
         let extension = path.extension().and_then(|p| p.to_str()).unwrap_or("");
         if extension == "json" {
             // file paths in Config are relative to the json file
