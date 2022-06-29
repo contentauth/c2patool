@@ -185,6 +185,9 @@ fn handle_config(
         let source_path = match output.exists() {
             true => output,
             false => {
+                let mut output_dir = PathBuf::from(output);
+                output_dir.pop();
+                std::fs::create_dir_all(&output_dir)?;
                 parent.as_deref().filter(|p| p.exists()).or_else(||{
                     eprintln!("A valid parent path or existing output file is required for claim embedding");
                     exit(1);
