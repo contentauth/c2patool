@@ -113,7 +113,7 @@ fn handle_config(
         }
     }
 
-    // if the config ha a parent, set the parent asset
+    // if the config has a parent, set the parent asset
     let parent = match parent {
         Some(parent) => Some(PathBuf::from(parent)),
         None => config
