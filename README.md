@@ -19,7 +19,7 @@ c2patool is a command line tool for working with C2PA [manifests](https://c2pa.o
 | `application/mp4` | `mp4`       |           |
 | `audio/mp4`       | `m4a`       |           |
 | `application/c2pa`| `c2pa`      |    X      |
-|                   | `mov`       |
+|                   | `mov`       |           |
 
 ## Installation
 
