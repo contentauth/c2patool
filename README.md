@@ -11,6 +11,8 @@ c2patool is a command line tool for working with C2PA [manifests](https://c2pa.o
 
 - `image/jpeg`
 - `image/png`
+- `audio/mp4`
+- `video/mp4`
 
 ## Installation
 
