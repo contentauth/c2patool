@@ -84,7 +84,7 @@ jobs:
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           override: true
           components: rustfmt
 
@@ -105,7 +105,7 @@ jobs:
           - advisories
           - bans licenses sources
 
-    # Prevent sudden announcement of a new advisory from failing ci:
+    # Prevent sudden announcement of a new advisory from failing CI:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
 
     steps:
