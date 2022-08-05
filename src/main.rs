@@ -17,18 +17,15 @@
 /// If only the path is given, this will generate a summary report of any claims in that file
 /// If a claim def json file is specified, the claim will be added to any existing claims
 /// If the claim def includes an asset_path, the claims in that file will be used instead
-///
-///
-use anyhow::{anyhow, Result};
-use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport};
-
 use std::{
     fs,
     path::{Path, PathBuf},
     process::exit,
 };
-use structopt::{clap::AppSettings, StructOpt};
 
+use anyhow::{anyhow, Result};
+use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport};
+use structopt::{clap::AppSettings, StructOpt};
 use tempfile::tempdir;
 
 pub mod config;

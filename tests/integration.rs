@@ -11,10 +11,10 @@
 // specific language governing permissions and limitations under
 // each license.
 
+use std::{path::PathBuf, process::Command};
+
 use assert_cmd::prelude::*; // Add methods on commands
 use predicates::prelude::*;
-use std::path::PathBuf;
-use std::process::Command;
 
 const TEST_IMAGE: &str = "earth_apollo17.jpg";
 //const TEST_IMAGE: &str = "libpng-test.png"; // save for png testing

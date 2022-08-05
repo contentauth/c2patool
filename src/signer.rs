@@ -11,12 +11,14 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use crate::{config::Config, fix_relative_path};
-use anyhow::{Context, Result};
-/// Provides a method to read configured certs and generate a singer
-///
-use c2pa::{create_signer, Signer, SigningAlg};
+//! Provides a method to read configured certs and generate a signer.
+
 use std::{env, path::Path};
+
+use anyhow::{Context, Result};
+use c2pa::{create_signer, Signer, SigningAlg};
+
+use crate::{config::Config, fix_relative_path};
 
 pub fn get_ta_url() -> Option<String> {
     std::env::var("C2PA_TA_URL").ok()

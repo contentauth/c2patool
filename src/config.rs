@@ -10,11 +10,12 @@
 // implied. See the LICENSE-MIT and LICENSE-APACHE files for the
 // specific language governing permissions and limitations under
 // each license.
-use c2pa::ManifestAssertion;
 
+use std::path::PathBuf;
+
+use c2pa::ManifestAssertion;
 use serde::Deserialize;
 use serde_json::Value;
-use std::path::PathBuf;
 
 /// Defines the components used to build a claim to embed in a manifest
 #[derive(Debug, Deserialize)]
