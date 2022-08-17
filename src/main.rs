@@ -27,7 +27,7 @@ use std::{
     path::{Path, PathBuf},
     process::exit,
 };
-use structopt::{clap::{AppSettings}, StructOpt};
+use structopt::{clap::AppSettings, StructOpt};
 
 use tempfile::tempdir;
 
@@ -70,24 +70,23 @@ struct CliArgs {
         short = "r",
         long = "remote",
         help = "Embed remote URL manifest reference."
-    )] 
+    )]
     remote: Option<String>,
 
     #[structopt(
         short = "s",
         long = "sidecar",
         help = "Generate a sidecar (.c2a) manifest"
-    )] 
+    )]
     sidecar: bool,
 }
 
 #[derive(Debug)]
 enum RemoteOptions {
-    Remote(String) ,
+    Remote(String),
     External,
     EmbeddedRemote(String),
 }
-
 
 // converts any relative paths to absolute from base_path
 pub fn fix_relative_path(path: &Path, base_path: &Path) -> PathBuf {
@@ -105,7 +104,7 @@ fn handle_config(
     parent: Option<&Path>,
     output_opt: Option<&Path>,
     is_detailed: bool,
-    remote_ops: Option<RemoteOptions>
+    remote_ops: Option<RemoteOptions>,
 ) -> Result<String> {
     let config: Config = serde_json::from_str(json)?;
 
@@ -129,9 +128,9 @@ fn handle_config(
     let mut copy_dot_c2pa = true;
     if let Some(remote) = &remote_ops {
         match remote {
-            RemoteOptions::Remote(url ) => manifest.set_remote_manifest(url),
+            RemoteOptions::Remote(url) => manifest.set_remote_manifest(url),
             RemoteOptions::External => &mut manifest.set_sidecar_manifest(),
-            RemoteOptions::EmbeddedRemote(url ) => {
+            RemoteOptions::EmbeddedRemote(url) => {
                 copy_dot_c2pa = false;
                 manifest.set_embedded_manifest_with_remote_ref(url)
             }
@@ -258,14 +257,14 @@ fn handle_config(
             .or_else(|_| std::fs::copy(&temp_path, &output).and(Ok(())))
             .map_err(Error::IoError)?;
 
-        // copy side car if needed 
+        // copy side car if needed
         let sidecar_path = temp_path.with_extension("c2pa");
         if sidecar_path.exists() && copy_dot_c2pa {
             let sidecar_dest = output.with_extension("c2pa");
             std::fs::rename(&sidecar_path, &sidecar_dest)
-            // if rename fails, try to copy in case we are on different volumes
-            .or_else(|_| std::fs::copy(&sidecar_path, &sidecar_dest).and(Ok(())))
-            .map_err(Error::IoError)?;
+                // if rename fails, try to copy in case we are on different volumes
+                .or_else(|_| std::fs::copy(&sidecar_path, &sidecar_dest).and(Ok(())))
+                .map_err(Error::IoError)?;
         }
 
         // generate a report on the output file
@@ -324,12 +323,10 @@ fn main() -> Result<()> {
         } else {
             Some(RemoteOptions::Remote(remote))
         }
+    } else if args.sidecar {
+        Some(RemoteOptions::External)
     } else {
-        if args.sidecar {
-            Some(RemoteOptions::External)
-        } else {
-            None
-        }
+        None
     };
 
     if let Some(json) = config {
@@ -364,6 +361,7 @@ pub mod tests {
             Some(&PathBuf::from("tests/fixtures/earth_apollo17.jpg")),
             Some(&PathBuf::from("target/tmp/unit_out.jpg")),
             false,
+            None,
         )
         .expect("handle_config");
         assert!(report.contains("my_key"));
