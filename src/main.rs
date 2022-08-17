@@ -76,7 +76,7 @@ struct CliArgs {
     #[structopt(
         short = "s",
         long = "sidecar",
-        help = "Generate a sidecar (.c2a) manifest"
+        help = "Generate a sidecar (.c2pa) manifest"
     )]
     sidecar: bool,
 }
