@@ -226,7 +226,7 @@ c2patool -s sample/test.json -o new_manifest.jpg
 
 ### Generating a remote manifest
 
-The `-r` option places an http reference to manifest in the output file.  The manifest is returned as an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The manifest should then be placed at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched.  You can disable this by removing feature `fetch_remote_manifests` from Cargo.toml.
+The `-r` option places an http reference to manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The manifest should then be placed at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. You can disable this by removing feature `fetch_remote_manifests` from Cargo.toml.
 
 ```shell
 c2patool -r http://my_server/myasset.c2pa sample/test.json -o new_manifest.jpg
@@ -234,8 +234,7 @@ c2patool -r http://my_server/myasset.c2pa sample/test.json -o new_manifest.jpg
 
 In the example above c2patool will try to fetch the manifest for new_manifest.jpg from http://my_server/myasset.c2pa during validation.
 
-Note: It is possible to combine `-s` and `-r` options together.  When used together a manifest will be embedded in the output files as well as remote reference.  The sidecar .c2pa file is omitted.  
-
+Note: It is possible to combine the `-s` and `-r` options. When used together a manifest will be embedded in the output files and the remote reference will also be added. The sidecar .c2pa file is omitted.
 
 ## Appendix
 
