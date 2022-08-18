@@ -218,7 +218,7 @@ pub mod tests {
     #[test]
     fn test_manifest_config() {
         const SOURCE_PATH: &str = "tests/fixtures/earth_apollo17.jpg";
-        const OUTPUT_PATH: &str = "target/tmp/unit_out.jpg";
+        const OUTPUT_PATH: &str = "target/unit_out.jpg";
 
         let config = ManifestConfig::from_json(CONFIG).expect("from_json");
         let mut manifest = config.to_manifest().expect("to_manifest");
