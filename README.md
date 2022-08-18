@@ -19,7 +19,7 @@ c2patool is a command line tool for working with C2PA [manifests](https://c2pa.o
 | `application/mp4` | `mp4`       |           |
 | `audio/mp4`       | `m4a`       |           |
 | `application/c2pa`| `c2pa`      |    X      |
-|                   | `mov`       |           |
+| `video/quicktime` | `mov`       |           |
 
 ## Installation
 
@@ -41,29 +41,36 @@ c2patool image.jpg
 
 ### Detailed manifest report
 
-The `-d` option will print a detailed report describing the internal C2PA format of manifests contained in the file in JSON format to stdout.
+The `-d` or `--detailed` option will print a detailed report describing the internal C2PA format of manifests contained in the file in JSON format to stdout.
 ```shell
 c2patool image.jpg -d
 ```
 
 ### Adding a manifest to a file
 
-You can add C2PA data to a file by passing a [manifest definition](#manifest-definition-format) JSON file using the -m manifest option. The tool will generate a new manifest using the values given in the definition. 
+To add C2PA data to a file, use the `-m` or `--manifest` option and provide a manifest definition JSON file as the argument. The tool generates a new manifest using the values given in the file.
 
-The file path must reference the target file to be signed. 
+The file path must reference the asset to be signed. 
 
-The output file is specified on the command line via the -o/output flag.  If the output is the same as the target, it will be overwritten. Use this with caution. If no output is given you can preview the generated manifest but nothing is written.
+The output file is specified on the command line via the `-o` or `--output` flag.  If the output is the same as the source, it will be overwritten. Use this with caution. If no output is given you can preview the generated manifest but nothing is written.
 
 The generated manifest store will also be reported in JSON format to stdout.
 
 ```shell
-c2patool target.jpg -m sample/test.json -o edited_image.jpg
+c2patool image.jpg -m sample/test.json -o signed_image.jpg
 ```
 
-A parent file can be specified with the -p/parent option or in the manifest definition. The parent file represents the state of the image before any edits were made. 
+A parent file can be specified with the `-p` or `--parent` option or in the manifest definition. The parent file represents the state of the asset before any edits were made. 
 
 ```shell
-c2patool target.jpg -m sample/test.json -p original.jpg -o edited_image.jpg
+c2patool image.jpg -m sample/test.json -p parent.jpg -o signed_image.jpg
+```
+
+#### Forced overwrite
+The tool will return an error if the output file already exists. The `-f` or `--force` flag may be used to override this behavior. Use this with caution.
+
+```shell
+c2patool image.jpg -m sample/test.json -f -o signed_image.jpg
 ```
 
 #### Manifest preview feature
@@ -71,29 +78,28 @@ c2patool target.jpg -m sample/test.json -p original.jpg -o edited_image.jpg
 If the output file is not specified, the tool will generate a preview of the generated manifest. This can be used to make sure you have formatted the manifest definition correctly.
 
 ```shell
-c2patool target.jpg -m sample/test.json
+c2patool image.jpg -m sample/test.json
 ```
-
 
 ### Generating an external manifest
 
-The `-s` option puts the manifest in an external sidecar file in the same location as the output file. The
-manifest will have the same output filename but with a ".c2pa" extension. The output file will be untouched. 
+The `-s` or `--sidecar` option puts the manifest in an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The output file will be copied but untouched. 
 
 ```shell
-c2patool target.jpg -s -m sample/test.json -o new_manifest.jpg
+c2patool image.jpg -s -m sample/test.json -o signed_image.jpg
 ```
 ### Generating a remote manifest
 
-The `-r` option places an http reference to manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The manifest should then be placed at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. You can disable this by removing feature `fetch_remote_manifests` from Cargo.toml.
+The `-r` or `--remote` option places an http reference to manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The manifest should then be placed at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. 
 
 ```shell
-c2patool target.jpg -r http://my_server/myasset.c2pa -m sample/test.json -o new_manifest.jpg
+c2patool image.jpg -r http://my_server/myasset.c2pa -m sample/test.json -o signed_image.jpg
 ```
 
 In the example above c2patool will try to fetch the manifest for new_manifest.jpg from http://my_server/myasset.c2pa during validation.
 
 Note: It is possible to combine the `-s` and `-r` options. When used together a manifest will be embedded in the output files and the remote reference will also be added. 
+
 #### Example of a manifest definition file
 
 Here's an example of a manifest definition that inserts a CreativeWork author assertion. If you copy this into a JSON file, you can use it as a test manifest definition.
@@ -127,7 +133,7 @@ The [manifest definition](#manifest-definition-format) can also be passed on the
 In this example we are adding a custom assertion called "org.contentauth.test".
 
 ```shell
-c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}'
+c2patool image.json -c '{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}'
 ```
 
 ### Manifest definition format
@@ -185,12 +191,12 @@ The schema for this type is as follows:
 		"parent": {
 			"type": "string",
 			"format": "Local file system path",
-			"description": "A file path to the source image that was modified by this Manifest (if any)."
+			"description": "A file path to the state of the asset prior to any changes declared in the manifest definition."
 		},
         "Ingredients": {
 			"type": "array of string",
 			"format": "Array of local file system paths",
-			"description": "File paths to images that were used to modify the image referenced by this Manifest (if any)."
+			"description": "File paths to assets that were used to modify the asset referenced by this Manifest (if any)."
 		},
 		"assertions": {
 			"type": "object",
@@ -225,71 +231,5 @@ The schema for this type is as follows:
 	"additionalProperties": false
 }
 ```
-
-### Generating an external manifest
-
-The `-s` option puts the manifest in an external sidecar file in the same location as the output file. The
-manifest will have the same output filename but with a ".c2pa" extension. The output file will be untouched. 
-
-```shell
-c2patool -s sample/test.json -o new_manifest.jpg
-```
-
-### Generating a remote manifest
-
-The `-r` option places an http reference to manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The manifest should then be placed at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. You can disable this by removing feature `fetch_remote_manifests` from Cargo.toml.
-
-```shell
-c2patool -r http://my_server/myasset.c2pa sample/test.json -o new_manifest.jpg
-```
-
-In the example above c2patool will try to fetch the manifest for new_manifest.jpg from http://my_server/myasset.c2pa during validation.
-
-Note: It is possible to combine the `-s` and `-r` options. When used together a manifest will be embedded in the output files and the remote reference will also be added. The sidecar .c2pa file is omitted.
-
-## Appendix
-
-### Creating and using an X.509 certificate
-
-You should be able to test creating your own manifests using pre-built certificates supplied with this tool. However, if
-you want to use your own generated certificates, you can specify the path to the cert files in the following configuration fields:
-
-- `private_key`
-- `sign_cert`
-
-If you are using a signing algorithm other than the default `es256`, you will need to specify it in the manfifest defnition field `alg`, which can be set to one of the following:
-
-- `ps256`
-- `ps384`
-- `ps512`
-- `es256`
-- `es384`
-- `es512`
-- `ed25519`
-
-The specified algorithm must be compatible with values of `private_key` and `sign_cert`.
-
-The key and cert can also be placed directly in the environment variables `C2PA_PRIVATE_KEY` and `C2PA_SIGN_CERT`. These two variables are used to set the private key and public certificates. For example, to sign with es256 signatures using the content of a private key file and certificate file, you would run:
-
-```shell
-set C2PA_PRIVATE_KEY=$(cat my_es256_private_key)
-set C2PA_SIGN_CERT=$(cat my_es256_certs)
-```
-
-Both the `private_key` and `sign_cert` should be in PEM format. The `sign_cert` should contain a PEM certificate chain starting for the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate. See the ["sample" folder](https://github.com/contentauth/c2patool/tree/main/sample) for example certificates.
-
-To create your own temporary files for testing, you can execute the following command:
-
-```shell
-openssl req -new -newkey rsa:4096 
-   -sigopt rsa_padding_mode:pss \ 
-   -days 180 \
-   -extensions v3_ca \
-   -addext "keyUsage = digitalSignature" \
-   -addext "extendedKeyUsage = emailProtection" \
-   -nodes -x509 -keyout private.key -out certs.pem -sha256
-```	
-
-Note: You may need to update your `openssl` version if the above command does not work. You will likely need version 3.0 or later. You can check the version that is installed by typing `openssl version`.
 
 
