@@ -48,16 +48,22 @@ c2patool image.jpg -d
 
 ### Adding a manifest to a file
 
-You can add C2PA data to a file by passing a [manifest definition](#manifest-definition-format) JSON file instead of an image. The tool will generate a new manifest using the values given in the definition. 
+You can add C2PA data to a file by passing a [manifest definition](#manifest-definition-format) JSON file using the -m manifest option. The tool will generate a new manifest using the values given in the definition. 
 
-A parent file and and output file should be specified. The parent file represents the state of the image before any edits were made. The parent file path can be set in the parent field of the manifest definition or on the command line via the -p/parent flag.
+The file path must reference the target file to be signed. 
 
-The output file is specified on the command line via the -o/output flag. The output file will be updated to contain a new manifest store bound to the output image, replacing any existing manifest data in that file. If you have any previous manifest data, it should be passed via the parent. 
+The output file is specified on the command line via the -o/output flag.  If the output is the same as the target, it will be overwritten. Use this with caution. If no output is given you can preview the generated manifest but nothing is written.
 
 The generated manifest store will also be reported in JSON format to stdout.
 
 ```shell
-c2patool sample/test.json -p original.jpg -o edited_image.jpg
+c2patool target.jpg -m sample/test.json -o edited_image.jpg
+```
+
+A parent file can be specified with the -p/parent option or in the manifest definition. The parent file represents the state of the image before any edits were made. 
+
+```shell
+c2patool target.jpg -m sample/test.json -p original.jpg -o edited_image.jpg
 ```
 
 #### Manifest preview feature
@@ -65,24 +71,29 @@ c2patool sample/test.json -p original.jpg -o edited_image.jpg
 If the output file is not specified, the tool will generate a preview of the generated manifest. This can be used to make sure you have formatted the manifest definition correctly.
 
 ```shell
-c2patool sample/test.json
+c2patool target.jpg -m sample/test.json
 ```
-#### Shortcut feature
 
-If the output file does not exist, and a parent exists, the parent file will be copied to the output location and then updated.
+
+### Generating an external manifest
+
+The `-s` option puts the manifest in an external sidecar file in the same location as the output file. The
+manifest will have the same output filename but with a ".c2pa" extension. The output file will be untouched. 
 
 ```shell
-c2patool sample/test.json -p original.jpg -o copy_of_original.jpg
+c2patool target.jpg -s -m sample/test.json -o new_manifest.jpg
 ```
+### Generating a remote manifest
 
-#### No parent feature
-
-If the output file exists and no parent is specified, the output file will be updated with a manifest created from the manifest definition only. Note that in this case, any previous manifest data in the output file will be replaced.
+The `-r` option places an http reference to manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The manifest should then be placed at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. You can disable this by removing feature `fetch_remote_manifests` from Cargo.toml.
 
 ```shell
-c2patool sample/test.json -o new_manifest.jpg
+c2patool target.jpg -r http://my_server/myasset.c2pa -m sample/test.json -o new_manifest.jpg
 ```
 
+In the example above c2patool will try to fetch the manifest for new_manifest.jpg from http://my_server/myasset.c2pa during validation.
+
+Note: It is possible to combine the `-s` and `-r` options. When used together a manifest will be embedded in the output files and the remote reference will also be added. 
 #### Example of a manifest definition file
 
 Here's an example of a manifest definition that inserts a CreativeWork author assertion. If you copy this into a JSON file, you can use it as a test manifest definition.
