@@ -79,17 +79,15 @@ The following table describes the command-line options.
 To display the manifest associated with an asset file, provide the relative path to the file as the argument; for example:
 
 ```shell
-c2patool image.jpg
+c2patool sample/C.jpg
 ```
 
 The tool displays the manifest JSON to standard output (stdout).
 
-### Displaying a detailed manifest report
-
 To display a detailed report describing the internal C2PA format of manifests contained in the asset, use the `-d` option; for example:
 
 ```shell
-c2patool -d image.jpg
+c2patool -d sample/image.jpg
 ```
 
 The tool displays the detailed report to standard output (stdout).
@@ -99,7 +97,7 @@ The tool displays the detailed report to standard output (stdout).
 To add C2PA manifest data to a file, use the `--manifest` (or `-m`) option with a manifest JSON file as the option argument and the path to the asset file to be signed.  Specify the output file as the argument to the `-o` or `--output` option.   For example:
 
 ```shell
-c2patool image.jpg -m sample/test.json -o signed_image.jpg
+c2patool sample/image.jpg -m sample/test.json -o signed_image.jpg
 ```
 
 The tool generates a new manifest using the values given in the file and displays the manifest store to standard output (stdout).
@@ -115,7 +113,7 @@ A _parent file_ represents the state of the image before any edits were made.
 Specify a parent file as the argument to the `--parent`/`-p` option; for example:
 
 ```shell
-c2patool image.jpg -m sample/test.json -p parent.jpg -o signed_image.jpg
+c2patool sample/image.jpg -m sample/test.json -p sample/c.jpg -o signed_image.jpg
 ```
 
 You can also specify a parent file in the manifest definition.
@@ -148,7 +146,7 @@ c2patool image.jpg -s -m sample/test.json -o signed_image.jpg
 Use the `--remote` (or `-r`) option to places an HTTP reference to the manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file with the same filename but with a ".c2pa" extension. Place the manifest at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. 
 
 ```shell
-c2patool image.jpg -r http://my_server/myasset.c2pa -m sample/test.json -o signed_image.jpg
+c2patool sample/image.jpg -r http://my_server/myasset.c2pa -m sample/test.json -o signed_image.jpg
 ```
 
 In the example above, the tool tries to fetch the manifest for `new_manifest.jpg` from `http://my_server/myasset.c2pa` during validation.
