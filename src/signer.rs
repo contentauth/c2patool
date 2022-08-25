@@ -11,14 +11,12 @@
 // specific language governing permissions and limitations under
 // each license.
 
-//! Provides a method to read configured certs and generate a signer.
-
-use std::{env, path::Path};
+use std::env;
 
 use anyhow::{Context, Result};
 use c2pa::{create_signer, Signer, SigningAlg};
 
-use crate::{config::Config, fix_relative_path};
+use crate::manifest_config::ManifestConfig;
 
 pub fn get_ta_url() -> Option<String> {
     std::env::var("C2PA_TA_URL").ok()
@@ -28,7 +26,7 @@ pub fn get_ta_url() -> Option<String> {
 const DEFAULT_CERTS: &[u8] = include_bytes!("../sample/es256_certs.pem");
 const DEFAULT_KEY: &[u8] = include_bytes!("../sample/es256_private.key");
 
-pub fn get_c2pa_signer(config: &Config, base_path: &Path) -> Result<Box<dyn Signer>> {
+pub fn get_c2pa_signer(config: &ManifestConfig) -> Result<Box<dyn Signer>> {
     let alg = config.alg.as_deref().unwrap_or("es256").to_lowercase();
     let alg: SigningAlg = alg.parse().map_err(|_| c2pa::Error::UnsupportedType)?;
     let tsa_url = config.ta_url.clone().or_else(get_ta_url);
@@ -37,7 +35,7 @@ pub fn get_c2pa_signer(config: &Config, base_path: &Path) -> Result<Box<dyn Sign
     let mut sign_cert = None;
 
     if let Some(path) = config.private_key.as_deref() {
-        let path = fix_relative_path(path, base_path);
+        let path = config.fix_relative_path(path);
         private_key =
             Some(std::fs::read(&path).context(format!("Reading private key: {:?}", &path))?);
     }
@@ -49,7 +47,7 @@ pub fn get_c2pa_signer(config: &Config, base_path: &Path) -> Result<Box<dyn Sign
     };
 
     if let Some(path) = config.sign_cert.as_deref() {
-        let path = fix_relative_path(path, base_path);
+        let path = config.fix_relative_path(path);
         sign_cert = Some(std::fs::read(&path).context(format!("Reading sign cert: {:?}", &path))?);
     }
 
