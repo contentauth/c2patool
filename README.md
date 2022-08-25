@@ -8,18 +8,19 @@ c2patool is a command line tool for working with C2PA [manifests](https://c2pa.o
 - Adding a C2PA manifest to [supported file formats](#supported-file-formats)
 
 ## Supported file formats
-| MIME type         | extensions  | read only |
-| ----------------- | ----------- | --------- |
-| `image/jpeg`      | `jpg, jpeg` |           |
-| `image/png`       | `png`       |           |
-| `image/avif`      | `avif`      |    X      |
-| `image/heic`      | `heic`      |    X      |
-| `image/heif`      | `heif`      |    X      |
-| `video/mp4`       | `mp4`       |           |
-| `application/mp4` | `mp4`       |           |
-| `audio/mp4`       | `m4a`       |           |
-| `application/c2pa`| `c2pa`      |    X      |
-| `video/quicktime` | `mov`       |           |
+| MIME type                           | extensions  | read only |
+| ----------------------------------- | ----------- | --------- |
+| `image/jpeg`                        | `jpg, jpeg` |           |
+| `image/png`                         | `png`       |           |
+| `image/avif`                        | `avif`      |    X      |
+| `image/heic`                        | `heic`      |    X      |
+| `image/heif`                        | `heif`      |    X      |
+| `video/mp4`                         | `mp4`       |           |
+| `application/mp4`                   | `mp4`       |           |
+| `audio/mp4`                         | `m4a`       |           |
+| `video/quicktime`                   |  `mov`      |           |
+| `application/x-c2pa-manifest-store` | `c2pa`      |           |
+        |
 
 ## Installation
 
@@ -81,14 +82,14 @@ If the output file is not specified, the tool will generate a preview of the gen
 c2patool image.jpg -m sample/test.json
 ```
 
-### Generating an external manifest
+#### Generating an external manifest
 
 The `-s` or `--sidecar` option puts the manifest in an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The output file will be copied but untouched. 
 
 ```shell
 c2patool image.jpg -s -m sample/test.json -o signed_image.jpg
 ```
-### Generating a remote manifest
+#### Generating a remote manifest
 
 The `-r` or `--remote` option places an http reference to manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The manifest should then be placed at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. 
 
@@ -100,9 +101,18 @@ In the example above c2patool will try to fetch the manifest for new_manifest.jp
 
 Note: It is possible to combine the `-s` and `-r` options. When used together a manifest will be embedded in the output files and the remote reference will also be added. 
 
-#### Example of a manifest definition file
+### Example of a manifest definition file
 
-Here's an example of a manifest definition that inserts a CreativeWork author assertion. If you copy this into a JSON file, you can use it as a test manifest definition.
+Here's an example of a manifest definition that inserts a CreativeWork author assertion. If you copy this into a JSON file, you can use it as a test manifest definition. 
+
+It is important to provide a Time Authority URL in order to have a valid timestamp on the claim. 
+The c2patool has default certs built into the binary. It uses the ones you can view in the sample folder. This example uses the default testing certs. You will see this warning message when using these. 
+
+
+```
+Note: Using default private key and signing certificate. This is only valid for development.
+A permanent key and cert should be provided in the manifest definition or in the environment variables.
+```
 
 ```json
 {
@@ -231,5 +241,37 @@ The schema for this type is as follows:
 	"additionalProperties": false
 }
 ```
+
+## Appendix
+
+### Creating and using an X.509 certificate
+
+You should be able to test creating your own manifests using pre-built certificates supplied with this tool. However, if
+you want to use your own generated certificates, you can specify the path to the cert files in the following configuration fields:
+
+- `private_key`
+- `sign_cert`
+
+If you are using a signing algorithm other than the default `es256`, you will need to specify it in the manfifest defnition field `alg`, which can be set to one of the following:
+
+- `ps256`
+- `ps384`
+- `ps512`
+- `es256`
+- `es384`
+- `es512`
+- `ed25519`
+
+The specified algorithm must be compatible with values of `private_key` and `sign_cert`.
+
+The key and cert can also be placed directly in the environment variables `C2PA_PRIVATE_KEY` and `C2PA_SIGN_CERT`. These two variables are used to set the private key and public certificates. For example, to sign with es256 signatures using the content of a private key file and certificate file, you would run:
+
+```shell
+set C2PA_PRIVATE_KEY=$(cat my_es256_private_key)
+set C2PA_SIGN_CERT=$(cat my_es256_certs)
+```
+
+Both the `private_key` and `sign_cert` should be in PEM format. The `sign_cert` should contain a PEM certificate chain starting with the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate. See the ["sample" folder](https://github.com/contentauth/c2patool/tree/main/sample) for example certificates.
+
 
 
