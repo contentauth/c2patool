@@ -29,3 +29,8 @@ tempfile = "3.3"
 [dev-dependencies]
 assert_cmd = "2.0"
 predicates = "2.1"
+
+[profile.release] 
+strip = true  # Automatically strip symbols from the binary. 
+opt-level = "z"  # Optimize for size. 
+lto = true # Link time optimization. 
