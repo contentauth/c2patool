@@ -70,7 +70,7 @@ The following table describes the command-line options.
 | `--output` | `-o` | `<output_file>` | Specifies path to output file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file). |
 | `--manifest` | `-m` | `<manifest_file>` | Specifies a manifest file to add to an asset file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).
 | `--parent` | `-p` | `<parent_file>` | Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file). |
-| `--remote` | `-r` | `<manifest_url>` | Specify remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)|
+| `--remote` | `-r` | `<manifest_url>` | Specify URL for remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)|
 | `--sidecar` | `-s` | N/A | Put manifest in external "sidecar" file with `.c2pa` extension. See [Generating an external manifest](#generating-an-external-manifest). |
 | `--version` | `-V` | N/A | Display version information. |
 
@@ -84,10 +84,10 @@ c2patool sample/C.jpg
 
 The tool displays the manifest JSON to standard output (stdout).
 
-To display a detailed report describing the internal C2PA format of manifests contained in the asset, use the `-d` option; for example:
+To display a detailed report describing the internal C2PA format of manifests contained in the asset, use the `-d` option; for example, using one of the example images in the `sample` directory:
 
 ```shell
-c2patool -d sample/image.jpg
+c2patool -d sample/C.jpg
 ```
 
 The tool displays the detailed report to standard output (stdout).
@@ -108,7 +108,7 @@ If you do not use the `--output` / `-o` option, then the tool will display the g
 
 #### Specifying a parent file
 
-A _parent file_ represents the state of the image before any edits were made. 
+A _parent file_ represents the state of the image before the current edits were made. 
 
 Specify a parent file as the argument to the `--parent` / `-p` option; for example:
 
@@ -131,7 +131,7 @@ c2patool image.jpg -m sample/test.json -f -o signed_image.jpg
 To display a preview of the generated manifest and ensure you've formatted the manifest definition correctly, provide the path to a manifest file as the argument with no other options or flags; for example:
 
 ```shell
-c2patool sample/test.json
+c2patool sample/image.jpg -m sample/test.json
 ```
 
 ### Generating an external manifest
@@ -149,9 +149,9 @@ Use the `--remote` / `-r` option to places an HTTP reference to the manifest in 
 c2patool sample/image.jpg -r http://my_server/myasset.c2pa -m sample/test.json -o signed_image.jpg
 ```
 
-In the example above, the tool tries to fetch the manifest for `new_manifest.jpg` from `http://my_server/myasset.c2pa` during validation.
+In the example above, the tool will embed the URL http://my_server/myasset.c2pa in `signed_image.jpg` then fetch the manifest from that URL and save it to `signed_image.c2pa`.
 
-If you use both the `-s` and `-r` options, the tool embeds a manifest in the output files and also adds the remote reference.
+If you use both the `-s` and `-r` options, the tool embeds a manifest in the output file and also adds the remote reference.
 
 ### Providing a manifest definition on the command line
 
