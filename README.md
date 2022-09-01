@@ -27,7 +27,7 @@ To ensure you have the latest version, enter this command:
 c2patool -V 
 ```
 
-The tool will display the version installed.  Compare the version number displayed with the latest release version shown in the [repository releases page](https://github.com/contentauth/c2patool/releases).  To update to the latest version, use the installation command shown above.
+The tool will display the version installed. Compare the version number displayed with the latest release version shown in the [repository releases page](https://github.com/contentauth/c2patool/releases). To update to the latest version, use the installation command shown above.
 
 
 ## Supported file formats
@@ -57,26 +57,26 @@ The tool's command-line syntax is:
 c2patool [OPTIONS] [path]
 ```
 
-Where  `<path>` is the path to the asset to read, or a JSON configuration file.
+Where `<path>` is the path to the asset to read, or a JSON configuration file.
 
 The following table describes the command-line options.
 
 | CLI&nbsp;option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Short version | Argument | Description |
 |-----|----|----|----|
 | `--config` | `-c` | `<config>` | Specifies a manifest definition as a JSON string. See [Providing a manifest definition on the command line](#providing-a-manifest-definition-on-the-command-line). |
-| `--detailed` | `-d` | N/A | Display detailed C2PA-formatted manifest data.  See [Displaying a detailed manifest report](#displaying-a-detailed-manifest-report). |
+| `--detailed` | `-d` | N/A | Display detailed C2PA-formatted manifest data. See [Displaying a detailed manifest report](#displaying-a-detailed-manifest-report). |
 | `--force` | `-f` | N/A | Force overwriting output file. See [Forced overwrite](#forced-overwrite). |
 | `--help` | `-h` | N/A | Display CLI help information. |
 | `--output` | `-o` | `<output_file>` | Specifies path to output file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file). |
 | `--manifest` | `-m` | `<manifest_file>` | Specifies a manifest file to add to an asset file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).
-| `--parent` | `-p` | `<parent_file>` |  Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file). |
+| `--parent` | `-p` | `<parent_file>` | Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file). |
 | `--remote` | `-r` | `<manifest_url>` | Specify remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)|
 | `--sidecar` | `-s` | N/A | Put manifest in external "sidecar" file with `.c2pa` extension. See [Generating an external manifest](#generating-an-external-manifest). |
 | `--version` | `-V` | N/A | Display version information. |
 
 ### Displaying manifest data
 
-To display the manifest associated with an asset file, provide the relative path to the file as the argument; for example:
+To display the manifest associated with an asset file, provide the path to the file as the argument; for example:
 
 ```shell
 c2patool sample/C.jpg
@@ -94,7 +94,7 @@ The tool displays the detailed report to standard output (stdout).
 
 ### Adding a manifest to an asset file
 
-To add C2PA manifest data to a file, use the `--manifest` (or `-m`) option with a manifest JSON file as the option argument and the path to the asset file to be signed.  Specify the output file as the argument to the `-o` or `--output` option.   For example:
+To add C2PA manifest data to a file, use the `--manifest` / `-m` option with a manifest JSON file as the option argument and the path to the asset file to be signed. Specify the output file as the argument to the `--output` / `-o` option. For example:
 
 ```shell
 c2patool sample/image.jpg -m sample/test.json -o signed_image.jpg
@@ -104,13 +104,13 @@ The tool generates a new manifest using the values given in the file and display
 
 CAUTION: If the output file is the same as the source file, the tool will overwrite the source file. 
 
-If you do not use the  `-o` or `--output` option, then the tool will display the generated manifest but will not save it to a file.
+If you do not use the `--output` / `-o` option, then the tool will display the generated manifest but will not save it to a file.
 
 #### Specifying a parent file
 
-A _parent file_ represents the state of the image before any edits were made.  
+A _parent file_ represents the state of the image before any edits were made. 
 
-Specify a parent file as the argument to the `--parent`/`-p` option; for example:
+Specify a parent file as the argument to the `--parent` / `-p` option; for example:
 
 ```shell
 c2patool sample/image.jpg -m sample/test.json -p sample/c.jpg -o signed_image.jpg
@@ -120,7 +120,7 @@ You can also specify a parent file in the manifest definition.
 
 #### Forced overwrite
 
-The tool will return an error if the output file already exists. Use the `--force` /  `-f` option to force overwriting the output file.  For example:
+The tool will return an error if the output file already exists. Use the `--force` / `-f` option to force overwriting the output file. For example:
 
 ```shell
 c2patool image.jpg -m sample/test.json -f -o signed_image.jpg
@@ -136,14 +136,14 @@ c2patool sample/test.json
 
 ### Generating an external manifest
 
-Use the `--sidecar` (or `-s`) option to put the manifest in an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a ".c2pa" extension. The tool will copy the output file but the original will be untouched. 
+Use the `--sidecar` / `-s` option to put the manifest in an external sidecar file in the same location as the output file. The manifest will have the same output filename but with a `.c2pa` extension. The tool will copy the output file but the original will be untouched. 
 
 ```shell
 c2patool image.jpg -s -m sample/test.json -o signed_image.jpg
 ```
 ### Generating a remote manifest
 
-Use the `--remote` (or `-r`) option to places an HTTP reference to the manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file with the same filename but with a ".c2pa" extension. Place the manifest at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. 
+Use the `--remote` / `-r` option to places an HTTP reference to the manifest in the output file. The manifest is returned as an external sidecar file in the same location as the output file with the same filename but with a `.c2pa` extension. Place the manifest at the location specified by the `-r` option. When using remote manifests the remote URL should be publicly accessible to be most useful to users. When verifying an asset, remote manifests are automatically fetched. 
 
 ```shell
 c2patool sample/image.jpg -r http://my_server/myasset.c2pa -m sample/test.json -o signed_image.jpg
@@ -155,7 +155,7 @@ If you use both the `-s` and `-r` options, the tool embeds a manifest in the out
 
 ### Providing a manifest definition on the command line
 
-To provide the [manifest definition](#manifest-definition-file) in a command line argument instead of a file, use the `--config` (or `-c`) option.
+To provide the [manifest definition](#manifest-definition-file) in a command line argument instead of a file, use the `--config` / `-c` option.
 
 For example, the following command adds a custom assertion called "org.contentauth.test".
 
