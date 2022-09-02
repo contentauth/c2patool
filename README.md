@@ -57,7 +57,7 @@ The tool's command-line syntax is:
 c2patool [OPTIONS] [path]
 ```
 
-Where `<path>` is the path to the asset to read, or a JSON configuration file.
+Where `<path>`  is the path to the asset to read or embed a manifest into.
 
 The following table describes the command-line options.
 
@@ -123,7 +123,7 @@ You can also specify a parent file in the manifest definition.
 The tool will return an error if the output file already exists. Use the `--force` / `-f` option to force overwriting the output file. For example:
 
 ```shell
-c2patool image.jpg -m sample/test.json -f -o signed_image.jpg
+c2patool sample/image.jpg -m sample/test.json -f -o signed_image.jpg
 ```
 
 ### Previewing a manifest
@@ -160,7 +160,7 @@ To provide the [manifest definition](#manifest-definition-file) in a command lin
 For example, the following command adds a custom assertion called "org.contentauth.test".
 
 ```shell
-c2patool -c '{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}'
+c2patool sample/image.json -c '{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}'
 ```
 
 ## Manifest definition file 
