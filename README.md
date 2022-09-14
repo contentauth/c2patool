@@ -46,6 +46,17 @@ The `-d` or `--detailed` option will print a detailed report describing the inte
 c2patool sample/C.jpg -d
 ```
 
+### Detailed manifest report
+
+The `--info` option will print a high level report about any c2pa content in the file. 
+For a cloud manifest it will display the url to the manifest.
+For embedded manifests, the size of the manifest store and number of manifests will be displayed. It will also report if the manifest validated or any errors encountered in validation.
+
+
+```shell
+c2patool sample/C.jpg --info
+```
+
 ### Adding a manifest to a file
 
 To add C2PA data to a file, use the `-m` or `--manifest` option and provide a manifest definition JSON file as the argument. The tool generates a new manifest using the values given in the file.
