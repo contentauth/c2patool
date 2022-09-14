@@ -40,7 +40,7 @@ fn tool_not_found() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("test/file/notfound.jpg");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("No such file "));
+        .stderr(predicate::str::contains("os error"));
     Ok(())
 }
 
