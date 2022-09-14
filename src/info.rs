@@ -30,7 +30,7 @@ pub fn info(path: &Path) -> Result<()> {
         if !provenance.starts_with("self#jumbf=") {
             println!("Cloud URL = {}", provenance);
         } else {
-            println!("XMP provenance URI = {}", provenance);
+            println!("Provenance URI = {}", provenance);
         }
     }
     if let Some(manifest_data) = ingredient.manifest_data() {
@@ -38,7 +38,7 @@ pub fn info(path: &Path) -> Result<()> {
         println!(
             "C2PA manifest store size = {} ({:.2}% of {})",
             manifest_data.len(),
-            file_size as f64 / manifest_data.len() as f64,
+            (manifest_data.len() as f64 / file_size as f64) * 100f64,
             file_size
         );
         if let Some(validation_status) = ingredient.validation_status() {
@@ -53,7 +53,7 @@ pub fn info(path: &Path) -> Result<()> {
         match manifest_store.manifests().len() {
             0 => println!("No embedded manifests"),
             1 => println!("One manifest"),
-            n => println!("{} Manifests", n),
+            n => println!("{} manifests", n),
         }
     } else {
         println!("No C2PA Manifests");
