@@ -67,6 +67,7 @@ The following table describes the command-line options.
 | `--detailed` | `-d` | N/A | Display detailed C2PA-formatted manifest data. See [Displaying a detailed manifest report](#displaying-a-detailed-manifest-report). |
 | `--force` | `-f` | N/A | Force overwriting output file. See [Forced overwrite](#forced-overwrite). |
 | `--help` | `-h` | N/A | Display CLI help information. |
+| `--info` |  | N/A | Display a brief informational report on the file. |
 | `--output` | `-o` | `<output_file>` | Specifies path to output file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file). |
 | `--manifest` | `-m` | `<manifest_file>` | Specifies a manifest file to add to an asset file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).
 | `--parent` | `-p` | `<parent_file>` | Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file). |
@@ -81,6 +82,7 @@ To display the manifest associated with an asset file, provide the path to the f
 ```shell
 c2patool sample/C.jpg
 ```
+### Detailed manifest report
 
 The tool displays the manifest JSON to standard output (stdout).
 
@@ -92,7 +94,7 @@ c2patool -d sample/C.jpg
 
 The tool displays the detailed report to standard output (stdout).
 
-### Detailed manifest report
+### Asset Information report
 
 The `--info` option will print a high level report about any c2pa content in the file. 
 For a cloud manifest it will display the url to the manifest.
