@@ -38,12 +38,20 @@ pub fn info(path: &Path) -> Result<()> {
 
     if let Some(manifest_data) = ingredient.manifest_data() {
         let file_size = std::fs::metadata(path).unwrap().len();
-        println!(
-            "C2PA manifest store size = {} ({:.2}% of {})",
-            manifest_data.len(),
-            (manifest_data.len() as f64 / file_size as f64) * 100f64,
-            file_size
-        );
+        if is_cloud_manifest {
+            println!(
+                "Remote manifest store size = {} (file size = {})",
+                manifest_data.len(),
+                file_size
+            );
+        } else {
+            println!(
+                "Manifest store size = {} ({:.2}% of {})",
+                manifest_data.len(),
+                (manifest_data.len() as f64 / file_size as f64) * 100f64,
+                file_size
+            );
+        }
         if let Some(validation_status) = ingredient.validation_status() {
             println!("Validation issues:");
             for status in validation_status {
