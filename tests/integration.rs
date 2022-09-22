@@ -50,7 +50,7 @@ fn tool_not_found_info() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("test/file/notfound.jpg").arg("--info");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("not found"));
+        .stderr(predicate::str::contains("os error"));
     Ok(())
 }
 
