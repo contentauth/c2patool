@@ -6,6 +6,28 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.3.7
+_22 September 2022_
+
+* Treat a source asset with a manifest store as a default parent ([#76](https://github.com/contentauth/c2pa-rs/pull/76))
+* Fetch remote manifests for --info ([#75](https://github.com/contentauth/c2pa-rs/pull/75))
+
+## 0.3.6
+_16 September 2022_
+
+* Update Cargo.lock when publishing crate ([#71](https://github.com/contentauth/c2pa-rs/pull/71))
+* [IGNORE] update readme --info ([#70](https://github.com/contentauth/c2pa-rs/pull/70))
+* Update Cargo.lock to 0.3.5
+
+## 0.3.5
+_15 September 2022_
+
+* Upgrade cpufeatures to non-yanked version ([#68](https://github.com/contentauth/c2pa-rs/pull/68))
+* Add --info option  ([#65](https://github.com/contentauth/c2pa-rs/pull/65))
+* Updated publish workflow to upload binaries to GitHub ([#58](https://github.com/contentauth/c2pa-rs/pull/58))
+* Fix Make release script & update readme ([#55](https://github.com/contentauth/c2pa-rs/pull/55))
+* (Some version history omitted as we worked on some release process issues)
+
 ## 0.3.0
 _18 August 2022_
 

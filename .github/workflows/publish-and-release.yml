@@ -1,15 +1,22 @@
-name: Publish release
+name: Publish crate and binaries
 
 on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  repo-prep:
+    name: Prepare versioning and changelogs for release
     runs-on: ubuntu-latest
-    steps:
 
-    - name: Checkout
-      uses: actions/checkout@v2
+    outputs: # TODO: See if these are still needed after refactoring
+      changelog-body: ${{ steps.generate-changelog.outputs.stdout }}
+      commit-hash: ${{ steps.commit.outputs.commit_hash }}
+      new-tag: ${{ steps.set-version.outputs.version_tag }}
+      version: ${{ steps.set-version.outputs.version }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
         token: ${{ secrets.GH_ADMIN_COMMIT_TOKEN }}
@@ -31,7 +38,7 @@ jobs:
 
     - name: Generate changelog since last tag
       uses: mathiasvr/command-output@v1
-      id: changelog
+      id: generate-changelog
       with:
         run: git log --format="* %s" ${{ steps.get-latest-tag.outputs.tag }}..HEAD | { grep -v "(IGNORE)" || :; }
 
@@ -45,10 +52,10 @@ jobs:
         VERSION: ${{ steps.set-version.outputs.version }}
         VERSION_TAG: ${{ steps.set-version.outputs.version_tag }}
         LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
-        CHANGELOG: ${{ steps.changelog.outputs.stdout }}
+        CHANGELOG: ${{ steps.generate-changelog.outputs.stdout }}
 
     - name: Prevent empty release
-      if: ${{ steps.changelog.outputs.stdout == '' }}
+      if: ${{ steps.generate-changelog.outputs.stdout == '' }}
       uses: actions/github-script@v3
       with:
         script: |
@@ -60,7 +67,7 @@ jobs:
         mv CHANGELOG.new.md CHANGELOG.md
       env:
         VERSION: ${{ steps.set-version.outputs.version }}
-        CHANGELOG: ${{ steps.changelog.outputs.stdout }}
+        CHANGELOG: ${{ steps.generate-changelog.outputs.stdout }}
 
     - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
@@ -72,11 +79,15 @@ jobs:
         sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
       env:
         VERSION: ${{ steps.set-version.outputs.version }}
+    
+    - name: Update Cargo.lock
+      run: |
+        cargo update -p c2patool
 
     - name: Report differences for "prepare (release)" commit
       run: git diff
 
-    - name: Commit Cargo.toml and changelog
+    - name: Commit Cargo.toml, Cargo.lock, and changelog
       uses: stefanzweifel/git-auto-commit-action@v4
       id: commit
       with:
@@ -84,17 +95,74 @@ jobs:
         commit_user_name: Adobe CAI Team
         commit_user_email: noreply@adobe.com
 
-    - name: Create release
+    - name: Create GitHub release
       uses: ncipollo/release-action@v1
       with:
-        body: ${{ steps.changelog.outputs.stdout }}
+        body: ${{ steps.generate-changelog.outputs.stdout }}
         commit: ${{ steps.commit.outputs.commit_hash }}
         prerelease: true # remove at 1.0
         tag: ${{ steps.set-version.outputs.version_tag }}
         token: ${{ secrets.GH_ADMIN_COMMIT_TOKEN }}
+
+  release-crate:
+    name: Release c2patool Rust crate
+    needs: repo-prep
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.repo-prep.outputs.commit-hash }}
 
     - name: Publish crate
       run: |
         cargo publish --token $CRATES_IO_SECRET
       env:
         CRATES_IO_SECRET: ${{ secrets.CRATES_IO_SECRET }}
+
+  publish-binaries:
+    name: Publish c2patool binaries
+    runs-on: ${{ matrix.os }}
+    needs: repo-prep
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        rust_version: [stable]
+        experimental: [false]
+        include:
+        - os: macos-latest
+          artifact_name: c2patool_mac_universal.zip
+        - os: ubuntu-latest
+          artifact_name: c2patool_linux_intel.tar.gz
+        - os: windows-latest
+          artifact_name: c2patool_win_intel.zip
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.repo-prep.outputs.commit-hash }}
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust_version }}
+        components: llvm-tools-preview
+        override: true
+
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v1
+
+    - name: Run make release
+      run: make release
+
+    - name: Upload binary to github
+      uses: svenstaro/upload-release-action@v1-release
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: target/${{ matrix.artifact_name }}
+        asset_name: ${{ matrix.artifact_name }}
+        tag: ${{ needs.repo-prep.outputs.new-tag }}
+        overwrite: true

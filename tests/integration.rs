@@ -40,7 +40,17 @@ fn tool_not_found() -> Result<(), Box<dyn std::error::Error>> {
     cmd.arg("test/file/notfound.jpg");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("File not found"));
+        .stderr(predicate::str::contains("os error"));
+    Ok(())
+}
+
+#[test]
+fn tool_not_found_info() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("c2patool")?;
+    cmd.arg("test/file/notfound.jpg").arg("--info");
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("os error"));
     Ok(())
 }
 
@@ -51,6 +61,16 @@ fn tool_jpeg_no_report() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .failure()
         .stderr(predicate::str::contains("No claim found"));
+    Ok(())
+}
+
+#[test]
+fn tool_info() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin("c2patool")?;
+    cmd.arg(fixture_path("C.jpg")).arg("--info");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Validated\nOne manifest"));
     Ok(())
 }
 
