@@ -6,6 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.3.8
+_09 November 2022_
+
+* Bump c2pa from 0.13.2 to 0.15.0 ([#87](https://github.com/contentauth/c2pa-rs/pull/87))
+* Build infrastructure improvements ([#85](https://github.com/contentauth/c2pa-rs/pull/85))
+* Fix new Clippy warning in Rust 1.65 ([#84](https://github.com/contentauth/c2pa-rs/pull/84))
+* Readme updates ([#62](https://github.com/contentauth/c2pa-rs/pull/62))
+
 ## 0.3.7
 _22 September 2022_
 
