@@ -13,6 +13,8 @@
 
 use assert_cmd::prelude::*; // Add methods on commands
 use predicates::prelude::*;
+use std::error::Error;
+use std::fs::create_dir_all;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -35,7 +37,7 @@ fn temp_path(name: &str) -> PathBuf {
 }
 
 #[test]
-fn tool_not_found() -> Result<(), Box<dyn std::error::Error>> {
+fn tool_not_found() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::cargo_bin("c2patool")?;
     cmd.arg("test/file/notfound.jpg");
     cmd.assert()
@@ -45,7 +47,7 @@ fn tool_not_found() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn tool_not_found_info() -> Result<(), Box<dyn std::error::Error>> {
+fn tool_not_found_info() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::cargo_bin("c2patool")?;
     cmd.arg("test/file/notfound.jpg").arg("--info");
     cmd.assert()
@@ -55,7 +57,7 @@ fn tool_not_found_info() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn tool_jpeg_no_report() -> Result<(), Box<dyn std::error::Error>> {
+fn tool_jpeg_no_report() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::cargo_bin("c2patool")?;
     cmd.arg(fixture_path(TEST_IMAGE));
     cmd.assert()
@@ -65,7 +67,7 @@ fn tool_jpeg_no_report() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn tool_info() -> Result<(), Box<dyn std::error::Error>> {
+fn tool_info() -> Result<(), Box<dyn Error>> {
     let mut cmd = Command::cargo_bin("c2patool")?;
     cmd.arg(fixture_path("C.jpg")).arg("--info");
     cmd.assert()
@@ -75,7 +77,7 @@ fn tool_info() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn tool_embed_jpeg_report() -> Result<(), Box<dyn std::error::Error>> {
+fn tool_embed_jpeg_report() -> Result<(), Box<dyn Error>> {
     Command::cargo_bin("c2patool")?
         .arg(fixture_path(TEST_IMAGE))
         .arg("-m")
@@ -88,6 +90,43 @@ fn tool_embed_jpeg_report() -> Result<(), Box<dyn std::error::Error>> {
         .assert()
         .success() // should this be a failure?
         .stdout(predicate::str::contains("My Title"));
+    Ok(())
+}
+
+#[test]
+fn tool_fs_output_report() -> Result<(), Box<dyn Error>> {
+    let path = temp_path("./output_dir");
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path("verify.jpeg"))
+        .arg("-o")
+        .arg(&path)
+        .arg("-f")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(format!(
+            "Manifest report written to the directory {:?}",
+            path
+        )));
+
+    assert!(path.join("manifest.txt").exists());
+    assert_eq!(path.join("ingredient_thumbnails").read_dir()?.count(), 5);
+    Ok(())
+}
+
+#[test]
+fn tool_fs_output_fails_when_output_exists() -> Result<(), Box<dyn Error>> {
+    let path = temp_path("./output_conflict");
+    // Create conflict directory.
+    create_dir_all(&path)?;
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path("C.jpg"))
+        .arg("-o")
+        .arg(&path)
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains(
+            "Error: Output already exists, use -f/force to force write",
+        ));
     Ok(())
 }
 
