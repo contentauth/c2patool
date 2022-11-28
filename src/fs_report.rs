@@ -49,8 +49,8 @@ fn write_ingredient_thumbnails(ingredients: &[Ingredient], destination: &Path) -
 pub(crate) fn write_report_for_path(manifest_path: &Path, destination_path: &Path) -> Result<()> {
     let store = ManifestStore::from_file(manifest_path)?;
     let ingredients_path = &destination_path.join("ingredient_thumbnails");
-    create_dir_all(&destination_path)?;
-    create_dir_all(&ingredients_path)?;
+    create_dir_all(destination_path)?;
+    create_dir_all(ingredients_path)?;
 
     store
         .manifests()
