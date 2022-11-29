@@ -221,7 +221,7 @@ fn main() -> Result<()> {
             }
         }
 
-        fs_report::write_report_for_path(&args.path, &output)?;
+        fs_report::write_report_for_path(&args.path, &output, args.detailed)?;
         println!("Manifest report written to the directory {:?}", &output);
     } else if args.parent.is_some() || args.sidecar || args.remote.is_some() || args.force {
         bail!("manifest definition required with these options or flags")

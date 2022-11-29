@@ -11,19 +11,21 @@
 // each license.
 
 use anyhow::Result;
-use c2pa::{Ingredient, Manifest, ManifestStore};
+use c2pa::{Ingredient, Manifest, ManifestStore, ManifestStoreReport};
 use std::fs::{create_dir_all, File};
 use std::io;
 use std::io::Write;
 use std::path::Path;
 
+const THUMBNAIL_CLAIM_NAME: &str = "thumbnail_claim";
+
 // Writes the provided `manifest` thumbnail, if present, to the `destination` path.
-fn write_manifest_thumbnail(manifest: &Manifest, name: &str, destination: &Path) -> Result<()> {
+fn write_manifest_thumbnail(manifest: &Manifest, destination: &Path) -> Result<()> {
     manifest.thumbnail().map(|(format, bytes)| {
         let name = match format {
-            "image/jpg" | "image/jpeg" => format!("{}.{}", name, "jpeg"),
-            "image/png" => format!("{}.{}", name, "png"),
-            _ => name.to_owned(),
+            "image/jpg" | "image/jpeg" => format!("{}.{}", THUMBNAIL_CLAIM_NAME, "jpeg"),
+            "image/png" => format!("{}.{}", THUMBNAIL_CLAIM_NAME, "png"),
+            _ => THUMBNAIL_CLAIM_NAME.to_owned(),
         };
         File::create(destination.join(name))?.write_all(bytes)
     });
@@ -46,23 +48,39 @@ fn write_ingredient_thumbnails(ingredients: &[Ingredient], destination: &Path) -
 
 /// Writes the report of the manifest, including the manifest's thumbnails and ingredient thumbnails,
 /// to the provided `destination_path`.
-pub(crate) fn write_report_for_path(manifest_path: &Path, destination_path: &Path) -> Result<()> {
+pub(crate) fn write_report_for_path(
+    manifest_path: &Path,
+    destination_path: &Path,
+    is_detailed: bool,
+) -> Result<()> {
     let store = ManifestStore::from_file(manifest_path)?;
-    let ingredients_path = &destination_path.join("ingredient_thumbnails");
     create_dir_all(destination_path)?;
-    create_dir_all(ingredients_path)?;
 
     store
         .manifests()
         .iter()
         .enumerate()
         .map(|(i, (_, manifest))| {
-            write_manifest_thumbnail(manifest, &format!("manifest_{}", i), destination_path)
-                .and_then(|_| write_ingredient_thumbnails(manifest.ingredients(), ingredients_path))
+            let label = manifest
+                .label()
+                .map(str::to_string)
+                .unwrap_or_else(|| format!("manifest_{}", i))
+                .replace(['/', ':'], "-");
+
+            let claim_path = destination_path.join(label);
+            create_dir_all(&claim_path)?;
+
+            write_manifest_thumbnail(manifest, &claim_path)
+                .and_then(|_| write_ingredient_thumbnails(manifest.ingredients(), &claim_path))
         })
         .collect::<Result<Vec<()>>>()?;
 
-    File::create(destination_path.join("manifest.txt"))?
-        .write_all(&store.to_string().into_bytes())?;
+    let manifest_bytes = match is_detailed {
+        true => ManifestStoreReport::from_file(manifest_path)?.to_string(),
+        false => store.to_string(),
+    }
+    .into_bytes();
+
+    File::create(destination_path.join("manifest.json"))?.write_all(&manifest_bytes)?;
     Ok(())
 }

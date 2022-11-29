@@ -13,7 +13,9 @@
 
 use assert_cmd::prelude::*; // Add methods on commands
 use predicates::prelude::*;
+use serde_json::Value;
 use std::error::Error;
+use std::fs;
 use std::fs::create_dir_all;
 use std::path::PathBuf;
 use std::process::Command;
@@ -108,8 +110,54 @@ fn tool_fs_output_report() -> Result<(), Box<dyn Error>> {
             path
         )));
 
-    assert!(path.join("manifest.txt").exists());
-    assert_eq!(path.join("ingredient_thumbnails").read_dir()?.count(), 5);
+    // Ensure manifest directories exist.
+    assert_eq!(
+        path.read_dir()
+            .unwrap()
+            .into_iter()
+            .map(|dir_entry| dir_entry.unwrap().path())
+            .filter(|path| path.is_dir())
+            .count(),
+        3
+    );
+
+    let manifest_json = path.join("manifest.json");
+    let contents = fs::read_to_string(&manifest_json)?;
+    let json: Value = serde_json::from_str(&contents)?;
+    assert_eq!(
+        json.as_object()
+            .unwrap()
+            .get("active_manifest")
+            .unwrap()
+            .as_str()
+            .unwrap(),
+        "adobe:urn:uuid:df1d2745-5beb-4d6c-bd99-3527e29c7df0",
+    );
+
+    Ok(())
+}
+
+#[test]
+fn tool_fs_output_report_supports_detailed_flag() -> Result<(), Box<dyn Error>> {
+    let path = temp_path("./output_dir");
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path("verify.jpeg"))
+        .arg("-o")
+        .arg(&path)
+        .arg("-f")
+        .arg("-d")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(format!(
+            "Manifest report written to the directory {:?}",
+            path
+        )));
+
+    let manifest_json = path.join("manifest.json");
+    let contents = fs::read_to_string(&manifest_json)?;
+    let json: Value = serde_json::from_str(&contents)?;
+    assert!(json.as_object().unwrap().get("validation_status").is_some());
+
     Ok(())
 }
 
