@@ -18,15 +18,36 @@ use std::io::Write;
 use std::path::Path;
 
 const THUMBNAIL_CLAIM_NAME: &str = "thumbnail_claim";
+const KNOWN_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
+
+fn add_extension(file_name: &str, media_type: &str) -> String {
+    let media_type_extension = match media_type {
+        "image/jpg" | "image/jpeg" => Some("jpg"),
+        "image/png" => Some("png"),
+        _ => None,
+    };
+
+    if let Some(media_type_extension) = media_type_extension {
+        Path::new(file_name)
+            .extension()
+            .and_then(|file_ext| file_ext.to_str())
+            .and_then(|file_ext| {
+                match KNOWN_EXTENSIONS.contains(&file_ext) && media_type_extension == file_ext {
+                    true => Some(file_name.to_owned()),
+                    false => None,
+                }
+            })
+            // Adds extension to filename with period. Ex: file.final_version => file.final_version.jpg
+            .unwrap_or_else(|| format!("{}.{}", file_name, media_type_extension))
+    } else {
+        file_name.to_owned()
+    }
+}
 
 // Writes the provided `manifest` thumbnail, if present, to the `destination` path.
 fn write_manifest_thumbnail(manifest: &Manifest, destination: &Path) -> Result<()> {
     manifest.thumbnail().map(|(format, bytes)| {
-        let name = match format {
-            "image/jpg" | "image/jpeg" => format!("{}.{}", THUMBNAIL_CLAIM_NAME, "jpeg"),
-            "image/png" => format!("{}.{}", THUMBNAIL_CLAIM_NAME, "png"),
-            _ => THUMBNAIL_CLAIM_NAME.to_owned(),
-        };
+        let name = add_extension(THUMBNAIL_CLAIM_NAME, format);
         File::create(destination.join(name))?.write_all(bytes)
     });
     Ok(())
@@ -36,10 +57,11 @@ fn write_manifest_thumbnail(manifest: &Manifest, destination: &Path) -> Result<(
 fn write_ingredient_thumbnails(ingredients: &[Ingredient], destination: &Path) -> Result<()> {
     ingredients
         .iter()
-        .filter_map(|ingredient| {
-            ingredient
-                .thumbnail()
-                .map(|(_, bytes)| (ingredient.title(), bytes))
+        .filter_map(|i| {
+            i.thumbnail().map(|(format, bytes)| {
+                let title = add_extension(i.title(), format);
+                (title, bytes)
+            })
         })
         .map(|(title, bytes)| File::create(destination.join(title))?.write_all(bytes))
         .collect::<Result<Vec<()>, io::Error>>()?;
@@ -83,4 +105,43 @@ pub(crate) fn write_report_for_path(
 
     File::create(destination_path.join("manifest.json"))?.write_all(&manifest_bytes)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::fs_report::add_extension;
+
+    #[test]
+    fn test_file_extension() {
+        assert_eq!(add_extension("filename.png", "image/png"), "filename.png");
+    }
+
+    #[test]
+    fn test_file_extension_not_equal_ingredient_name() {
+        assert_eq!(
+            add_extension("filename.psd", "image/png"),
+            "filename.psd.png"
+        );
+    }
+
+    #[test]
+    fn test_file_extension_not_equal_ingredient_name_and_known_type() {
+        assert_eq!(
+            add_extension("filename.png", "image/jpg"),
+            "filename.png.jpg"
+        );
+    }
+
+    #[test]
+    fn test_file_extension_ingredient_has_no_extension() {
+        assert_eq!(add_extension("filename", "image/jpeg"), "filename.jpg");
+    }
+
+    #[test]
+    fn test_file_extension_ingredient_filename_has_period_in_name() {
+        assert_eq!(
+            add_extension("filename.final.version", "image/jpeg"),
+            "filename.final.version.jpg"
+        );
+    }
 }
