@@ -15,10 +15,9 @@ use c2pa::{Ingredient, Manifest, ManifestStore, ManifestStoreReport};
 use std::fs::{create_dir_all, File};
 use std::io;
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 const THUMBNAIL_CLAIM_NAME: &str = "thumbnail_claim";
-const KNOWN_EXTENSIONS: &[&str] = &["jpeg", "jpg", "png"];
 
 fn add_extension(file_name: &str, media_type: &str) -> String {
     let media_type_extension = match media_type {
@@ -27,21 +26,13 @@ fn add_extension(file_name: &str, media_type: &str) -> String {
         _ => None,
     };
 
-    if let Some(media_type_extension) = media_type_extension {
-        Path::new(file_name)
-            .extension()
-            .and_then(|file_ext| file_ext.to_str())
-            .and_then(|file_ext| {
-                match KNOWN_EXTENSIONS.contains(&file_ext) && media_type_extension == file_ext {
-                    true => Some(file_name.to_owned()),
-                    false => None,
-                }
-            })
-            // Adds extension to filename with period. Ex: file.final_version => file.final_version.jpg
-            .unwrap_or_else(|| format!("{}.{}", file_name, media_type_extension))
-    } else {
-        file_name.to_owned()
-    }
+    media_type_extension
+        .and_then(|extension| {
+            let mut path = PathBuf::from(&file_name);
+            path.set_extension(extension);
+            path.into_os_string().into_string().ok()
+        })
+        .unwrap_or_else(|| file_name.to_owned())
 }
 
 // Writes the provided `manifest` thumbnail, if present, to the `destination` path.
@@ -118,18 +109,7 @@ mod tests {
 
     #[test]
     fn test_file_extension_not_equal_ingredient_name() {
-        assert_eq!(
-            add_extension("filename.psd", "image/png"),
-            "filename.psd.png"
-        );
-    }
-
-    #[test]
-    fn test_file_extension_not_equal_ingredient_name_and_known_type() {
-        assert_eq!(
-            add_extension("filename.png", "image/jpg"),
-            "filename.png.jpg"
-        );
+        assert_eq!(add_extension("filename.psd", "image/png"), "filename.png");
     }
 
     #[test]
@@ -141,7 +121,7 @@ mod tests {
     fn test_file_extension_ingredient_filename_has_period_in_name() {
         assert_eq!(
             add_extension("filename.final.version", "image/jpeg"),
-            "filename.final.version.jpg"
+            "filename.final.jpg"
         );
     }
 }
