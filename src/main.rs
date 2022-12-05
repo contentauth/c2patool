@@ -91,6 +91,34 @@ struct CliArgs {
     )]
     sidecar: bool,
 
+    #[structopt(
+        short = "v",
+        long = "svg",
+        help = "Represent the provided manifest as an SVG diagram."
+    )]
+    svg: Option<PathBuf>,
+
+    #[structopt(
+        short = "t",
+        long = "tree",
+        help = "Represent the provided manifest as a tree diagram."
+    )]
+    tree: Option<PathBuf>,
+
+    #[structopt(
+        short = "u",
+        long = "plant_uml",
+        help = "Represent the provided manifest as a plant UML diagram."
+    )]
+    plant_uml: Option<PathBuf>,
+
+    #[structopt(
+        short = "M",
+        long = "mermaid",
+        help = "Represent the provided manifest as a mermaid diagram."
+    )]
+    mermaid: Option<PathBuf>,
+
     #[structopt(long = "info", help = "Show manifest size, XMP url and other stats")]
     info: bool,
 }
