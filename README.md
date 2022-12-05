@@ -345,3 +345,5 @@ set C2PA_SIGN_CERT=$(cat my_es256_certs)
 ```
 
 Both the `private_key` and `sign_cert` must be in PEM format. The `sign_cert` must contain a PEM certificate chain starting with the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate. See the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) for example certificates.
+
+### Visualization
