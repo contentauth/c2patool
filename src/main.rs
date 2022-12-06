@@ -26,6 +26,7 @@ use structopt::{clap::AppSettings, StructOpt};
 
 mod info;
 use info::info;
+use glob::glob;
 pub mod manifest_config;
 use manifest_config::ManifestConfig;
 mod fs_report;
@@ -51,6 +52,22 @@ struct CliArgs {
     #[structopt(parse(from_os_str))]
     #[structopt(short = "p", long = "parent", help = "Path to a parent file.")]
     parent: Option<PathBuf>,
+
+    #[structopt(
+        short = "I",
+        long = "batch_input",
+        help = "Input pattern for batch manifest application, such as folder/* or folder/*.jpg.",
+        requires = "manifest"
+    )]
+    batch_input: Option<String>,
+
+    #[structopt(
+        short = "O",
+        long = "batch_output",
+        help = "Output folder for batch manifest application",
+        requires = "manifest"
+    )]
+    batch_output: Option<PathBuf>,
 
     #[structopt(
         short = "c",
@@ -166,6 +183,13 @@ fn main() -> Result<()> {
 
     // if we have a manifest config, process it
     if let Some(mut manifest_config) = config {
+        for item in glob(args.batch_input.as_ref().map(String::as_str).unwrap()).expect("Failed to read glob pattern"){
+            println!("here is my input: {:?}", args.batch_input);
+            println!("and my output: {:?}", args.batch_output);
+            println!("this is an item {}", item.unwrap().display())
+
+        }
+
         if let Some(parent_path) = args.parent {
             manifest_config.parent = Some(parent_path)
         }
