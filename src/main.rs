@@ -21,7 +21,7 @@ use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
-use c2pa::{Error, ManifestStore, ManifestStoreReport};
+use c2pa::{Error, Manifest, ManifestStore, ManifestStoreReport};
 use structopt::{clap::AppSettings, StructOpt};
 
 mod info;
@@ -141,6 +141,9 @@ struct CliArgs {
     #[structopt(long = "cc", help = "Dump certificate chain.")]
     cert_chain: bool,
 
+    #[structopt(long = "rm", help = "Remove manifest store from asset")]
+    remove_manifest: bool,
+
     #[structopt(long = "info", help = "Show manifest size, XMP url and other stats")]
     info: bool,
 }
@@ -189,6 +192,11 @@ fn main() -> Result<()> {
             let _r = ManifestStoreReport::dump_plantuml(path);
             return Ok(());
         }
+
+        if args.remove_manifest && path.exists() {
+            let _r = Manifest::remove_manifest(path);
+            return Ok(());
+        }
     }
 
     // get manifest config from either the -manifest option or the -config option
@@ -216,9 +224,11 @@ fn main() -> Result<()> {
                             let mut manifest = manifest_config.to_manifest()?;
                             manifest.enable_watermark();
                             let signer = get_c2pa_signer(&manifest_config)?;
-                            manifest
-                                .embed(&source_path, &output_dest, signer.as_ref())
-                                .context("embedding manifest")?;
+                            match manifest
+                                .embed(&source_path, &output_dest, signer.as_ref()) {
+                                    Ok(_) => println!("Processed: {:?}", source_path),
+                                    Err(_) => println!("Failed: {:?}", source_path), 
+                                }
                         } else {
                             bail!("batch output folder required");
                         }

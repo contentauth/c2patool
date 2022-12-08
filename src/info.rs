@@ -70,6 +70,10 @@ pub fn info(path: &Path) -> Result<()> {
         println!("Unable to fetch cloud manifest");
     } else {
         println!("No C2PA Manifests");
+        if let Ok(msg) = c2pa::Manifest::dump_stego(path) {
+            println!("{}", msg);
+        }
+        
     }
     Ok(())
 }
