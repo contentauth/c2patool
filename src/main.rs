@@ -224,11 +224,10 @@ fn main() -> Result<()> {
                             let mut manifest = manifest_config.to_manifest()?;
                             manifest.enable_watermark();
                             let signer = get_c2pa_signer(&manifest_config)?;
-                            match manifest
-                                .embed(&source_path, &output_dest, signer.as_ref()) {
-                                    Ok(_) => println!("Processed: {:?}", source_path),
-                                    Err(_) => println!("Failed: {:?}", source_path), 
-                                }
+                            match manifest.embed(&source_path, &output_dest, signer.as_ref()) {
+                                Ok(_) => println!("Processed: {:?}", source_path),
+                                Err(_) => println!("Failed: {:?}", source_path),
+                            }
                         } else {
                             bail!("batch output folder required");
                         }

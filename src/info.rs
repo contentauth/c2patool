@@ -73,7 +73,6 @@ pub fn info(path: &Path) -> Result<()> {
         if let Ok(msg) = c2pa::Manifest::dump_stego(path) {
             println!("{}", msg);
         }
-        
     }
     Ok(())
 }
