@@ -195,10 +195,10 @@ fn main() -> Result<()> {
                             let output_dest = batch_output.join(output_filename.unwrap());
                             let mut manifest = manifest_config.to_manifest()?;
                             let signer = get_c2pa_signer(&manifest_config)?;
-                            manifest
-                            .embed(&source_path, &output_dest, signer.as_ref())
-                            .context("embedding manifest")?;
-
+                            match manifest.embed(&source_path, &output_dest, signer.as_ref()) {
+                                Ok(_) => println!("Processed: {:?}", source_path),
+                                Err(_) => println!("Failed: {:?}", source_path),
+                             }
                         } else {
                             bail!("batch output folder required");
                         }
