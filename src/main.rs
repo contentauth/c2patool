@@ -17,7 +17,7 @@
 /// If only the path is given, this will generate a summary report of any claims in that file
 /// If a manifest definition json file is specified, the claim will be added to any existing claims
 ///
-use std::fs::create_dir_all;
+use std::fs::{create_dir_all, remove_dir_all};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
@@ -224,11 +224,10 @@ fn main() -> Result<()> {
                             let mut manifest = manifest_config.to_manifest()?;
                             manifest.enable_watermark();
                             let signer = get_c2pa_signer(&manifest_config)?;
-                            match manifest
-                                .embed(&source_path, &output_dest, signer.as_ref()) {
-                                    Ok(_) => println!("Processed: {:?}", source_path),
-                                    Err(_) => println!("Failed: {:?}", source_path), 
-                                }
+                            match manifest.embed(&source_path, &output_dest, signer.as_ref()) {
+                                Ok(_) => println!("Processed: {:?}", source_path),
+                                Err(_) => println!("Failed: {:?}", source_path),
+                            }
                         } else {
                             bail!("batch output folder required");
                         }
@@ -240,7 +239,7 @@ fn main() -> Result<()> {
             let path = &args
                 .path
                 .clone()
-                .ok_or(Error::BadParam("Bad path".to_string()))?;
+                .ok_or_else(|| Error::BadParam("Bad path".to_string()))?;
 
             if let Some(parent_path) = args.parent {
                 manifest_config.parent = Some(parent_path)
@@ -302,7 +301,7 @@ fn main() -> Result<()> {
                 let path = &args
                     .path
                     .clone()
-                    .ok_or(Error::BadParam("Bad path".to_string()))?;
+                    .ok_or_else(|| Error::BadParam("Bad path".to_string()))?;
                 if let Some(extension) = path.extension().map(|e| e.to_string_lossy().to_string()) {
                     // set the format field
                     match extension.as_str() {
@@ -319,8 +318,28 @@ fn main() -> Result<()> {
                 println!("{}", ManifestStore::from_manifest(&manifest)?)
             }
         }
-    }
+    } else if let Some(output) = args.output {
+        if output.exists() {
+            if args.force {
+                remove_dir_all(&output)?;
+            } else {
+                bail!("Output already exists, use -f/force to force write");
+            }
+        }
 
+        if let Some(path) = args.path {
+            fs_report::write_report_for_path(&path, &output, args.detailed)?;
+            println!("Manifest report written to the directory {:?}", &output);
+        }
+    } else if args.parent.is_some() || args.sidecar || args.remote.is_some() || args.force {
+        bail!("manifest definition required with these options or flags")
+    } else {
+        // let extension = path.extension().and_then(|p| p.to_str()).unwrap_or("");
+        // just report from file if no manifest configuration given
+        if let Some(path) = args.path {
+            println!("{}", report_from_path(&path, args.detailed)?);
+        }
+    }
     Ok(())
 }
 

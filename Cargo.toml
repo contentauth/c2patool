@@ -30,10 +30,10 @@ serde_json = "1.0"
 structopt = "0.3"
 tempfile = "3.3"
 
-#[dependencies.c2pa]
-#git = "https://github.com/contentauth/c2pa-rs.git"
-#branch = "hack_tree_dump"
-#features = ["bmff", "fetch_remote_manifests", "file_io",  "xmp_write"]
+# [dependencies.c2pa]
+# git = "https://github.com/contentauth/c2pa-rs.git"
+# branch = "hack_tree_dump"
+# features = ["bmff", "fetch_remote_manifests", "file_io",  "xmp_write"]
 
 [dev-dependencies]
 assert_cmd = "2.0"

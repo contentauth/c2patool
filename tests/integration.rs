@@ -97,7 +97,7 @@ fn tool_embed_jpeg_report() -> Result<(), Box<dyn Error>> {
 
 #[test]
 fn tool_fs_output_report() -> Result<(), Box<dyn Error>> {
-    let path = temp_path("./output_dir");
+    let path = temp_path("output_dir");
     Command::cargo_bin("c2patool")?
         .arg(fixture_path("verify.jpeg"))
         .arg("-o")
