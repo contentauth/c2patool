@@ -95,6 +95,75 @@ pub(crate) fn write_report_for_path(
     .into_bytes();
 
     File::create(destination_path.join("manifest.json"))?.write_all(&manifest_bytes)?;
+
+    write_html_report(manifest_path, destination_path)?;
+    Ok(())
+}
+
+// adds an html tree structured view to the report
+pub(crate) fn write_html_report(manifest_path: &Path, destination_path: &Path) -> Result<()> {
+    let html_start = r#"<!DOCTYPE html>
+    <html>
+        <head>
+        <meta charset="utf-8">
+        <style>
+            img {
+                height: 75px;
+            } 
+        </style>
+        </head>
+        <body>
+            <ul class="tree">
+    "#;
+    let html_end = r#"
+            </ul>
+        </body>
+    </html>
+    "#;
+
+    fn add_manifest(
+        manifest_store: &ManifestStore,
+        manifest_label: &str,
+        mut html: String,
+    ) -> Result<String> {
+        if let Some(manifest) = manifest_store.get(manifest_label) {
+            let manifest_label = manifest_label.replace(['/', ':'], "-");
+            let claim_img = format!(
+                "<img src=\"{}/thumbnail_claim.jpg\">{}</img>",
+                manifest_label, manifest_label
+            );
+            let mut content = claim_img;
+            if !manifest.ingredients().is_empty() {
+                content += "<ul class=tree>\n";
+                for ingredient in manifest.ingredients().iter() {
+                    let img = format!(
+                        "<li><img src=\"{}/{}\"></img>{}",
+                        &manifest_label,
+                        &ingredient.title(),
+                        &ingredient.title()
+                    );
+                    content += &img;
+                    if let Some(label) = ingredient.active_manifest() {
+                        html = add_manifest(manifest_store, label, html)?;
+                    };
+                }
+                html += &(content + "</ul>\n");
+            }
+        }
+        Ok(html)
+    }
+
+    let manifest_store = ManifestStore::from_file(manifest_path)?;
+    create_dir_all(destination_path)?;
+
+    let mut html_tree = html_start.to_string();
+    if let Some(manifest_label) = manifest_store.active_label() {
+        html_tree = add_manifest(&manifest_store, manifest_label, html_tree)?;
+    }
+    html_tree += html_end;
+
+    File::create(destination_path.join("manifest_test.html"))?.write_all(html_tree.as_bytes())?;
+
     Ok(())
 }
 
