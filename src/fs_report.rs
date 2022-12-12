@@ -128,7 +128,8 @@ pub(crate) fn write_html_report(manifest_path: &Path, destination_path: &Path) -
             let manifest_label = manifest_label.replace(['/', ':'], "-");
             let claim_img = format!(
                 "<img src=\"{}/thumbnail_claim.jpg\"></img>\n{}<p>\n",
-                manifest_label, manifest.title().unwrap_or("Untitled")
+                manifest_label,
+                manifest.title().unwrap_or("Untitled")
             );
             let mut content = claim_img;
             if !manifest.ingredients().is_empty() {
