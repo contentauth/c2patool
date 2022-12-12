@@ -112,11 +112,9 @@ pub(crate) fn write_html_report(manifest_path: &Path, destination_path: &Path) -
             } 
         </style>
         </head>
-        <body>
-            <ul class="tree">
+        <body> 
     "#;
     let html_end = r#"
-            </ul>
         </body>
     </html>
     "#;
@@ -129,15 +127,15 @@ pub(crate) fn write_html_report(manifest_path: &Path, destination_path: &Path) -
         if let Some(manifest) = manifest_store.get(manifest_label) {
             let manifest_label = manifest_label.replace(['/', ':'], "-");
             let claim_img = format!(
-                "<img src=\"{}/thumbnail_claim.jpg\">{}</img>",
-                manifest_label, manifest_label
+                "<img src=\"{}/thumbnail_claim.jpg\"></img>\n{}<p>\n",
+                manifest_label, manifest.title().unwrap_or("Untitled")
             );
             let mut content = claim_img;
             if !manifest.ingredients().is_empty() {
                 content += "<ul class=tree>\n";
                 for ingredient in manifest.ingredients().iter() {
                     let img = format!(
-                        "<li><img src=\"{}/{}\"></img>{}",
+                        "<li><img src=\"{}/{}\"></img>{}\n",
                         &manifest_label,
                         &ingredient.title(),
                         &ingredient.title()
@@ -156,13 +154,17 @@ pub(crate) fn write_html_report(manifest_path: &Path, destination_path: &Path) -
     let manifest_store = ManifestStore::from_file(manifest_path)?;
     create_dir_all(destination_path)?;
 
-    let mut html_tree = html_start.to_string();
+    let mut content = html_start.to_string();
+    content += &format!("<h3>Report for: {:?}</h3>\n", &manifest_path);
+    content += r#"<ul class="tree">"#;
+    content += "\n";
     if let Some(manifest_label) = manifest_store.active_label() {
-        html_tree = add_manifest(&manifest_store, manifest_label, html_tree)?;
+        content = add_manifest(&manifest_store, manifest_label, content)?;
     }
-    html_tree += html_end;
+    content += "</ul>\n";
+    content += html_end;
 
-    File::create(destination_path.join("manifest_test.html"))?.write_all(html_tree.as_bytes())?;
+    File::create(destination_path.join("manifest.html"))?.write_all(content.as_bytes())?;
 
     Ok(())
 }
