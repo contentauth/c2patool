@@ -108,7 +108,7 @@ pub(crate) fn write_html_report(manifest_path: &Path, destination_path: &Path) -
         <meta charset="utf-8">
         <style>
             img {
-                height: 75px;
+                height: 50px;
             } 
         </style>
         </head>
