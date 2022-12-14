@@ -50,7 +50,7 @@ fn write_ingredient_thumbnails(ingredients: &[Ingredient], destination: &Path) -
         .iter()
         .filter_map(|i| {
             i.thumbnail().map(|(format, bytes)| {
-                let title = add_extension(i.title(), format);
+                let title = add_extension(i.instance_id(), format).replace(['/', ':'], "-");
                 (title, bytes)
             })
         })
