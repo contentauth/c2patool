@@ -46,8 +46,12 @@ The tool works with the following types of asset files (also referred to as _ass
 | `audio/mp4`                         | `m4a`       |           |
 | `video/quicktime`                   |  `mov`      |           |
 | `application/x-c2pa-manifest-store` | `c2pa`      |           |
+| `font/ttf`              | `ttf`       |           |
+| `application/font-sfnt` | `otf`       |           |
 
 NOTE: Quicktime (`.mov`) format is not yet fully supported.
+
+NOTE: OpenType/TrueType (`otf`/`ttf`) are currently just proof of concept and the use of `xmp_write` is not implemented therefore most likely breaks some of the other formats.
 
 ## Usage
 
