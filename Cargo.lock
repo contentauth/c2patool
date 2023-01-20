@@ -132,7 +132,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52e7c3bae57b01ec5b1b028af1f77b7d41dd2bd97a41bab7968739b5329c0e39"
 dependencies = [
- "bytes 1.2.1",
+ "bytes",
  "smallvec",
 ]
 
@@ -251,10 +251,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
-name = "bytes"
-version = "0.5.6"
+name = "byteordered"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e4cec68f03f32e44924783795810fa50a7035d8c8ebe78580ad7e6c703fba38"
+checksum = "bbf2cd9424f5ff404aba1959c835cbc448ee8b689b870a9981c76c0fd46280e6"
+dependencies = [
+ "byteorder",
+]
 
 [[package]]
 name = "bytes"
@@ -264,15 +267,16 @@ checksum = "ec8a7b6a70fde80372154c65702f00a0f56f3e1c36abbc6c440484be248856db"
 
 [[package]]
 name = "c2pa"
-version = "0.14.0"
-source = "git+https://github.com/Monotype/c2pa-rs?branch=monotype/fontSupport#7769e67674dfc43605cacb51bb332851ce311006"
+version = "0.16.1"
+source = "git+https://github.com/Monotype/c2pa-rs?branch=monotype/fontSupport#7b1fec8f318a97ec85bf1a234be8627fd5d01276"
 dependencies = [
  "atree",
  "base64",
  "bcder",
  "blake3",
  "byteorder",
- "bytes 1.2.1",
+ "byteordered",
+ "bytes",
  "chrono",
  "ciborium",
  "console_log",
@@ -289,7 +293,6 @@ dependencies = [
  "log",
  "multibase",
  "multihash",
- "nom",
  "openssl",
  "png_pong",
  "quick-xml",
@@ -1043,13 +1046,13 @@ dependencies = [
 
 [[package]]
 name = "img-parts"
-version = "0.2.3"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e210871d2017abd6d46ffc9f743747549cb54fdeef37fbcc829400f52794e4e5"
+checksum = "b19358258d99a5fc34466fed27a5318f92ae636c3e36165cf9b1e87b5b6701f0"
 dependencies = [
- "bytes 0.5.6",
+ "bytes",
  "crc32fast",
- "miniz_oxide 0.4.4",
+ "miniz_oxide 0.5.3",
 ]
 
 [[package]]
@@ -2469,7 +2472,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ecce82ba1a532273edf6cd88d1efca9b3417fd24abe81baf143657909f7c12a8"
 dependencies = [
  "bcder",
- "bytes 1.2.1",
+ "bytes",
  "chrono",
  "hex",
  "pem",
