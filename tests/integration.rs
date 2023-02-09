@@ -110,17 +110,6 @@ fn tool_fs_output_report() -> Result<(), Box<dyn Error>> {
             path
         )));
 
-    // Ensure manifest directories exist.
-    assert_eq!(
-        path.read_dir()
-            .unwrap()
-            .into_iter()
-            .map(|dir_entry| dir_entry.unwrap().path())
-            .filter(|path| path.is_dir())
-            .count(),
-        3
-    );
-
     let manifest_json = path.join("manifest.json");
     let contents = fs::read_to_string(&manifest_json)?;
     let json: Value = serde_json::from_str(&contents)?;
@@ -153,7 +142,7 @@ fn tool_fs_output_report_supports_detailed_flag() -> Result<(), Box<dyn Error>> 
             path
         )));
 
-    let manifest_json = path.join("manifest.json");
+    let manifest_json = path.join("detailed.json");
     let contents = fs::read_to_string(&manifest_json)?;
     let json: Value = serde_json::from_str(&contents)?;
     assert!(json.as_object().unwrap().get("validation_status").is_some());

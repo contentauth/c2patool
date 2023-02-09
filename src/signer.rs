@@ -16,7 +16,7 @@ use std::env;
 use anyhow::{Context, Result};
 use c2pa::{create_signer, Signer, SigningAlg};
 
-use crate::manifest_config::ManifestConfig;
+use crate::manifest_config::SignConfig;
 
 pub fn get_ta_url() -> Option<String> {
     std::env::var("C2PA_TA_URL").ok()
@@ -26,7 +26,7 @@ pub fn get_ta_url() -> Option<String> {
 const DEFAULT_CERTS: &[u8] = include_bytes!("../sample/es256_certs.pem");
 const DEFAULT_KEY: &[u8] = include_bytes!("../sample/es256_private.key");
 
-pub fn get_c2pa_signer(config: &ManifestConfig) -> Result<Box<dyn Signer>> {
+pub fn get_c2pa_signer(config: &SignConfig) -> Result<Box<dyn Signer>> {
     let alg = config.alg.as_deref().unwrap_or("es256").to_lowercase();
     let alg: SigningAlg = alg.parse().map_err(|_| c2pa::Error::UnsupportedType)?;
     let tsa_url = config.ta_url.clone().or_else(get_ta_url);

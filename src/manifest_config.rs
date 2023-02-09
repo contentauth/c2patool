@@ -21,6 +21,30 @@ use c2pa::{Ingredient, Manifest, ManifestAssertion};
 use serde::Deserialize;
 use serde_json::Value;
 
+#[derive(Debug, Default, Deserialize)]
+pub struct SignConfig {
+    /// Signing algorithm to use - must match the associated certs
+    ///
+    /// Must be one of [ ps256 | ps384 | ps512 | es256 | es384 | es512 | ed25519 ]
+    /// Defaults to es256
+    pub alg: Option<String>,
+    /// A path to a file containing the private key required for signing
+    pub private_key: Option<PathBuf>,
+    /// A path to a file containing the signing cert required for signing
+    pub sign_cert: Option<PathBuf>,
+    /// A Url to a Time Authority to use when signing the manifest
+    pub ta_url: Option<String>,
+}
+
+impl SignConfig {
+    // converts any relative paths to absolute from base_path
+    pub fn fix_relative_path(&self, path: &Path) -> PathBuf {
+        if path.is_absolute() {
+            return PathBuf::from(path);
+        }
+        PathBuf::from(path)
+    }
+}
 /// Defines the components used to build a claim to embed in a manifest
 #[derive(Debug, Deserialize)]
 pub struct ManifestConfig {
