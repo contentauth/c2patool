@@ -268,7 +268,7 @@ checksum = "ec8a7b6a70fde80372154c65702f00a0f56f3e1c36abbc6c440484be248856db"
 [[package]]
 name = "c2pa"
 version = "0.16.1"
-source = "git+https://github.com/Monotype/c2pa-rs?branch=monotype/fontSupport#528acc78a0460251c9402235242c9a23c89d08d7"
+source = "git+https://github.com/Monotype/c2pa-rs?branch=monotype/fontSupport#76a33ff61a6d0b4295008429a034edcfc3e278be"
 dependencies = [
  "atree",
  "base64",
@@ -831,6 +831,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "fixedbitset"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "37ab347416e802de484e4d03c7316c48f1ecb56574dfd4a46a80f173ce1de04d"
+
+[[package]]
 name = "flate2"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -865,8 +871,7 @@ dependencies = [
 [[package]]
 name = "fonttools"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ee6a029779a075ee6dbc9fea7cc33d2a86ac6bc435854ec043b9949603f5350"
+source = "git+https://github.com/simoncozens/rust-font-tools?rev=105436d#105436d3a617ddbebd25f790b041ff506bd90d44"
 dependencies = [
  "bitflags",
  "chrono",
@@ -876,9 +881,10 @@ dependencies = [
  "itertools 0.10.3",
  "kurbo",
  "log",
+ "otmath",
  "otspec",
  "otspec_macros",
- "permutation",
+ "paste",
 ]
 
 [[package]]
@@ -1319,6 +1325,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61807f77802ff30975e01f4f071c8ba10c022052f98b3294119f3e615d13e5be"
 
 [[package]]
+name = "num"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43db66d1170d347f9a065114077f7dccb00c1b9478c89384490a3425279a4606"
+dependencies = [
+ "num-bigint",
+ "num-complex",
+ "num-integer",
+ "num-iter",
+ "num-rational",
+ "num-traits",
+]
+
+[[package]]
 name = "num-bigint"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1344,6 +1364,15 @@ dependencies = [
  "rand",
  "smallvec",
  "zeroize",
+]
+
+[[package]]
+name = "num-complex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02e0d21255c828d6f128a1e41534206671e8c3ea0c62f32291e808dc82cff17d"
+dependencies = [
+ "num-traits",
 ]
 
 [[package]]
@@ -1374,6 +1403,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0638a1c9d0a3c0914158145bc76cff373a75a627e6ecbfb71cbe6f453a5a19b0"
 dependencies = [
  "autocfg",
+ "num-bigint",
  "num-integer",
  "num-traits",
 ]
@@ -1490,27 +1520,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "otmath"
+version = "0.1.0"
+source = "git+https://github.com/simoncozens/rust-font-tools?rev=105436d#105436d3a617ddbebd25f790b041ff506bd90d44"
+dependencies = [
+ "num",
+ "permutation",
+]
+
+[[package]]
 name = "otspec"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59ac34b3eed059c2be8d17c401ec0c71ce798df3fab3601d913f2812ad8dd7f9"
+source = "git+https://github.com/simoncozens/rust-font-tools?rev=105436d#105436d3a617ddbebd25f790b041ff506bd90d44"
 dependencies = [
+ "bitflags",
  "chrono",
  "fixed",
+ "num",
+ "num-bigint",
+ "otmath",
  "otspec_macros",
+ "petgraph",
  "shrinkwraprs",
 ]
 
 [[package]]
 name = "otspec_macros"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0207ad5cb79a954293854405d36de536ba1049ee743a7504a0fd8cb091a12a8f"
+source = "git+https://github.com/simoncozens/rust-font-tools?rev=105436d#105436d3a617ddbebd25f790b041ff506bd90d44"
 dependencies = [
  "proc-macro2",
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "paste"
+version = "1.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d01a5bd0424d00070b0098dd17ebca6f961a959dead1dbcbbbc1d1cd8d3deeba"
 
 [[package]]
 name = "pem"
@@ -1541,6 +1589,16 @@ name = "permutation"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9978962f8a4b158e97447a6d09d2d75e206d2994eff056c894019f362b27142"
+
+[[package]]
+name = "petgraph"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "467d164a6de56270bd7c4d070df81d07beace25012d5103ced4e9ff08d6afdb7"
+dependencies = [
+ "fixedbitset",
+ "indexmap",
+]
 
 [[package]]
 name = "pin-project"
