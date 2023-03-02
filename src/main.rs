@@ -22,7 +22,7 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, bail, Context, Result};
-use c2pa::{Error, Manifest, ManifestStore, ManifestStoreReport};
+use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport};
 use structopt::{clap::AppSettings, StructOpt};
 
 mod info;
@@ -91,6 +91,21 @@ struct CliArgs {
     )]
     sidecar: bool,
 
+    #[structopt(
+        short = "i",
+        long = "ingredient",
+        help = "Write ingredient report and assets to a folder."
+    )]
+    ingredient: bool,
+
+    #[structopt(long = "tree", help = "Create a tree diagram of the manifest store.")]
+    tree: bool,
+
+    #[structopt(long = "certs", help = "Extract certificate chain.")]
+    cert_chain: bool,
+
+    // #[structopt(long = "remove", help = "Remove manifest store from asset.")]
+    // remove_manifest: bool,
     #[structopt(long = "info", help = "Show manifest size, XMP url and other stats")]
     info: bool,
 }
@@ -115,9 +130,40 @@ fn main() -> Result<()> {
     }
     env_logger::init();
 
-    if args.info && args.path.exists() {
-        return info(&args.path);
+    let path = &args.path;
+
+    if args.info {
+        return info(path);
     }
+
+    if args.cert_chain {
+        ManifestStoreReport::dump_cert_chain(path)?;
+        return Ok(());
+    }
+
+    if args.tree {
+        ManifestStoreReport::dump_tree(path)?;
+        return Ok(());
+    }
+
+    // Remove manifest needs to also remove XMP provenance
+    // if args.remove_manifest {
+    //     match args.output {
+    //         Some(output) => {
+    //             if output.exists() && !args.force {
+    //                 bail!("Output already exists, use -f/force to force write");
+    //             }
+    //             if path != &output {
+    //                 std::fs::copy(path, &output)?;
+    //             }
+    //             Manifest::remove_manifest(&output)?
+    //         },
+    //         None => {
+    //             bail!("The -o/--output argument is required for this operation");
+    //         }
+    //     }
+    //     return Ok(());
+    // }
 
     // get manifest config from either the -manifest option or the -config option
     let manifest_opt = if let Some(json) = args.config {
@@ -141,7 +187,7 @@ fn main() -> Result<()> {
         // If the source file has a manifest store, and no parent is specified treat the source as a parent.
         // note: This could be treated as an update manifest eventually since the image is the same
         if manifest.parent().is_none() {
-            let source_ingredient = c2pa::Ingredient::from_file(&args.path)?;
+            let source_ingredient = Ingredient::from_file(&args.path)?;
             if source_ingredient.manifest_data().is_some() {
                 manifest.set_parent(source_ingredient)?;
             }
@@ -223,7 +269,7 @@ fn main() -> Result<()> {
     } else if args.parent.is_some() || args.sidecar || args.remote.is_some() {
         bail!("manifest definition required with these options or flags")
     } else if let Some(output) = args.output {
-        if output.is_file() {
+        if output.is_file() || output.extension().is_some() {
             bail!("Output must be a folder for this option.")
         }
         if output.exists() {
@@ -234,19 +280,27 @@ fn main() -> Result<()> {
             }
         }
         create_dir_all(&output)?;
-        let report = ManifestStore::from_file_with_resources(&args.path, &output)
-            .map_err(special_errs)?
-            .to_string();
-        if args.detailed {
-            // for a detailed report first call the above to generate the thumbnails
-            // then call this to add the detailed report
-            let detailed = ManifestStoreReport::from_file(&args.path)
+        if args.ingredient {
+            let report = Ingredient::from_file_with_folder(&args.path, &output)
                 .map_err(special_errs)?
                 .to_string();
-            File::create(output.join("detailed.json"))?.write_all(&detailed.into_bytes())?;
+            File::create(output.join("ingredient.json"))?.write_all(&report.into_bytes())?;
+            println!("Ingredient report written to the directory {:?}", &output);
+        } else {
+            let report = ManifestStore::from_file_with_resources(&args.path, &output)
+                .map_err(special_errs)?
+                .to_string();
+            if args.detailed {
+                // for a detailed report first call the above to generate the thumbnails
+                // then call this to add the detailed report
+                let detailed = ManifestStoreReport::from_file(&args.path)
+                    .map_err(special_errs)?
+                    .to_string();
+                File::create(output.join("detailed.json"))?.write_all(&detailed.into_bytes())?;
+            }
+            File::create(output.join("manifest_store.json"))?.write_all(&report.into_bytes())?;
+            println!("Manifest report written to the directory {:?}", &output);
         }
-        File::create(output.join("manifest.json"))?.write_all(&report.into_bytes())?;
-        println!("Manifest report written to the directory {:?}", &output);
     } else if args.detailed {
         println!(
             "{}",
