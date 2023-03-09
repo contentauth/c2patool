@@ -27,10 +27,8 @@ use structopt::{clap::AppSettings, StructOpt};
 
 mod info;
 use info::info;
-pub mod manifest_config;
-use manifest_config::SignConfig;
 mod signer;
-use signer::get_c2pa_signer;
+use signer::SignConfig;
 
 // define the command line options
 #[derive(Debug, StructOpt)]
@@ -166,16 +164,30 @@ fn main() -> Result<()> {
     // }
 
     // get manifest config from either the -manifest option or the -config option
-    let manifest_opt = if let Some(json) = args.config {
+    let (manifest_opt, sign_config) = if let Some(json) = args.config {
         if args.manifest.is_some() {
             bail!("Do not use config and manifest options together");
         }
-        Some(Manifest::from_json(&json)?)
+        (
+            Some(Manifest::from_json(&json)?),
+            SignConfig::from_json(&json)?,
+        )
     } else if let Some(manifest_path) = args.manifest {
-        let json = std::fs::read_to_string(manifest_path)?;
-        Some(Manifest::from_json(&json)?)
+        let json = std::fs::read_to_string(&manifest_path)?;
+        let mut manifest = Manifest::from_json(&json)?;
+        let mut sign_config = SignConfig::from_json(&json)?;
+        if let Some(base) = manifest_path.parent() {
+            manifest.resources_mut().set_base_path(base);
+            sign_config.set_base_path(base);
+        }
+        (Some(manifest), sign_config)
     } else {
-        None
+        (
+            None,
+            SignConfig {
+                ..Default::default()
+            },
+        )
     };
 
     // if we have a manifest config, process it
@@ -221,11 +233,11 @@ fn main() -> Result<()> {
             // create any needed folders for the output path (embed should do this)
             let mut output_dir = PathBuf::from(&output);
             output_dir.pop();
+            manifest.resources_mut().set_base_path(&output_dir);
             create_dir_all(&output_dir)?;
 
-            let signer = get_c2pa_signer(&SignConfig {
-                ..Default::default()
-            })?;
+
+            let signer = sign_config.signer()?;
 
             manifest
                 .embed(&args.path, &output, signer.as_ref())
@@ -321,7 +333,18 @@ pub mod tests {
     #![allow(clippy::unwrap_used)]
 
     use super::*;
-    const CONFIG: &str = r#"{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}"#;
+    const CONFIG: &str = r#"{
+        "alg": "es256",
+        "private_key": "es256_private.key",
+        "sign_cert": "es256_certs.pem",
+        "ta_url": "http://timestamp.digicert.com",
+        "assertions": [
+            {
+                "label": "org.contentauth.test",
+                 "data": {"my_key": "whatever I want"}
+            }
+        ]
+    }"#;
 
     #[test]
     fn test_manifest_config() {
@@ -330,10 +353,11 @@ pub mod tests {
         create_dir_all("target/tmp").expect("create_dir");
         let mut manifest = Manifest::from_json(CONFIG).expect("from_json");
 
-        let signer = get_c2pa_signer(&SignConfig {
-            ..Default::default()
-        })
-        .expect("get_signer");
+        let signer = SignConfig::from_json(CONFIG)
+            .unwrap()
+            .set_base_path("sample")
+            .signer()
+            .expect("get_signer");
 
         let _result = manifest
             .embed(SOURCE_PATH, OUTPUT_PATH, signer.as_ref())
