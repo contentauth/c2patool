@@ -23,88 +23,54 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, bail, Context, Result};
 use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport};
-use structopt::{clap::AppSettings, StructOpt};
+use clap::{AppSettings, Parser};
 
 mod info;
 use info::info;
 mod signer;
 use signer::SignConfig;
 
-// define the command line options
-#[derive(Debug, StructOpt)]
-#[structopt(about = "Tool for displaying and creating C2PA manifests.",global_settings = &[AppSettings::ColoredHelp, AppSettings::ArgRequiredElseHelp])]
+/// Tool for displaying and creating C2PA manifests."
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None, setting = AppSettings::ArgRequiredElseHelp)]
 struct CliArgs {
-    #[structopt(parse(from_os_str))]
-    #[structopt(
-        short = "m",
-        long = "manifest",
-        help = "Path to manifest definition JSON file."
-    )]
+    #[clap(short, long, help = "Path to manifest definition JSON file.")]
     manifest: Option<PathBuf>,
 
-    #[structopt(parse(from_os_str))]
-    #[structopt(short = "o", long = "output", help = "Path to output file or folder.")]
+    #[clap(short, long, help = "Path to output file or folder.")]
     output: Option<PathBuf>,
 
-    #[structopt(parse(from_os_str))]
-    #[structopt(short = "p", long = "parent", help = "Path to a parent file.")]
+    #[clap(short, long, help = "Path to a parent file.")]
     parent: Option<PathBuf>,
 
-    #[structopt(
-        short = "c",
-        long = "config",
-        help = "Manifest definition passed as a JSON string."
-    )]
+    #[clap(short, long, help = "Manifest definition passed as a JSON string.")]
     config: Option<String>,
 
-    #[structopt(
-        short = "d",
-        long = "detailed",
-        help = "Display detailed C2PA-formatted manifest data."
-    )]
+    #[clap(short, long, help = "Display detailed C2PA-formatted manifest data.")]
     detailed: bool,
 
-    #[structopt(
-        short = "f",
-        long = "force",
-        help = "Force overwrite of output if it already exists."
-    )]
+    #[clap(short, long, help = "Force overwrite of output if it already exists.")]
     force: bool,
 
-    /// The path to an asset to examine or embed a manifest into.
-    #[structopt(parse(from_os_str))]
+    #[clap(help = "The path to an asset to examine or embed a manifest into.")]
     path: PathBuf,
 
-    #[structopt(
-        short = "r",
-        long = "remote",
-        help = "Embed remote URL manifest reference."
-    )]
+    #[clap(short, long, help = "Embed remote URL manifest reference.")]
     remote: Option<String>,
 
-    #[structopt(
-        short = "s",
-        long = "sidecar",
-        help = "Generate a sidecar (.c2pa) manifest"
-    )]
+    #[clap(short, long, help = "Generate a sidecar (.c2pa) manifest")]
     sidecar: bool,
 
-    #[structopt(
-        short = "i",
-        long = "ingredient",
-        help = "Write ingredient report and assets to a folder."
-    )]
+    #[clap(short, long, help = "Write ingredient report and assets to a folder.")]
     ingredient: bool,
 
-    #[structopt(long = "tree", help = "Create a tree diagram of the manifest store.")]
+    #[clap(long, help = "Create a tree diagram of the manifest store.")]
     tree: bool,
 
-    #[structopt(long = "certs", help = "Extract certificate chain.")]
+    #[clap(long = "certs", help = "Extract certificate chain.")]
     cert_chain: bool,
 
-    // #[structopt(long = "remove", help = "Remove manifest store from asset.")]
-    // remove_manifest: bool,
-    #[structopt(long = "info", help = "Show manifest size, XMP url and other stats")]
+    #[clap(long, help = "Show manifest size, XMP url and other stats")]
     info: bool,
 }
 
@@ -120,7 +86,7 @@ fn special_errs(e: c2pa::Error) -> anyhow::Error {
 }
 
 fn main() -> Result<()> {
-    let args = CliArgs::from_args();
+    let args = CliArgs::parse();
 
     // set RUST_LOG=debug to get detailed debug logging
     if std::env::var("RUST_LOG").is_err() {
@@ -235,7 +201,6 @@ fn main() -> Result<()> {
             output_dir.pop();
             manifest.resources_mut().set_base_path(&output_dir);
             create_dir_all(&output_dir)?;
-
 
             let signer = sign_config.signer()?;
 
