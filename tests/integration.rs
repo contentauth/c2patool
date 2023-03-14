@@ -109,6 +109,7 @@ fn tool_fs_output_report() -> Result<(), Box<dyn Error>> {
         )));
 
     let manifest_json = path.join("manifest_store.json");
+
     let contents = fs::read_to_string(manifest_json)?;
     let json: Value = serde_json::from_str(&contents)?;
     assert_eq!(
