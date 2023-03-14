@@ -141,7 +141,7 @@ fn tool_fs_output_report_supports_detailed_flag() -> Result<(), Box<dyn Error>> 
         )));
 
     let manifest_json = path.join("detailed.json");
-    let contents = fs::read_to_string(&manifest_json)?;
+    let contents = fs::read_to_string(manifest_json)?;
 
     let json: Value = serde_json::from_str(&contents)?;
     assert!(json.as_object().unwrap().get("validation_status").is_some());

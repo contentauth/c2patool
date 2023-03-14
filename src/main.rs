@@ -159,7 +159,7 @@ fn main() -> Result<()> {
     // if we have a manifest config, process it
     if let Some(mut manifest) = manifest_opt {
         if let Some(parent_path) = args.parent {
-            manifest.set_parent(c2pa::Ingredient::from_file(&parent_path)?)?;
+            manifest.set_parent(c2pa::Ingredient::from_file(parent_path)?)?;
         }
 
         // If the source file has a manifest store, and no parent is specified treat the source as a parent.
@@ -328,7 +328,7 @@ pub mod tests {
             .embed(SOURCE_PATH, OUTPUT_PATH, signer.as_ref())
             .expect("embed");
 
-        let ms = ManifestStore::from_file(&OUTPUT_PATH)
+        let ms = ManifestStore::from_file(OUTPUT_PATH)
             .expect("from_file")
             .to_string();
         //let ms = report_from_path(&OUTPUT_PATH, false).expect("report_from_path");
