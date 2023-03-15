@@ -30,47 +30,59 @@ use info::info;
 mod signer;
 use signer::SignConfig;
 
-/// Tool for displaying and creating C2PA manifests."
+/// Tool for displaying and creating C2PA manifests.
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None, setting = AppSettings::ArgRequiredElseHelp)]
 struct CliArgs {
-    #[clap(short, long, help = "Path to manifest definition JSON file.")]
+    /// Path to manifest definition JSON file.
+    #[clap(short, long)]
     manifest: Option<PathBuf>,
 
-    #[clap(short, long, help = "Path to output file or folder.")]
+    /// Path to output file or folder.")]
+    #[clap(short, long)]
     output: Option<PathBuf>,
 
-    #[clap(short, long, help = "Path to a parent file.")]
+    /// Path to a parent file.
+    #[clap(short, long)]
     parent: Option<PathBuf>,
 
-    #[clap(short, long, help = "Manifest definition passed as a JSON string.")]
+    /// Manifest definition passed as a JSON string.
+    #[clap(short, long)]
     config: Option<String>,
 
-    #[clap(short, long, help = "Display detailed C2PA-formatted manifest data.")]
+    /// Display detailed C2PA-formatted manifest data.
+    #[clap(short, long)]
     detailed: bool,
 
-    #[clap(short, long, help = "Force overwrite of output if it already exists.")]
+    /// Force overwrite of output if it already exists.
+    #[clap(short, long)]
     force: bool,
 
-    #[clap(help = "The path to an asset to examine or embed a manifest into.")]
+    /// The path to an asset to examine or embed a manifest into.
     path: PathBuf,
 
-    #[clap(short, long, help = "Embed remote URL manifest reference.")]
+    /// Embed remote URL manifest reference.
+    #[clap(short, long)]
     remote: Option<String>,
 
-    #[clap(short, long, help = "Generate a sidecar (.c2pa) manifest")]
+    /// Generate a sidecar (.c2pa) manifest
+    #[clap(short, long)]
     sidecar: bool,
 
-    #[clap(short, long, help = "Write ingredient report and assets to a folder.")]
+    /// Write ingredient report and assets to a folder.
+    #[clap(short, long)]
     ingredient: bool,
 
-    #[clap(long, help = "Create a tree diagram of the manifest store.")]
+    /// Create a tree diagram of the manifest store.
+    #[clap(long)]
     tree: bool,
 
-    #[clap(long = "certs", help = "Extract certificate chain.")]
+    /// Extract certificate chain.
+    #[clap(long = "certs")]
     cert_chain: bool,
 
-    #[clap(long, help = "Show manifest size, XMP url and other stats")]
+    /// Show manifest size, XMP url and other stats.
+    #[clap(long)]
     info: bool,
 }
 
