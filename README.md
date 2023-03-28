@@ -120,7 +120,7 @@ c2patool sample/C.jpg --info
 The tool displays the report to standard output (stdout).
 
 
-### Creating an Ingredient from a file
+### Creating an ingredient from a file
 
 The `--ingredient` option will create an ingredient report.  When used with the `--output` folder, it will extract or create a thumbnail image and a binary .c2pa manifest store containing the c2pa data from the file. The JSON ingredient this produces can be added to a manifest definition to carry the full history and validation record of that asset into a newly created manifest.
 Provide the path to the file as the argument; for example:
@@ -239,7 +239,7 @@ For actual use, provide a permanent key and cert in the manifest definition or e
 }
 ```
 
-## JSON Schemas
+## JSON schemas
 
 * [Schema for the Manifest Definition](schemas/manifest-definition.json)
 
@@ -274,7 +274,7 @@ set C2PA_SIGN_CERT=$(cat my_es256_certs)
 Both the `private_key` and `sign_cert` must be in PEM format. The `sign_cert` must contain a PEM certificate chain starting with the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate. See the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) for example certificates.
 
 
-## Release Notes
+## Release notes
 
 This section gives a highlight of noteworthy changes 
 
