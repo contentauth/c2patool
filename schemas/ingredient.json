@@ -5,17 +5,17 @@
 	"description": "Definition format for an ingredient created with c2patool",
 	"examples": [
 		{  
-            "title": "C.jpg",
-            "format": "image/jpeg",
-            "instance_id": "xmp:iid:01712cdc-26b8-4902-ad53-1cdbd5370b1b",
-            "relationship": "componentOf",
-            "thumbnail": {
-                "format": "image/jpeg",
-                "identifier": "thumb.jpg"
-            },
-            "active_manifest": "manifest.c2pa"
+			"title": "C.jpg",
+			"format": "image/jpeg",
+			"instance_id": "xmp:iid:01712cdc-26b8-4902-ad53-1cdbd5370b1b",
+			"relationship": "componentOf",
+			"thumbnail": {
+				"format": "image/jpeg",
+				"identifier": "thumb.jpg"
+			},
+			"active_manifest": "manifest.c2pa"
 		}
-    ],
+	],
 	"required": [
 		"title"
 	],
