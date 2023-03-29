@@ -4,9 +4,9 @@ name = "c2patool"
 # Please do not manually edit `version`. Version updates will be generated
 # automatically when c2patool is published. Remember to use (MINOR) or (MAJOR)
 # tags in the PR title to trigger non-patch updates as needed.
-version = "0.3.9"
+version = "0.5.0"
 
-description = "Command line tool for displaying and adding C2PA manifests"
+description = "Tool for displaying and creating C2PA manifests."
 authors = ["Gavin Peacock <gpeacock@adobe.com>", "Maurice Fisher <mfisher@adobe.com>"]
 license = "MIT OR Apache-2.0"
 documentation = "https://opensource.contentauthenticity.org/docs/c2patool"
@@ -19,13 +19,13 @@ repository = "https://github.com/contentauth/c2patool"
 
 [dependencies]
 anyhow = "1.0"
-c2pa = {git = "https://github.com/Monotype/c2pa-rs", branch = "monotype/fontSupport", features=["bmff", "otf", "fetch_remote_manifests", "file_io", "xmp_write"]}
+c2pa = {git = "https://github.com/Monotype/c2pa-rs", branch = "feature/C2PA-80/supportRemoteStore", features=["otf", "fetch_remote_manifests", "file_io",  "xmp_write"]}
+clap = { version = "3.2", features = ["derive"] }
 env_logger = "0.9"
 log = "0.4" 
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1.0"
-structopt = "0.3"
 tempfile = "3.3"
 
 [dev-dependencies]
