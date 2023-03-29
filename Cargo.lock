@@ -265,7 +265,7 @@ checksum = "dfb24e866b15a1af2a1b663f10c6b6b8f397a84aadb828f12e5b289ec23a3a3c"
 [[package]]
 name = "c2pa"
 version = "0.19.1"
-source = "git+https://github.com/Monotype/c2pa-rs?branch=feature/C2PA-80/supportRemoteStore#50474b2ae7fd94b09f8553d90d584af4692ff7b6"
+source = "git+https://github.com/Monotype/c2pa-rs?branch=feature/C2PA-80/supportRemoteStore#3cb52fabe3a508434d7309f479f3e6f39a3385f1"
 dependencies = [
  "async-trait",
  "atree",
