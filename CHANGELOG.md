@@ -6,6 +6,19 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.5.0
+_28 March 2023_
+
+* (MINOR) New ingredient support and c2pa file formats ([#111](https://github.com/contentauth/c2pa-rs/pull/111))
+* Leverage new Manifest & Ingredient, add Ingredient creation. ([#107](https://github.com/contentauth/c2pa-rs/pull/107))
+
+## 0.4.0
+_01 March 2023_
+
+* (MINOR) Add --certs and --tree options ([#106](https://github.com/contentauth/c2pa-rs/pull/106))
+* update to cp2pa 0.17.0 ([#105](https://github.com/contentauth/c2pa-rs/pull/105))
+* Update for Clippy in Rust 1.67 ([#101](https://github.com/contentauth/c2pa-rs/pull/101))
+
 ## 0.3.9
 _06 December 2022_
 

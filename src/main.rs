@@ -17,102 +17,98 @@
 /// If only the path is given, this will generate a summary report of any claims in that file
 /// If a manifest definition json file is specified, the claim will be added to any existing claims
 ///
-use std::fs::{create_dir_all, remove_dir_all};
-use std::path::{Path, PathBuf};
+use std::fs::{create_dir_all, remove_dir_all, File};
+use std::io::Write;
+use std::path::PathBuf;
 
 use anyhow::{anyhow, bail, Context, Result};
-use c2pa::{Error, ManifestStore, ManifestStoreReport};
-use structopt::{clap::AppSettings, StructOpt};
+use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport};
+use clap::{AppSettings, Parser};
+use serde::Deserialize;
 
 mod info;
 use info::info;
-pub mod manifest_config;
-use manifest_config::ManifestConfig;
-mod fs_report;
 mod signer;
-use signer::get_c2pa_signer;
+use signer::SignConfig;
 
-// define the command line options
-#[derive(Debug, StructOpt)]
-#[structopt(about = "Tool for displaying and creating C2PA manifests.",global_settings = &[AppSettings::ColoredHelp, AppSettings::ArgRequiredElseHelp])]
+/// Tool for displaying and creating C2PA manifests.
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None, setting = AppSettings::ArgRequiredElseHelp)]
 struct CliArgs {
-    #[structopt(parse(from_os_str))]
-    #[structopt(
-        short = "m",
-        long = "manifest",
-        help = "Path to manifest definition JSON file."
-    )]
+    /// Path to manifest definition JSON file.
+    #[clap(short, long)]
     manifest: Option<PathBuf>,
 
-    #[structopt(parse(from_os_str))]
-    #[structopt(short = "o", long = "output", help = "Path to output file or folder.")]
+    /// Path to output file or folder.
+    #[clap(short, long)]
     output: Option<PathBuf>,
 
-    #[structopt(parse(from_os_str))]
-    #[structopt(short = "p", long = "parent", help = "Path to a parent file.")]
+    /// Path to a parent file.
+    #[clap(short, long)]
     parent: Option<PathBuf>,
 
-    #[structopt(
-        short = "c",
-        long = "config",
-        help = "Manifest definition passed as a JSON string."
-    )]
+    /// Manifest definition passed as a JSON string.
+    #[clap(short, long, conflicts_with = "manifest")]
     config: Option<String>,
 
-    #[structopt(
-        short = "d",
-        long = "detailed",
-        help = "Display detailed C2PA-formatted manifest data."
-    )]
+    /// Display detailed C2PA-formatted manifest data.
+    #[clap(short, long)]
     detailed: bool,
 
-    #[structopt(
-        short = "f",
-        long = "force",
-        help = "Force overwrite of output if it already exists."
-    )]
+    /// Force overwrite of output if it already exists.
+    #[clap(short, long)]
     force: bool,
 
     /// The path to an asset to examine or embed a manifest into.
-    #[structopt(parse(from_os_str))]
     path: PathBuf,
 
-    #[structopt(
-        short = "r",
-        long = "remote",
-        help = "Embed remote URL manifest reference."
-    )]
+    /// Embed remote URL manifest reference.
+    #[clap(short, long)]
     remote: Option<String>,
 
-    #[structopt(
-        short = "s",
-        long = "sidecar",
-        help = "Generate a sidecar (.c2pa) manifest"
-    )]
+    /// Generate a sidecar (.c2pa) manifest
+    #[clap(short, long)]
     sidecar: bool,
 
-    #[structopt(long = "info", help = "Show manifest size, XMP url and other stats")]
+    /// Write ingredient report and assets to a folder.
+    #[clap(short, long)]
+    ingredient: bool,
+
+    /// Create a tree diagram of the manifest store.
+    #[clap(long)]
+    tree: bool,
+
+    /// Extract certificate chain.
+    #[clap(long = "certs")]
+    cert_chain: bool,
+
+    /// Show manifest size, XMP url and other stats.
+    #[clap(long)]
     info: bool,
 }
 
-// prints the requested kind of report or exits with error
-fn report_from_path<P: AsRef<Path>>(path: &P, is_detailed: bool) -> Result<String> {
-    let report = match is_detailed {
-        true => ManifestStoreReport::from_file(path).map(|r| r.to_string()),
-        false => ManifestStore::from_file(path).map(|r| r.to_string()),
-    };
-    // Map some errors to strings we expect
-    report.map_err(|e| match e {
+// convert certain errors to output messages
+fn special_errs(e: c2pa::Error) -> anyhow::Error {
+    match e {
         Error::JumbfNotFound => anyhow!("No claim found"),
         Error::FileNotFound(name) => anyhow!("File not found: {}", name),
         Error::UnsupportedType => anyhow!("Unsupported file type"),
         Error::PrereleaseError => anyhow!("Prerelease claim found"),
         _ => e.into(),
-    })
+    }
+}
+#[derive(Debug, Default, Deserialize)]
+// Add fields that are not part of the standard Manifest
+struct ManifestDef {
+    #[serde(flatten)]
+    manifest: Manifest,
+    #[serde()]
+    // allows adding ingredients with file paths
+    ingredient_paths: Option<Vec<PathBuf>>,
 }
 
 fn main() -> Result<()> {
-    let args = CliArgs::from_args();
+    let args = CliArgs::parse();
 
     // set RUST_LOG=debug to get detailed debug logging
     if std::env::var("RUST_LOG").is_err() {
@@ -120,36 +116,108 @@ fn main() -> Result<()> {
     }
     env_logger::init();
 
-    if args.info && args.path.exists() {
-        return info(&args.path);
+    let path = &args.path;
+
+    if args.info {
+        return info(path);
     }
 
-    // get manifest config from either the -manifest option or the -config option
-    let config = if let Some(json) = args.config {
-        if args.manifest.is_some() {
-            bail!("Do not use config and manifest options together");
-        }
-        Some(ManifestConfig::from_json(&json)?)
-    } else if let Some(config_path) = args.manifest {
-        Some(ManifestConfig::from_file(&config_path)?)
-    } else {
-        None
-    };
+    if args.cert_chain {
+        ManifestStoreReport::dump_cert_chain(path)?;
+        return Ok(());
+    }
+
+    if args.tree {
+        ManifestStoreReport::dump_tree(path)?;
+        return Ok(());
+    }
+
+    // Remove manifest needs to also remove XMP provenance
+    // if args.remove_manifest {
+    //     match args.output {
+    //         Some(output) => {
+    //             if output.exists() && !args.force {
+    //                 bail!("Output already exists, use -f/force to force write");
+    //             }
+    //             if path != &output {
+    //                 std::fs::copy(path, &output)?;
+    //             }
+    //             Manifest::remove_manifest(&output)?
+    //         },
+    //         None => {
+    //             bail!("The -o/--output argument is required for this operation");
+    //         }
+    //     }
+    //     return Ok(());
+    // }
 
     // if we have a manifest config, process it
-    if let Some(mut manifest_config) = config {
+    if args.manifest.is_some() || args.config.is_some() {
+        // read the json from file or config, and get base path if from file
+        let (json, base_path) = match args.manifest.as_deref() {
+            Some(manifest_path) => {
+                let base_path = manifest_path.parent();
+                (std::fs::read_to_string(manifest_path)?, base_path)
+            }
+            None => (args.config.unwrap_or_default(), None),
+        };
+
+        // read the signing information from the manifest definition
+        let mut sign_config = SignConfig::from_json(&json)?;
+
+        // read the manifest information
+        let manifest_def: ManifestDef = serde_json::from_slice(json.as_bytes())?;
+        let mut manifest = manifest_def.manifest;
+
+        // add claim_tool generator so we know this was created using this tool
+        let tool_generator = format!("{}/{}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+        if manifest.claim_generator.starts_with("c2pa/") {
+            manifest.claim_generator = tool_generator // just replace the default generator
+        } else {
+            manifest.claim_generator = format!("{} {}", manifest.claim_generator, tool_generator);
+        }
+
+        // Add any ingredients specified as file paths
+        if let Some(paths) = manifest_def.ingredient_paths {
+            for mut path in paths {
+                // ingredient paths are relative to the manifest path
+                if let Some(base) = base_path {
+                    if !(path.is_absolute()) {
+                        path = base.join(&path)
+                    }
+                }
+                // if the file is JSON then load it as an ingredient
+                if path.extension() == Some(std::ffi::OsStr::new("json")) {
+                    let json = std::fs::read_to_string(&path)?;
+                    let mut ingredient: Ingredient = serde_json::from_slice(json.as_bytes())?;
+                    if let Some(base) = path.parent() {
+                        ingredient.resources_mut().set_base_path(base);
+                    }
+                    manifest.add_ingredient(ingredient);
+                } else {
+                    let ingredient = Ingredient::from_file(&path)?;
+                    manifest.add_ingredient(ingredient);
+                }
+            }
+        }
+
+        if let Some(base) = base_path {
+            manifest.resources_mut().set_base_path(base);
+            sign_config.set_base_path(base);
+        }
+
         if let Some(parent_path) = args.parent {
-            manifest_config.parent = Some(parent_path)
+            manifest.set_parent(c2pa::Ingredient::from_file(parent_path)?)?;
         }
 
         // If the source file has a manifest store, and no parent is specified treat the source as a parent.
         // note: This could be treated as an update manifest eventually since the image is the same
-        let source_ingredient = c2pa::Ingredient::from_file(&args.path)?;
-        if source_ingredient.manifest_data().is_some() && manifest_config.parent.is_none() {
-            manifest_config.parent = Some(std::fs::canonicalize(&args.path)?);
+        if manifest.parent().is_none() {
+            let source_ingredient = Ingredient::from_file(&args.path)?;
+            if source_ingredient.manifest_data().is_some() {
+                manifest.set_parent(source_ingredient)?;
+            }
         }
-
-        let mut manifest = manifest_config.to_manifest()?;
 
         if let Some(remote) = args.remote {
             if args.sidecar {
@@ -179,18 +247,29 @@ fn main() -> Result<()> {
             // create any needed folders for the output path (embed should do this)
             let mut output_dir = PathBuf::from(&output);
             output_dir.pop();
+            manifest.resources_mut().set_base_path(&output_dir);
             create_dir_all(&output_dir)?;
 
-            let signer = get_c2pa_signer(&manifest_config)?;
+            let signer = sign_config.signer()?;
 
             manifest
                 .embed(&args.path, &output, signer.as_ref())
                 .context("embedding manifest")?;
 
             // generate a report on the output file
-            println!("{}", report_from_path(&output, args.detailed)?);
+            if args.detailed {
+                println!(
+                    "{}",
+                    ManifestStoreReport::from_file(&output).map_err(special_errs)?
+                );
+            } else {
+                println!(
+                    "{}",
+                    ManifestStore::from_file(&output).map_err(special_errs)?
+                )
+            }
         } else if args.detailed {
-            bail!("detailed report not supported for preview");
+            bail!("Detailed report not supported for preview");
         } else {
             // normally the output file provides the title, format and other manifest fields
             // since there is no output file, gather some information from the source
@@ -212,7 +291,12 @@ fn main() -> Result<()> {
             }
             println!("{}", ManifestStore::from_manifest(&manifest)?)
         }
+    } else if args.parent.is_some() || args.sidecar || args.remote.is_some() {
+        bail!("manifest definition required with these options or flags")
     } else if let Some(output) = args.output {
+        if output.is_file() || output.extension().is_some() {
+            bail!("Output must be a folder for this option.")
+        }
         if output.exists() {
             if args.force {
                 remove_dir_all(&output)?;
@@ -220,16 +304,45 @@ fn main() -> Result<()> {
                 bail!("Output already exists, use -f/force to force write");
             }
         }
-
-        fs_report::write_report_for_path(&args.path, &output, args.detailed)?;
-        println!("Manifest report written to the directory {:?}", &output);
-    } else if args.parent.is_some() || args.sidecar || args.remote.is_some() || args.force {
-        bail!("manifest definition required with these options or flags")
+        create_dir_all(&output)?;
+        if args.ingredient {
+            let report = Ingredient::from_file_with_folder(&args.path, &output)
+                .map_err(special_errs)?
+                .to_string();
+            File::create(output.join("ingredient.json"))?.write_all(&report.into_bytes())?;
+            println!("Ingredient report written to the directory {:?}", &output);
+        } else {
+            let report = ManifestStore::from_file_with_resources(&args.path, &output)
+                .map_err(special_errs)?
+                .to_string();
+            if args.detailed {
+                // for a detailed report first call the above to generate the thumbnails
+                // then call this to add the detailed report
+                let detailed = ManifestStoreReport::from_file(&args.path)
+                    .map_err(special_errs)?
+                    .to_string();
+                File::create(output.join("detailed.json"))?.write_all(&detailed.into_bytes())?;
+            }
+            File::create(output.join("manifest_store.json"))?.write_all(&report.into_bytes())?;
+            println!("Manifest report written to the directory {:?}", &output);
+        }
+    } else if args.ingredient {
+        println!(
+            "{}",
+            Ingredient::from_file(&args.path).map_err(special_errs)?
+        )
+    } else if args.detailed {
+        println!(
+            "{}",
+            ManifestStoreReport::from_file(&args.path).map_err(special_errs)?
+        )
     } else {
-        // let extension = path.extension().and_then(|p| p.to_str()).unwrap_or("");
-        // just report from file if no manifest configuration given
-        println!("{}", report_from_path(&args.path, args.detailed)?);
+        println!(
+            "{}",
+            ManifestStore::from_file(&args.path).map_err(special_errs)?
+        )
     }
+
     Ok(())
 }
 
@@ -238,24 +351,40 @@ pub mod tests {
     #![allow(clippy::unwrap_used)]
 
     use super::*;
-    const CONFIG: &str = r#"{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}"#;
+    const CONFIG: &str = r#"{
+        "alg": "es256",
+        "private_key": "es256_private.key",
+        "sign_cert": "es256_certs.pem",
+        "ta_url": "http://timestamp.digicert.com",
+        "assertions": [
+            {
+                "label": "org.contentauth.test",
+                 "data": {"my_key": "whatever I want"}
+            }
+        ]
+    }"#;
 
     #[test]
     fn test_manifest_config() {
         const SOURCE_PATH: &str = "tests/fixtures/earth_apollo17.jpg";
-        const OUTPUT_PATH: &str = "target/unit_out.jpg";
+        const OUTPUT_PATH: &str = "target/tmp/unit_out.jpg";
+        create_dir_all("target/tmp").expect("create_dir");
+        let mut manifest = Manifest::from_json(CONFIG).expect("from_json");
 
-        let config = ManifestConfig::from_json(CONFIG).expect("from_json");
-        let mut manifest = config.to_manifest().expect("to_manifest");
-
-        let signer = get_c2pa_signer(&config).expect("get_signer");
+        let signer = SignConfig::from_json(CONFIG)
+            .unwrap()
+            .set_base_path("sample")
+            .signer()
+            .expect("get_signer");
 
         let _result = manifest
             .embed(SOURCE_PATH, OUTPUT_PATH, signer.as_ref())
             .expect("embed");
 
-        //let ms = ManifestStore::from_bytes("jpeg", result, false).expect("from_bytes");
-        let ms = report_from_path(&OUTPUT_PATH, false).expect("report_from_path");
+        let ms = ManifestStore::from_file(OUTPUT_PATH)
+            .expect("from_file")
+            .to_string();
+        //let ms = report_from_path(&OUTPUT_PATH, false).expect("report_from_path");
         assert!(ms.contains("my_key"));
     }
 }
