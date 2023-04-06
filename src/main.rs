@@ -221,9 +221,9 @@ fn main() -> Result<()> {
 
         if let Some(remote) = args.remote {
             if args.sidecar {
-                manifest.set_embedded_manifest_with_remote_ref(remote);
-            } else {
                 manifest.set_remote_manifest(remote);
+            } else {
+                manifest.set_embedded_manifest_with_remote_ref(remote);
             }
         } else if args.sidecar {
             manifest.set_sidecar_manifest();
