@@ -10,7 +10,8 @@ Use the tool to:
 
 ## Installation
 
-Prebuilt versions of the tool are available for [download]()
+Prebuilt versions of the tool are available for [download](https://github.com/contentauth/c2patool/tags).
+
 PREREQUISITE: Install [Rust](https://www.rust-lang.org/tools/install). 
 
 Enter this command to install or update the tool:
@@ -36,13 +37,13 @@ The tool will display the version installed. Compare the version number displaye
  |---------------| --------------------------------------------------- | 
  | `avi`         | `video/msvideo`, `video/avi`, `application-msvideo` |
  | `avif`        | `image/avif`                                        | 
- | `c2pa`        | `application/x-c2pa-manifest-store`,                |
+ | `c2pa`        | `application/x-c2pa-manifest-store`                 |
  | `dng`         | `image/x-adobe-dng`                                 | 
  | `heic`        | `image/heic`                                        | 
  | `heif`        | `image/heif`                                        | 
  | `jpg`, `jpeg` | `image/jpeg`                                        | 
  | `m4a`         | `audio/mp4`                                         | 
- | `mp4`         | `video/mp4`, `application/mp4`                       | 
+ | `mp4`         | `video/mp4`, `application/mp4` <sup>*</sup>         | 
  | `mov`         | `video/quicktime`                                   |
  | `png`         | `image/png`                                         | 
  | `tif`,`tiff`  | `image/tiff`                                        | 
@@ -50,8 +51,8 @@ The tool will display the version installed. Compare the version number displaye
  | `webp`        | `image/webp`                                        | 
  | `ttf`         | `font/ttf`                                          |
  | `otf`         | `application/font-sfnt`                             |
-
- * Fragmented mp4 is not yet supported
+ 
+<sup>*</sup> Fragmented mp4 is not yet supported.
 
 NOTE: OpenType/TrueType (`otf`/`ttf`) are currently just proof of concept.
 
@@ -246,9 +247,9 @@ For actual use, provide a permanent key and cert in the manifest definition or e
 
 ## JSON schemas
 
-* [Schema for the Manifest Definition](schemas/manifest-definition.json)
+* [Schema for the Manifest Definition](https://github.com/contentauth/c2patool/blob/main/schemas/manifest-definition.json)
 
-* [Schema for Ingredient](schemas/ingredient.json)
+* [Schema for Ingredient](https://github.com/contentauth/c2patool/blob/main/schemas/ingredient.json)
 
 ## Appendix: Creating and using an X.509 certificate
 
@@ -283,7 +284,7 @@ Both the `private_key` and `sign_cert` must be in PEM format. The `sign_cert` mu
 
 This section gives a highlight of noteworthy changes 
 
-Refer to the [CHANGELOG](CHANGELOG.md) for detailed Git changes
+Refer to the [CHANGELOG](https://github.com/contentauth/c2patool/blob/main/CHANGELOG.md) for detailed Git changes
 
 ## 0.5.0
 _27 March 2023_
