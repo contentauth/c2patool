@@ -92,7 +92,6 @@ struct CliArgs {
 struct ManifestDef {
     #[serde(flatten)]
     manifest: Manifest,
-    #[serde()]
     // allows adding ingredients with file paths
     ingredient_paths: Option<Vec<PathBuf>>,
 }
