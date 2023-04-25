@@ -1,0 +1,51 @@
+name: Generate builds for each commit
+
+on:
+  push:
+
+jobs:
+  publish-binaries:
+    name: Publish c2patool binaries
+    runs-on: ${{ matrix.os }}
+    needs: repo-prep
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+        rust_version: [stable]
+        experimental: [false]
+        include:
+        - os: macos-latest
+          artifact_name: c2patool_mac_universal.zip
+        - os: ubuntu-latest
+          artifact_name: c2patool_linux_intel.tar.gz
+        - os: windows-latest
+          artifact_name: c2patool_win_intel.zip
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.repo-prep.outputs.commit-hash }}
+
+    - name: Install Rust toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust_version }}
+        components: llvm-tools-preview
+        override: true
+
+    - name: Cache Rust dependencies
+      uses: Swatinem/rust-cache@v1
+
+    - name: Run make release
+      run: make release
+
+    - name: Upload build as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: target/${{ matrix.artifact_name }}
+        path: ${{ matrix.artifact_name }}
+        retention-days: 15
+        if-no-files-found: error
