@@ -7,14 +7,11 @@ jobs:
   publish-binaries:
     name: Publish c2patool binaries
     runs-on: ${{ matrix.os }}
-    needs: repo-prep
 
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        rust_version: [stable]
-        experimental: [false]
         include:
         - os: macos-latest
           artifact_name: c2patool_mac_universal.zip
@@ -32,7 +29,7 @@ jobs:
     - name: Install Rust toolchain
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: ${{ matrix.rust_version }}
+        toolchain: stable
         components: llvm-tools-preview
         override: true
 
