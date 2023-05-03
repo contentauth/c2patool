@@ -207,6 +207,40 @@ fn tool_test_ingredient_folder() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
+// c2patool tests/fixtures/C.jpg -ifo target/tmp/ingredient_json
+// c2patool tests/fixtures/earth_apollo17.jpg -m sample/test.json -p target/tmp/ingredient_json/ingredient.json -fo target/tmp/out_2.jpg
+fn tool_test_manifest_ingredient_json() -> Result<(), Box<dyn std::error::Error>> {
+    let out_path = temp_path("ingredient_json");
+    // first export a c2pa file
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE_WITH_MANIFEST))
+        .arg("-o")
+        .arg(&out_path)
+        .arg("--ingredient")
+        .arg("-f")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Ingredient report written"));
+
+    let json_path = out_path.join("ingredient.json");
+
+    let parent = json_path.to_string_lossy().to_string();
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE))
+        .arg("-p")
+        .arg(parent)
+        .arg("-m")
+        .arg("sample/test.json")
+        .arg("-o")
+        .arg(temp_path("out_2.jpg"))
+        .arg("-f")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("My Title"));
+    Ok(())
+}
+
+#[test]
 // c2patool tests/fixtures/earth_apollo17.jpg -m tests/fixtures/ingredient_test.json -fo target/tmp/ingredients.jpg
 fn tool_embed_jpeg_with_ingredients_report() -> Result<(), Box<dyn Error>> {
     Command::cargo_bin("c2patool")?
