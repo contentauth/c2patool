@@ -282,7 +282,7 @@ Click "Details" in the popup window that appears.
 
 In this next screen, click "Summary" in the upper left corner of this actions window:
 
-![Summary link](/.github/docs/per-commit-builds/summary.png)
+![Summary link](/.github/docs/per-commit-builds/summary-link.png)
 
 In this next page that appears (which will seem similar to the one you just left), scroll to the very bottom of the screen. There you will find links to the binaries for this commit while they are available:
 
