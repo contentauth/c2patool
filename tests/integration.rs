@@ -253,7 +253,7 @@ fn tool_embed_jpeg_with_ingredients_report() -> Result<(), Box<dyn Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("ingredients.jpg"))
-        .stdout(predicate::str::contains("libpng-test.png"))
+        .stdout(predicate::str::contains("test ingredient"))
         .stdout(predicate::str::contains("earth_apollo17.jpg"));
     Ok(())
 }
@@ -288,5 +288,20 @@ fn tool_similar_extensions_match() -> Result<(), Box<dyn Error>> {
         .assert()
         .success()
         .stdout(predicate::str::contains("similar."));
+    Ok(())
+}
+
+#[test]
+fn tool_fail_if_thumnail_missing() -> Result<(), Box<dyn Error>> {
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE))
+        .arg("-c")
+        .arg("{\"thumbnail\": {\"identifier\": \"thumb.jpg\",\"format\": \"image/jpeg\"}}")
+        .arg("-o")
+        .arg(temp_path("out_thumb.jpg"))
+        .arg("-f")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("resource not found"));
     Ok(())
 }

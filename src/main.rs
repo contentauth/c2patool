@@ -219,6 +219,12 @@ fn main() -> Result<()> {
             manifest.claim_generator = format!("{} {}", manifest.claim_generator, tool_generator);
         }
 
+        // set manifest base path before ingredients so ingredients can override it
+        if let Some(base) = base_path.as_ref() {
+            manifest.with_base_path(base)?;
+            sign_config.set_base_path(base);
+        }
+
         // Add any ingredients specified as file paths
         if let Some(paths) = manifest_def.ingredient_paths {
             for mut path in paths {
@@ -231,11 +237,6 @@ fn main() -> Result<()> {
                 let ingredient = load_ingredient(&path)?;
                 manifest.add_ingredient(ingredient);
             }
-        }
-
-        if let Some(base) = base_path {
-            manifest.with_base_path(&base)?;
-            sign_config.set_base_path(base);
         }
 
         if let Some(parent_path) = args.parent {
@@ -276,12 +277,6 @@ fn main() -> Result<()> {
             if output.extension().is_none() {
                 bail!("Missing extension output");
             }
-
-            // create any needed folders for the output path (embed should do this)
-            let mut output_dir = PathBuf::from(&output);
-            output_dir.pop();
-            manifest.resources_mut().set_base_path(&output_dir);
-            create_dir_all(&output_dir)?;
 
             let signer = sign_config.signer()?;
 

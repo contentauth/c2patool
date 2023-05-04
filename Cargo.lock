@@ -292,9 +292,9 @@ checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
 
 [[package]]
 name = "c2pa"
-version = "0.20.3"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcd970cf75256923e053c61db3a6d366f6b1fe5b6c50be0ee2758d1e03d64b46"
+checksum = "0f5f5e448bdcc8f2b4304e7b15795ac938cf99c3cd809402061138a1b1b7a060"
 dependencies = [
  "asn1-rs",
  "async-trait",
@@ -355,7 +355,7 @@ dependencies = [
 
 [[package]]
 name = "c2patool"
-version = "0.5.2"
+version = "0.5.3"
 dependencies = [
  "anyhow",
  "assert_cmd",
