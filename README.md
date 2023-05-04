@@ -272,6 +272,21 @@ set C2PA_SIGN_CERT=$(cat my_es256_certs)
 
 Both the `private_key` and `sign_cert` must be in PEM format. The `sign_cert` must contain a PEM certificate chain starting with the end-entity certificate used to sign the claim ending with the intermediate certificate before the root CA certificate. See the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) for example certificates.
 
+## Per-commit builds
+
+Interim binaries for each PR validation build are available for roughly two weeks after the commit is submitted to GitHub. These can be helpful for testing purposes. Getting there can be a bit tricky. Start by clicking on the commit status icon in the PR history. This is the green ✔︎ or red 𐄂 as shown below or can also be a yellow · for an in-progress build:
+
+![Commit status checkmarks](/.github/docs/per-commit-builds/commit-status-checkmarks.png)
+
+Click "Details" in the popup window that appears.
+
+In this next screen, click "Summary" in the upper left corner of this actions window:
+
+![Summary link](/.github/docs/per-commit-builds/summary.png)
+
+In this next page that appears (which will seem similar to the one you just left), scroll to the very bottom of the screen. There you will find links to the binaries for this commit while they are available:
+
+![Artifacts](/.github/docs/per-commit-builds/artifacts.png)
 
 ## Release notes
 
