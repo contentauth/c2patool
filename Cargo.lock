@@ -304,8 +304,8 @@ checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
 
 [[package]]
 name = "c2pa"
-version = "0.21.0"
-source = "git+https://github.com/Monotype/c2pa-rs?branch=monotype/fontSupport#25a9c240788633393bb1526ff0d54de5f4504dee"
+version = "0.24.0"
+source = "git+https://github.com/Monotype/c2pa-rs?branch=monotype/fontSupport#252576d91b77eba73468511bb558a40a37916787"
 dependencies = [
  "asn1-rs",
  "async-trait",
@@ -325,6 +325,7 @@ dependencies = [
  "fast-xml",
  "fonttools",
  "getrandom",
+ "half 1.8.2",
  "hex",
  "image",
  "img-parts",
@@ -980,7 +981,7 @@ checksum = "79386fdcec5e0fde91b1a6a5bcd89677d1f9304f7f986b154a1b9109038854d9"
 dependencies = [
  "az",
  "bytemuck",
- "half 1.8.2",
+ "half 2.2.1",
  "typenum",
 ]
 
