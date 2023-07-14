@@ -1,0 +1,29 @@
+{
+    "claim_generator": "Example/0.1",
+    "claim_generator_info": [
+        {
+            "name": "Example",
+            "version": "0.1",
+            "icon": {
+                "format": "image/png",
+                "identifier": "example_icon.png"
+            }
+        }
+    ],
+    "title" : "AI Used Example",
+    "format" : "image/jpeg",
+    "assertions": [
+        {
+            "label": "c2pa.actions",
+            "data": {
+                "actions": [
+                    {
+                        "action": "c2pa.edited",
+                        "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia",
+                        "softwareAgent": "Adobe Firefly 0.1.0"
+                    }
+                ]
+            }
+        }
+    ]
+}
