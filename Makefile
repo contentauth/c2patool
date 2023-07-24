@@ -26,6 +26,9 @@ test-local:
 # Run this before pushing a PR to pre-validate
 test: check-format clippy test-local
 
+fmt: 
+	cargo +nightly fmt
+
 # Creates a folder wtih c2patool bin, samples and readme
 c2patool-package:
 	rm -rf target/c2patool*
@@ -35,7 +38,6 @@ c2patool-package:
 	cp README.md target/c2patool/README.md
 	cp sample/* target/c2patool/sample
 	cp CHANGELOG.md target/c2patool/CHANGELOG.md
-	cp tests/fixtures/IMG_0003.jpg target/c2patool/image.jpg
 
 # These are for building the c2patool release bin on various platforms
 build-release-win:
@@ -57,14 +59,14 @@ build-release-linux:
 
 # Builds and packages a zip for c2patool for each platform
 ifeq ($(PLATFORM), mac)
-c2patool-release: build-release-mac-universal c2patool-package
-	cd target && zip -r c2patool_mac.zip c2patool && cd ..
+release: build-release-mac-universal c2patool-package
+	cd target && zip -r c2patool_mac_universal.zip c2patool && cd ..
 endif
 ifeq ($(PLATFORM), win)
-c2patool-release: build-release-win c2patool-package
-	cd target && tar.exe -a -c -f c2patool_win.zip c2patool && cd ..
+release: build-release-win c2patool-package
+	cd target && zip -r c2patool_win_intel.zip c2patool && cd ..
 endif
 ifeq ($(PLATFORM), linux)
-c2patool-release: build-release-linux c2patool-package
-	cd target && tar -czvf c2patool_linux.tar.gz c2patool && cd ..
+release: build-release-linux c2patool-package
+	cd target && tar -czvf c2patool_linux_intel.tar.gz c2patool && cd ..
 endif
