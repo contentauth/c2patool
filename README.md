@@ -1,6 +1,6 @@
 # c2patool - C2PA command line tool
 
-`c2patool` is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.0/specs/C2PA_Specification.html#_manifests) and media assets (audio, image or video files).
+`c2patool` is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.3/specs/C2PA_Specification.html#_manifests) and media assets (audio, image or video files).
 
 Use the tool to:
 
@@ -205,6 +205,6 @@ c2patool sample/image.jpg -c '{"assertions": [{"label": "org.contentauth.test", 
 
 ## Additional documentation
 
-- [Manifest definition file](./docs/manifest.md)
-- [Creating and using an X.509 certificate](./docs/x_509.md)
-- [Release notes](./docs/release-notes.md)
+- [Manifest definition file](https://github.com/contentauth/c2patool/blob/main/docs/manifest.md)
+- [Creating and using an X.509 certificate](https://github.com/contentauth/c2patool/blob/main/x_509.md)
+- [Release notes](https://github.com/contentauth/c2patool/blob/main/release-notes.md)
