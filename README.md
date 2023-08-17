@@ -2,11 +2,11 @@
 
 `c2patool` is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.3/specs/C2PA_Specification.html#_manifests) and media assets (audio, image or video files).
 
-Use the tool to:
+Use the tool on a file in one of the [supported file formats](#supported-file-formats) to:
 
-- Read a JSON report of C2PA manifests in [supported file formats](#supported-file-formats).
-- Read a low-level report of C2PA manifest data in [supported file formats](#supported-file-formats).
-- Add a C2PA manifest to [supported file formats](#supported-file-formats).
+- Read a summary JSON report of C2PA manifests.
+- Read a low-level report of C2PA manifest data.
+- Add a C2PA manifest to the file.
 
 For a simple example of calling c2patool from a server-based application, see the [c2pa-service-example](https://github.com/contentauth/c2pa-service-example) repository.
 
@@ -22,7 +22,7 @@ Enter this command to install or update the tool:
 cargo install c2patool
 ```
 
-If you are producing a build on a Windows machine, you will need the [7zip](https://www.7-zip.org/) tool to successfully build.
+To build the tool on a Windows machine, you need to install the [7zip](https://www.7-zip.org/) tool.
 
 ### Updating
 
