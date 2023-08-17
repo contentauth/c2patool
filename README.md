@@ -206,8 +206,8 @@ c2patool sample/image.jpg -c '{"assertions": [{"label": "org.contentauth.test", 
 
 ## Additional documentation
 
-- [Manifest definition file](https://github.com/contentauth/c2patool/blob/main/docs/manifest.md)
-- [Creating and using an X.509 certificate](https://github.com/contentauth/c2patool/blob/main/x_509.md)
-- [Release notes](https://github.com/contentauth/c2patool/blob/main/release-notes.md)
+- [Manifest definition file](./docs/manifest.md)
+- [Creating and using an X.509 certificate](./docs/x_509.md)
+- [Release notes](./docs/release-notes.md)
 
 </div>
