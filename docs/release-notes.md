@@ -1,6 +1,6 @@
 # Release notes
 
-This section gives a highlight of noteworthy changes
+This page highlights noteworthy changes in each release.
 
 Refer to the [CHANGELOG](https://github.com/contentauth/c2patool/blob/main/CHANGELOG.md) for detailed Git changes.
 
