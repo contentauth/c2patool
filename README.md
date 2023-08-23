@@ -1,3 +1,13 @@
+<div style={{display: 'none';}}>
+
+**Contents**:
+- [Installation](#installation)
+- [Supported file formats](#supported-file-formats)
+- [Usage](#usage)
+- [Additional documentation](#additional-documentation)
+
+</div>
+
 # c2patool - C2PA command line tool
 
 `c2patool` is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.3/specs/C2PA_Specification.html#_manifests) and media assets (audio, image or video files).
