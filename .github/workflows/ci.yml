@@ -56,9 +56,8 @@ jobs:
       
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
- 
-      - name: Install clippy
-        run: rustup component add clippy
+        with:
+          components: clippy
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
