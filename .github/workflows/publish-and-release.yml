@@ -159,7 +159,7 @@ jobs:
         components: llvm-tools-preview
 
     - name: Cache Rust dependencies
-      uses: Swatinem/rust-cache@v1
+      uses: Swatinem/rust-cache@v2
 
     - name: Run make release
       run: make release
