@@ -84,10 +84,7 @@ jobs:
           components: rustfmt
 
       - name: Check format
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+        run: cargo fmt --all -- --check
 
   cargo-deny:
     name: License / vulnerability audit
