@@ -27,7 +27,6 @@ jobs:
         with:
           toolchain: ${{ matrix.rust_version }}
           components: llvm-tools-preview
-          override: true
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
