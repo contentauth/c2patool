@@ -3,7 +3,7 @@ name: Nightly build
 on:  
   workflow_dispatch:
   schedule:
-    - cron: "15 5 * * *" # 0515 UTC every day
+    - cron: "30 5 * * *" # 0530 UTC every day
 
 jobs:
   # Create snapshot of main branch for nightly build
