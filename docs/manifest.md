@@ -1,18 +1,18 @@
-# Manifest definition file
+# Manifest store file
 
-The manifest definition file is a JSON formatted file with a `.json` extension.
-Relative file paths are interpreted as relative to the location of the definition file unless you specify a `base_path` field.
+The manifest store file is a file in JSON format file with `.json` extension. Relative file paths are interpreted as relative to the location of the definition file unless you specify a `base_path` field.
 
 ## Example manifest definition file
 
-Here's an example of a manifest definition that inserts a CreativeWork author assertion. Copy this JSON int a file to use as a test manifest.
+The c2patool repository contains default certificates in the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) that are also built into the c2patool binary. 
 
-It is important to provide a value for the Time Authority URL (the `ta_url` property) to have a valid timestamp on the claim.
+The example below is a snippet of a manifest definition that inserts a CreativeWork author assertion. This example uses the default testing certificate.  
 
-The default certificates in the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) are built into the c2patool binary. This example uses the default testing certs. You will see a warning message when using them, since they are meant for development purposes only.
+Copy this JSON into a file to use as a test manifest. You will see a warning message when using them, since they are meant for development purposes only.
 
-**NOTE**: Use the default private key and signing certificate only for development.
-For actual use, provide a permanent key and cert in the manifest definition or environment variables; see [Creating and using an X.509 certificate](x_509.md).
+**NOTE**: Use the default private key and signing certificate only for development. For actual use, provide a permanent key and certificate in the manifest definition or environment variables; see [Creating and using an X.509 certificate](x_509.md).
+
+It is important to provide a value for the Time Authority URL (the `ta_url` property) to have a valid timestamp on the claim.  NOTE: Only c2patool supports `ta_url` property; it's not part of the C2PA spec or the CAI SDKs.
 
 ```json
 {
