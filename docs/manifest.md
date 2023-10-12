@@ -2,7 +2,7 @@
 
 The manifest store file is a JSON file with `.json` extension. Relative file paths are interpreted as relative to the location of the definition file unless you specify a `base_path` field.
 
-## Example manifest definition file
+## Example
 
 The example below is a snippet of a manifest definition that inserts a CreativeWork author assertion. This example uses the default testing certificates in the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) that are also built into the c2patool binary.   
 
