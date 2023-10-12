@@ -17,6 +17,9 @@ The following manifest properties are specific to c2patool and used for signing 
 
 ```json
 {
+    "alg": "es256",
+    "private_key": "es256_private.key",
+    "sign_cert": "es256_certs.pem",
     "ta_url": "http://timestamp.digicert.com",
 
     "claim_generator": "TestApp",
