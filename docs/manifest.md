@@ -4,13 +4,16 @@ The manifest store file is a JSON file with `.json` extension. Relative file pat
 
 ## Example
 
-The example below is a snippet of a manifest definition that inserts a CreativeWork author assertion. This example uses the default testing certificates in the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) that are also built into the c2patool binary.   
+The example below is a snippet of a manifest definition that inserts a CreativeWork author assertion. This example uses the default testing certificates in the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) that are also built into the c2patool binary.   Copy this JSON into a file to use as a test manifest. 
 
-Copy this JSON into a file to use as a test manifest. 
+**NOTE**:  When you don't specify a key or certificate in the manifest `private_key` and `sign_cert` fields, the tool will use the built-in key and cert. You'll see a warning message, since they are meant for development purposes only. For actual use, provide a permanent key and certificate in the manifest definition or environment variables; see [Creating and using an X.509 certificate](x_509.md). 
 
-**NOTE**: Use the default private key and signing certificate only for development. You will see a warning message when using them, since they are meant for development purposes only. For actual use, provide a permanent key and certificate in the manifest definition or environment variables; see [Creating and using an X.509 certificate](x_509.md). 
+The following manifest properties are specific to c2patool and used for signing manifests:
 
-It is important to provide a value for the Time Authority URL (the `ta_url` property) to have a valid timestamp on the claim.  NOTE: Only c2patool supports `ta_url` property; it's not part of the C2PA spec or the CAI SDKs.
+- `alg`: Signing algorithm to use. See [Creating and using an X.509 certificate](x_509.md) for possible values. Default: `es256`.
+- `private_key`: Private key to use. Default: `es256_private.key`
+- `sign_cert`: Signing certificate to use. Default: `es256_certs.pem`
+- `ta_url`:  Time Authority URL. Required for a valid time-stamp. For example, `http://timestamp.digicert.com`.
 
 ```json
 {
@@ -37,6 +40,8 @@ It is important to provide a value for the Time Authority URL (the `ta_url` prop
 
 ## JSON schemas
 
-* [Schema for the Manifest Definition](https://github.com/contentauth/c2patool/blob/main/schemas/manifest-definition.json)
+* [Manifest store schema](https://opensource.contentauthenticity.org/docs/manifest/manifest-json-schema)
 
-* [Schema for Ingredient](https://github.com/contentauth/c2patool/blob/main/schemas/ingredient.json)
+* [Manifest definition schema](https://github.com/contentauth/c2patool/blob/main/schemas/manifest-definition.json)
+
+* [Ingredient schema](https://github.com/contentauth/c2patool/blob/main/schemas/ingredient.json)
