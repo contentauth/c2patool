@@ -14,7 +14,7 @@ The following manifest properties are specific to c2patool and used for signing 
 - `alg`: Signing algorithm to use. See [Creating and using an X.509 certificate](x_509.md) for possible values. Default: `es256`.
 - `private_key`: Private key to use. Default: `es256_private.key`
 - `sign_cert`: Signing certificate to use. Default: `es256_certs.pem`
-- `ta_url`:  Time Authority URL. Required for a valid time-stamp. For example, `http://timestamp.digicert.com`.
+- `ta_url`:  Time Authority URL for getting a time-stamp (for example, `http://timestamp.digicert.com`). If the signing certifcate expires, at time-stamp provides a way to know that the manifest was signed when it was still valid. The Time Authority URL requires a live online connection for confirmation, which may not always be available.
 
 ```json
 {
