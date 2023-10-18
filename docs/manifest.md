@@ -1,6 +1,7 @@
-# Manifest store file
+# Manifest definition file
 
-The manifest store file is a JSON file with `.json` extension. Relative file paths are interpreted as relative to the location of the definition file unless you specify a `base_path` field.
+The c2patool reads a manifest definition JSON file with a `.json` extension.  This file defines a single manifest to be added to an asset's manifest store.
+In the manifest definition file, file paths are relative to the location of the file unless you specify a `base_path` field.
 
 ## Example
 
