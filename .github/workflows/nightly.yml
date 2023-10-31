@@ -1,20 +1,21 @@
-name: Publish crate and binaries
+name: Nightly build
 
-on:
+on:  
   workflow_dispatch:
+  schedule:
+    - cron: "30 5 * * *" # 0530 UTC every day
 
 jobs:
-  repo-prep:
-    name: Prepare versioning and changelogs for release
+  # Create snapshot of main branch for nightly build
+  nightly-snapshot:
+    name: Create snapshot
     runs-on: ubuntu-latest
-    concurrency: publish-mutex
 
     outputs:
-      commit-hash: ${{ steps.commit.outputs.commit_hash }}
-      new-tag: ${{ steps.set-version.outputs.version_tag }}
+      new-tag: ${{ steps.set-nightly-version.outputs.version }}
 
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
@@ -24,7 +25,7 @@ jobs:
       uses: WyriHaximus/github-action-get-previous-tag@v1
       id: get-latest-tag
 
-    - name: Set new version
+    - name: Set new proposed version
       uses: paulhatch/semantic-version@v5.2.1
       id: set-version
       with:
@@ -32,6 +33,11 @@ jobs:
         version_format: "${major}.${minor}.${patch}"
         major_pattern: "(MAJOR)"
         minor_pattern: "(MINOR)"
+    
+    - name: Add -nightly+(date)-(commit ID) prefix to version
+      id: set-nightly-version
+      run: |
+        echo version=${{ steps.set-version.outputs.version }}-nightly+`date +%F`-`git rev-parse --short HEAD` >> "$GITHUB_OUTPUT"
 
     - name: Generate changelog since last tag
       id: generate-changelog
@@ -42,25 +48,28 @@ jobs:
           echo EOF
         } >> "$GITHUB_OUTPUT"
 
-    - name: Log version & changelog
+    - name: Log new version & changelog
       run: |
-        echo "Version: $VERSION"
-        echo "Version tag: $VERSION_TAG"
+        echo "Proposed new version: $VERSION"
+        echo "Nightly version: $NIGHTLY_VERSION"
         echo "Latest tag detected: $LATEST_TAG"
         echo "Changelog: $CHANGELOG"
       env:
         VERSION: ${{ steps.set-version.outputs.version }}
-        VERSION_TAG: ${{ steps.set-version.outputs.version_tag }}
+        NIGHTLY_VERSION: ${{ steps.set-nightly-version.outputs.version }}
         LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
         CHANGELOG: ${{ steps.generate-changelog.outputs.changelog }}
 
-    - name: Prevent empty release
-      if: ${{ steps.generate-changelog.outputs.changelog == '' }}
-      uses: actions/github-script@v3
-      with:
-        script: |
-          core.setFailed("No changes since prior release")
+    - name: Bump crate versions
+      run: |
+        sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
+      env:
+        VERSION: ${{ steps.set-nightly-version.outputs.version }}
 
+    - name: Swap in nightly c2pa-rs build
+      run: |
+        sed -i "s/^c2pa = { version = \"[^\"]*\",/c2pa = { git = \"https:\\/\\/github.com\\/contentauth\\/c2pa-rs.git\", branch = \"nightly\",/;" Cargo.toml
+  
     - name: Update changelog
       run: |
         (head -8 CHANGELOG.md && echo "## $VERSION" && date "+_%d %B %Y_" && echo "" && (echo "$CHANGELOG" | sed -E 's_\(#([0-9]+)\)_([#\1](https://github.com/contentauth/c2pa-rs/pull/\1)\)_') && tail -n +9 CHANGELOG.md) > CHANGELOG.new.md
@@ -68,19 +77,16 @@ jobs:
       env:
         VERSION: ${{ steps.set-version.outputs.version }}
         CHANGELOG: ${{ steps.generate-changelog.outputs.changelog }}
-
+  
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
+      with:
+        components: cargo
 
-    - name: Bump crate versions
+    - name: Create or update Cargo.lock
       run: |
-        sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
-      env:
-        VERSION: ${{ steps.set-version.outputs.version }}
-    
-    - name: Update Cargo.lock
-      run: |
-        cargo update -p c2patool
+        cargo update -w
+        git add -f Cargo.lock
 
     - name: Report differences for "prepare (release)" commit
       run: git diff
@@ -89,46 +95,22 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4
       id: commit
       with:
-        commit_message: Prepare ${{ steps.set-version.outputs.version }} release
+        branch: nightly
+        push_options: '--force'
+        commit_message: Prepare ${{ steps.set-nightly-version.outputs.version }} release
         commit_user_name: Adobe CAI Team
         commit_user_email: noreply@adobe.com
+        create_branch: true
 
-    - name: Create GitHub release
-      uses: ncipollo/release-action@v1
-      with:
-        body: ${{ steps.generate-changelog.outputs.changelog }}
-        commit: ${{ steps.commit.outputs.commit_hash }}
-        prerelease: true # remove at 1.0
-        tag: ${{ steps.set-version.outputs.version_tag }}
-        token: ${{ secrets.GH_ADMIN_COMMIT_TOKEN }}
-
-  release-crate:
-    name: Release c2patool Rust crate
-    needs: repo-prep
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        ref: ${{ needs.repo-prep.outputs.commit-hash }}
-
-    - name: Publish crate
-      run: |
-        cargo publish --token $CRATES_IO_SECRET
-      env:
-        CRATES_IO_SECRET: ${{ secrets.CRATES_IO_SECRET }}
-
-  publish-binaries:
-    name: Publish c2patool binaries
+  publish-nightly-binaries:
+    name: Publish c2patool nightly binaries
     runs-on: ${{ matrix.os }}
-    needs: repo-prep
+    needs: nightly-snapshot
 
     strategy:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
-        rust_version: [stable]
-        experimental: [false]
         include:
         - os: macos-latest
           artifact_name: c2patool_mac_universal.zip
@@ -141,25 +123,27 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
       with:
-        ref: ${{ needs.repo-prep.outputs.commit-hash }}
+        ref: nightly
 
     - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: ${{ matrix.rust_version }}
-        components: llvm-tools-preview
+      uses: dtolnay/rust-toolchain@stable
 
     - name: Cache Rust dependencies
       uses: Swatinem/rust-cache@v2
 
-    - name: Run make release
+    - name: Run cargo check
+      run: cargo check
+
+    - name: Run cargo test --all
+      run: cargo test --all
+
+    - name: Build nightly release artifacts
       run: make release
 
-    - name: Upload binary to GitHub
-      uses: svenstaro/upload-release-action@v1-release
+    - name: Upload build as artifact
+      uses: actions/upload-artifact@v3
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: target/${{ matrix.artifact_name }}
-        asset_name: ${{ matrix.artifact_name }}
-        tag: ${{ needs.repo-prep.outputs.new-tag }}
-        overwrite: true
+        path: target/${{ matrix.artifact_name }}
+        name: ${{ matrix.artifact_name }}
+        retention-days: 15
+        if-no-files-found: error
