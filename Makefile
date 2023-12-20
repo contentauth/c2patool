@@ -14,7 +14,7 @@ else
 endif
 
 check-format:
-	cargo fmt -- --check
+	cargo +nightly fmt -- --check
 
 clippy:
 	cargo clippy --all-features --all-targets -- -D warnings
@@ -26,7 +26,7 @@ test-local:
 # Run this before pushing a PR to pre-validate
 test: check-format clippy test-local
 
-fmt: 
+fmt:
 	cargo +nightly fmt
 
 # Creates a folder wtih c2patool bin, samples and readme
@@ -64,7 +64,7 @@ release: build-release-mac-universal c2patool-package
 endif
 ifeq ($(PLATFORM), win)
 release: build-release-win c2patool-package
-	cd target && zip -r c2patool_win_intel.zip c2patool && cd ..
+	cd target && 7z a -r c2patool_win_intel.zip c2patool && cd ..
 endif
 ifeq ($(PLATFORM), linux)
 release: build-release-linux c2patool-package
