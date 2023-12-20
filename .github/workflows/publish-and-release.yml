@@ -4,114 +4,103 @@ on:
   workflow_dispatch:
 
 jobs:
-  # repo-prep:
-  #   name: Prepare versioning and changelogs for release
-  #   runs-on: ubuntu-latest
-  #   concurrency: publish-mutex
+  repo-prep:
+    name: Prepare versioning and changelogs for release
+    runs-on: ubuntu-latest
+    concurrency: publish-mutex
 
-  #   outputs: # TODO: See if these are still needed after refactoring
-  #     changelog-body: ${{ steps.generate-changelog.outputs.stdout }}
-  #     commit-hash: ${{ steps.commit.outputs.commit_hash }}
-  #     new-tag: ${{ steps.set-version.outputs.version_tag }}
-  #     version: ${{ steps.set-version.outputs.version }}
+    outputs:
+      commit-hash: ${{ steps.commit.outputs.commit_hash }}
+      new-tag: ${{ steps.set-version.outputs.version_tag }}
 
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v3
-  #     with:
-  #       fetch-depth: 0
-  #       token: ${{ secrets.GH_ADMIN_COMMIT_TOKEN }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GH_ADMIN_COMMIT_TOKEN }}
 
-  #   - name: Get latest existing tag
-  #     uses: actions-ecosystem/action-get-latest-tag@v1
-  #       ## NEEDS UPDATE for set-output deprecation.
-  #       ## See https://github.com/actions-ecosystem/action-get-latest-tag/issues/25.
-  #     id: get-latest-tag
-  #     with:
-  #       semver_only: true
+    - name: Get latest existing tag
+      uses: WyriHaximus/github-action-get-previous-tag@v1
+      id: get-latest-tag
 
-  #   - name: Set new version
-  #     uses: paulhatch/semantic-version@v4.0.2
-  #       ## NEEDS UPDATE for set-output deprecation.
-  #       ## See https://github.com/PaulHatch/semantic-version/issues/66.
-  #     id: set-version
-  #     with:
-  #       tag_prefix: "v"
-  #       format: "${major}.${minor}.${patch}"
-  #       major_pattern: "(MAJOR)"
-  #       minor_pattern: "(MINOR)"
+    - name: Set new version
+      uses: paulhatch/semantic-version@v5.2.1
+      id: set-version
+      with:
+        tag_prefix: "v"
+        version_format: "${major}.${minor}.${patch}"
+        major_pattern: "(MAJOR)"
+        minor_pattern: "(MINOR)"
 
-  #   # - name: Generate changelog since last tag
-  #   #   uses: mathiasvr/command-output@v1
-  #   #     ## NEEDS UPDATE for set-output deprecation.
-  #   #     ## See https://github.com/mathiasvr/command-output/issues/4.
-  #   #   id: generate-changelog
-  #   #   with:
-  #   #     run: git log --format="* %s" ${{ steps.get-latest-tag.outputs.tag }}..HEAD | { grep -v "(IGNORE)" || :; }
+    - name: Generate changelog since last tag
+      id: generate-changelog
+      run: |
+        {
+          echo 'changelog<<EOF'
+          git log --format="* %s" ${{ steps.get-latest-tag.outputs.tag }}..HEAD | { grep -v "(IGNORE)" || :; }
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
 
-  #   - name: Log version & changelog
-  #     run: |
-  #       echo "Version: $VERSION"
-  #       echo "Version tag: $VERSION_TAG"
-  #       echo "Latest tag detected: $LATEST_TAG"
-  #       echo "Changelog: $CHANGELOG"
-  #     env:
-  #       VERSION: ${{ steps.set-version.outputs.version }}
-  #       VERSION_TAG: ${{ steps.set-version.outputs.version_tag }}
-  #       LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
-  #       CHANGELOG: ${{ steps.generate-changelog.outputs.stdout }}
+    - name: Log version & changelog
+      run: |
+        echo "Version: $VERSION"
+        echo "Version tag: $VERSION_TAG"
+        echo "Latest tag detected: $LATEST_TAG"
+        echo "Changelog: $CHANGELOG"
+      env:
+        VERSION: ${{ steps.set-version.outputs.version }}
+        VERSION_TAG: ${{ steps.set-version.outputs.version_tag }}
+        LATEST_TAG: ${{ steps.get-latest-tag.outputs.tag }}
+        CHANGELOG: ${{ steps.generate-changelog.outputs.changelog }}
 
-  #   - name: Prevent empty release
-  #     if: ${{ steps.generate-changelog.outputs.stdout == '' }}
-  #     uses: actions/github-script@v3
-  #     with:
-  #       script: |
-  #         core.setFailed("No changes since prior release")
+    - name: Prevent empty release
+      if: ${{ steps.generate-changelog.outputs.changelog == '' }}
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed("No changes since prior release")
 
-  #   - name: Update changelog
-  #     run: |
-  #       (head -8 CHANGELOG.md && echo "## $VERSION" && date "+_%d %B %Y_" && echo "" && (echo "$CHANGELOG" | sed -E 's_\(#([0-9]+)\)_([#\1](https://github.com/contentauth/c2pa-rs/pull/\1)\)_') && tail -n +9 CHANGELOG.md) > CHANGELOG.new.md
-  #       mv CHANGELOG.new.md CHANGELOG.md
-  #     env:
-  #       VERSION: ${{ steps.set-version.outputs.version }}
-  #       CHANGELOG: ${{ steps.generate-changelog.outputs.stdout }}
+    - name: Update changelog
+      run: |
+        (head -8 CHANGELOG.md && echo "## $VERSION" && date "+_%d %B %Y_" && echo "" && (echo "$CHANGELOG" | sed -E 's_\(#([0-9]+)\)_([#\1](https://github.com/contentauth/c2pa-rs/pull/\1)\)_') && tail -n +9 CHANGELOG.md) > CHANGELOG.new.md
+        mv CHANGELOG.new.md CHANGELOG.md
+      env:
+        VERSION: ${{ steps.set-version.outputs.version }}
+        CHANGELOG: ${{ steps.generate-changelog.outputs.changelog }}
 
-  #   - name: Install Rust toolchain
-  #     uses: actions-rs/toolchain@v1
-  #     with:
-  #       toolchain: stable
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
 
-  #   - name: Bump crate versions
-  #     run: |
-  #       sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
-  #     env:
-  #       VERSION: ${{ steps.set-version.outputs.version }}
-    
-  #   - name: Update Cargo.lock
-  #     run: |
-  #       cargo update -p c2patool
+    - name: Bump crate versions
+      run: |
+        sed -i "s/^version = \"[^\"]*\"$/version = \"$VERSION\"/;" Cargo.toml
+      env:
+        VERSION: ${{ steps.set-version.outputs.version }}
 
-  #   - name: Report differences for "prepare (release)" commit
-  #     run: git diff
+    - name: Update Cargo.lock
+      run: |
+        cargo update -p c2patool
 
-  #   - name: Commit Cargo.toml, Cargo.lock, and changelog
-  #     uses: stefanzweifel/git-auto-commit-action@v4
-  #       ## NEEDS UPDATE for set-output deprecation.
-  #       ## See https://github.com/stefanzweifel/git-auto-commit-action/issues/250.
-  #     id: commit
-  #     with:
-  #       commit_message: Prepare ${{ steps.set-version.outputs.version }} release
-  #       commit_user_name: Adobe CAI Team
-  #       commit_user_email: noreply@adobe.com
+    - name: Report differences for "prepare (release)" commit
+      run: git diff
 
-  #   - name: Create GitHub release
-  #     uses: ncipollo/release-action@v1
-  #     with:
-  #       body: ${{ steps.generate-changelog.outputs.stdout }}
-  #       commit: ${{ steps.commit.outputs.commit_hash }}
-  #       prerelease: true # remove at 1.0
-  #       tag: ${{ steps.set-version.outputs.version_tag }}
-  #       token: ${{ secrets.GH_ADMIN_COMMIT_TOKEN }}
+    - name: Commit Cargo.toml, Cargo.lock, and changelog
+      uses: stefanzweifel/git-auto-commit-action@v4
+      id: commit
+      with:
+        commit_message: Prepare ${{ steps.set-version.outputs.version }} release
+        commit_user_name: Adobe CAI Team
+        commit_user_email: noreply@adobe.com
+
+    - name: Create GitHub release
+      uses: ncipollo/release-action@v1
+      with:
+        body: ${{ steps.generate-changelog.outputs.changelog }}
+        commit: ${{ steps.commit.outputs.commit_hash }}
+        prerelease: true # remove at 1.0
+        tag: ${{ steps.set-version.outputs.version_tag }}
+        token: ${{ secrets.GH_ADMIN_COMMIT_TOKEN }}
 
   # release-crate:
   #   name: Release c2patool Rust crate
@@ -142,11 +131,11 @@ jobs:
         experimental: [false]
         include:
         - os: macos-latest
-          artifact_name: c2patool_mac_universal.zip
+          artifact_name: c2patool_mac_universal-${{ needs.repo-prep.outputs.new-tag }}.zip
         - os: ubuntu-latest
-          artifact_name: c2patool_linux_intel.tar.gz
+          artifact_name: c2patool_linux_intel-${{ needs.repo-prep.outputs.new-tag }}.tar.gz
         - os: windows-latest
-          artifact_name: c2patool_win_intel.zip
+          artifact_name: c2patool_win_intel-${{ needs.repo-prep.outputs.new-tag }}.zip
 
     steps:
     - name: Checkout repository
@@ -155,19 +144,18 @@ jobs:
         ref: ${{ needs.repo-prep.outputs.commit-hash }}
 
     - name: Install Rust toolchain
-      uses: actions-rs/toolchain@v1
+      uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ matrix.rust_version }}
         components: llvm-tools-preview
-        override: true
 
     - name: Cache Rust dependencies
-      uses: Swatinem/rust-cache@v1
+      uses: Swatinem/rust-cache@v2
 
     - name: Run make release
       run: make release
 
-    - name: Upload binary to github
+    - name: Upload binary to GitHub
       uses: svenstaro/upload-release-action@v1-release
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
