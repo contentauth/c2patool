@@ -230,7 +230,7 @@ c2patool sample/image.jpg -c '{"assertions": [{"label": "org.contentauth.test", 
 
 ### Speeding up signing
 
-By default c2patool will validate the signature immediately after signing a manifest.  This can be disabled to gain a slight speed up by use the  `--no_signing_verify` option.  
+By default c2patool will validate the signature immediately after signing a manifest.  This can be disabled to gain a slight speed up by using the  `--no_signing_verify` option.  
 
 ### Configuring trust support
 
