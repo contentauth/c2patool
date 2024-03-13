@@ -88,7 +88,7 @@ struct CliArgs {
     no_signing_verify: bool,
 
     #[command(subcommand)]
-    command: Option<Commands>,    
+    command: Option<Commands>,
 
     /// Show manifest size, XMP url and other stats.
     #[clap(long)]
@@ -101,11 +101,11 @@ enum Commands {
         /// Path to file containing list of trust anchors in PEM format
         #[clap(long = "trust_anchors")]
         trust_anchors: Option<PathBuf>,
-    
+
         /// Path to file containing specific manifest signing certificates in PEM format to implicitly trust
         #[clap(long = "allowed_list")]
         allowed_list: Option<PathBuf>,
-    
+
         /// Path to file containing configured EKUs in Oid dot notation
         #[clap(long = "trust_config")]
         trust_config: Option<PathBuf>,
@@ -178,34 +178,38 @@ fn configure_sdk(args: &CliArgs) -> Result<()> {
     let mut enable_trust_checks = false;
 
     match &args.command {
-        Some(Commands::Trust { trust_anchors, allowed_list, trust_config }) => {
+        Some(Commands::Trust {
+            trust_anchors,
+            allowed_list,
+            trust_config,
+        }) => {
             if let Some(trust_list) = &trust_anchors {
                 let data = std::fs::read_to_string(trust_list)?;
-                let replacement_val = serde_json::Value::String(data).to_string();  // escape string
+                let replacement_val = serde_json::Value::String(data).to_string(); // escape string
                 let setting = ta.replace("replacement_val", &replacement_val);
-        
+
                 c2pa::settings::load_settings_from_str(&setting, "json")?;
-        
+
                 enable_trust_checks = true;
             }
-        
+
             if let Some(allowed_list) = &allowed_list {
                 let data = std::fs::read_to_string(allowed_list)?;
                 let replacement_val = serde_json::Value::String(data).to_string(); // escape string
                 let setting = al.replace("replacement_val", &replacement_val);
-                
+
                 c2pa::settings::load_settings_from_str(&setting, "json")?;
-        
+
                 enable_trust_checks = true;
             }
-        
+
             if let Some(trust_config) = &trust_config {
                 let data = std::fs::read_to_string(trust_config)?;
                 let replacement_val = serde_json::Value::String(data).to_string(); // escape string
                 let setting = tc.replace("replacement_val", &replacement_val);
-        
+
                 c2pa::settings::load_settings_from_str(&setting, "json")?;
-        
+
                 enable_trust_checks = true;
             }
         }
@@ -223,13 +227,12 @@ fn configure_sdk(args: &CliArgs) -> Result<()> {
     {
         let replacement_val = serde_json::Value::Bool(!args.no_signing_verify).to_string();
         let setting = vs.replace("replacement_val", &replacement_val);
-        
+
         c2pa::settings::load_settings_from_str(&setting, "json")?;
     }
-        
+
     Ok(())
 }
-
 
 fn main() -> Result<()> {
     let args = CliArgs::parse();
@@ -256,7 +259,7 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
-    // configure the SDK 
+    // configure the SDK
     configure_sdk(&args).context("could not configure c2pa-rs")?;
 
     // Remove manifest needs to also remove XMP provenance
