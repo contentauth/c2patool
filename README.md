@@ -228,6 +228,18 @@ For example, the following command adds a custom assertion called "org.contentau
 c2patool sample/image.jpg -c '{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}'
 ```
 
+### Speeding up signing
+
+By default c2patool will validate the signature immediately after signing a manifest.  This can be disabled to gain a slight speed up by use the  `--no_signing_verify` option.  
+
+### Configuring trust support
+
+Trust support is enabled by use the `trust` command and setting any combination of `trust` options. Use `trust_anchors` to specify a list of trust anchors (in PEM format) to use. The trust anchors are used to validate the manifest certificate chain. The manifest certificate chain must chain up to a certificate on the trust list to be considered valid. All certificates in the trust anchor list must have Basic Constraints extension CA: True. See sample `sample/trust_anchors.pem`. Use `allowed_list` to specify a list of end-entity certs (in PEM format) you wish to trust. These are the certificates used to sign the manifest. This check supersedes the `trust_anchors` check. The allowed list must not contain certificates with Basic Constraints extension CA: True.  See sample `sample/allowed_list.pem`. Use `trust_config` to specify a set of custom certificate extended key usages (EKUs) to allow. The format of configuration is a list object identifiers in Oid dot notation format. See sample `sample/store.cfg`.
+
+```shell
+c2patool sample/C.jpg trust --allowed_list sample/allowed_list.pem --trust_config sample/store.cfg
+```
+
 ## Nightly builds
 
 Interim binaries are generated every day around 05:30 UTC (overnight for our US-based team) and are available for roughly two weeks thereafter. These can be helpful for testing purposes. For more information, see the documentation on [nightly builds](https://github.com/contentauth/c2patool/tree/main/docs/nightly-builds/README.md).
