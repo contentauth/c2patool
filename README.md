@@ -16,6 +16,7 @@ For a simple example of calling c2patool from a server-based application, see th
 - [Installation](#installation)
 - [Supported file formats](#supported-file-formats)
 - [Usage](#usage)
+- [Configuring trust support](#configuring-trust-support)
 
 **Additional documentation**:
 
@@ -87,7 +88,7 @@ The tool will display the version installed. Compare the version number displaye
 The tool's command-line syntax is:
 
 ```
-c2patool [OPTIONS] [path]
+c2patool [trust] [OPTIONS] [path]
 ```
 
 Where `<path>`  is the path to the asset to read or embed a manifest into.
@@ -105,11 +106,14 @@ The following table describes the command-line options.
 | `--ingredient` | `-i` | N/A | Creates an Ingredient definition in --output folder. |
 | `--output` | `-o` | `<output_file>` | Specifies path to output folder or file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file). |
 | `--manifest` | `-m` | `<manifest_file>` | Specifies a manifest file to add to an asset file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).
+| `--no_signing_verify` | None | N/A |  Does not validate the signature after signing an asset, which speeds up signing. |
 | `--parent` | `-p` | `<parent_file>` | Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file). |
-| `--remote` | `-r` | `<manifest_url>` | Specify URL for remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)|
+| `--remote` | `-r` | `<manifest_url>` | Specify URL for remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)| N/A? | 
 | `--sidecar` | `-s` | N/A | Put manifest in external "sidecar" file with `.c2pa` extension. See [Generating an external manifest](#generating-an-external-manifest). |
 | `--tree` | | N/A | Create a tree diagram of the manifest store. |
 | `--version` | `-V` | N/A | Display version information. |
+
+Use the optional `trust` sub-command to enable and configure trust support.  When you use this sub-command, several other options are available; see [Configuring trust support](#configuring-trust-support) for details.
 
 ### Displaying manifest data
 
@@ -225,19 +229,38 @@ To provide the manifest definition in a command line argument instead of a file,
 For example, the following command adds a custom assertion called "org.contentauth.test".
 
 ```shell
-c2patool sample/image.jpg -c '{"assertions": [{"label": "org.contentauth.test", "data": {"my_key": "whatever I want"}}]}'
+c2patool sample/image.jpg \
+  -c '{"assertions": \
+    [{"label": "org.contentauth.test", \
+      "data": {"my_key": "whatever I want"}}]}'
 ```
 
 ### Speeding up signing
 
-By default c2patool will validate the signature immediately after signing a manifest.  This can be disabled to gain a slight speed up by using the  `--no_signing_verify` option.  
+By default, `c2patool` validates the signature immediately after signing a manifest. To disable this and speed up the validation process, use the `--no_signing_verify` option.
 
-### Configuring trust support
+## Configuring trust support
 
-Trust support is enabled by use the `trust` command and setting any combination of `trust` options. Use `trust_anchors` to specify a list of trust anchors (in PEM format) to use. The trust anchors are used to validate the manifest certificate chain. The manifest certificate chain must chain up to a certificate on the trust list to be considered valid. All certificates in the trust anchor list must have Basic Constraints extension CA: True. See sample `sample/trust_anchors.pem`. Use `allowed_list` to specify a list of end-entity certs (in PEM format) you wish to trust. These are the certificates used to sign the manifest. This check supersedes the `trust_anchors` check. The allowed list must not contain certificates with Basic Constraints extension CA: True.  See sample `sample/allowed_list.pem`. Use `trust_config` to specify a set of custom certificate extended key usages (EKUs) to allow. The format of configuration is a list object identifiers in Oid dot notation format. See sample `sample/store.cfg`.
+Enable trust support by using the `trust` sub-command, as follows:
+
+```
+c2patool [path] trust [OPTIONS]
+```
+
+The following additional options are available with the `trust` sub-command:
+
+| Option | Description | Example |
+|--------------|-------------|---------|
+| `--trust_anchors` | Specifies a list of trust anchors (in PEM format) used to validate the manifest certificate chain. The manifest certificate chain must chain up to a certificate on the trust list to be considered valid. All certificates in the trust anchor list must have `Basic Constraints extension CA: True`. | `sample/trust_anchors.pem` |
+| `--allowed_list` | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with `Basic Constraints extension CA: True`. |  `sample/allowed_list.pem` |
+| `--trust_config` | Specifies a set of custom certificate extended key usages (EKUs) to allow. Format is a list with object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format. | `sample/store.cfg` |
+
+For example:
 
 ```shell
-c2patool sample/C.jpg trust --allowed_list sample/allowed_list.pem --trust_config sample/store.cfg
+c2patool sample/C.jpg trust \
+  --allowed_list sample/allowed_list.pem \
+  --trust_config sample/store.cfg
 ```
 
 ## Nightly builds
