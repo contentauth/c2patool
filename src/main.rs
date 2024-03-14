@@ -18,7 +18,7 @@
 /// If only the path is given, this will generate a summary report of any claims in that file
 /// If a manifest definition json file is specified, the claim will be added to any existing claims
 use std::{
-    fs::{create_dir_all, File, remove_dir_all},
+    fs::{create_dir_all, remove_dir_all, File},
     io::Write,
     path::{Path, PathBuf},
 };
@@ -27,7 +27,6 @@ use anyhow::{anyhow, bail, Context, Result};
 use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport};
 use clap::{Parser, Subcommand};
 use serde::Deserialize;
-
 use signer::SignConfig;
 
 use crate::{
