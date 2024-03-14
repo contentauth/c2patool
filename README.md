@@ -88,10 +88,10 @@ The tool will display the version installed. Compare the version number displaye
 The tool's command-line syntax is:
 
 ```
-c2patool [trust] [OPTIONS] [path]
+c2patool [trust] [PATH] [OPTIONS]
 ```
 
-Where `<path>`  is the path to the asset to read or embed a manifest into.
+Where `PATH` is the (relative or absolute) file path to the asset to read or embed a manifest into.
 
 The following table describes the command-line options.
 
@@ -106,7 +106,7 @@ The following table describes the command-line options.
 | `--ingredient` | `-i` | N/A | Creates an Ingredient definition in --output folder. |
 | `--output` | `-o` | `<output_file>` | Specifies path to output folder or file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file). |
 | `--manifest` | `-m` | `<manifest_file>` | Specifies a manifest file to add to an asset file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).
-| `--no_signing_verify` | None | N/A |  Does not validate the signature after signing an asset, which speeds up signing. |
+| `--no_signing_verify` | None | N/A |  Does not validate the signature after signing an asset, which speeds up signing. See [Speeding up signing](#speeding-up-signing) |
 | `--parent` | `-p` | `<parent_file>` | Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file). |
 | `--remote` | `-r` | `<manifest_url>` | Specify URL for remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)| N/A? | 
 | `--sidecar` | `-s` | N/A | Put manifest in external "sidecar" file with `.c2pa` extension. See [Generating an external manifest](#generating-an-external-manifest). |
@@ -136,7 +136,7 @@ c2patool sample/C.jpg --output ./report
 To display a detailed report describing the internal C2PA format of manifests contained in the asset, use the `-d` option; for example, using one of the example images in the `sample` directory:
 
 ```shell
-c2patool -d sample/C.jpg
+c2patool sample/C.jpg -d 
 ```
 
 The tool displays the detailed report to standard output (stdout) or will add a detailed.json if an output folder is supplied.
@@ -244,15 +244,15 @@ By default, `c2patool` validates the signature immediately after signing a manif
 Enable trust support by using the `trust` sub-command, as follows:
 
 ```
-c2patool [path] trust [OPTIONS]
+c2patool trust [path] [OPTIONS] 
 ```
 
-The following additional options are available with the `trust` sub-command:
+The following additional CLI options are available with the `trust` sub-command:
 
-| Option | Description | Example |
+| Option&nbsp;option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description | Example |
 |--------------|-------------|---------|
-| `--trust_anchors` | Specifies a list of trust anchors (in PEM format) used to validate the manifest certificate chain. The manifest certificate chain must chain up to a certificate on the trust list to be considered valid. All certificates in the trust anchor list must have `Basic Constraints extension CA: True`. | `sample/trust_anchors.pem` |
-| `--allowed_list` | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with `Basic Constraints extension CA: True`. |  `sample/allowed_list.pem` |
+| `--trust_anchors` | Specifies a list of trust anchors (in PEM format) used to validate the manifest certificate chain. To be valid, the manifest certificate chain must lead to a certificate on the trust list. All certificates in the trust anchor list must have the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) and the CA attribute of this extension must be `True`. | `sample/trust_anchors.pem` |
+| `--allowed_list` | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) with the CA attribute `True`.  |  `sample/allowed_list.pem` |
 | `--trust_config` | Specifies a set of custom certificate extended key usages (EKUs) to allow. Format is a list with object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format. | `sample/store.cfg` |
 
 For example:
