@@ -43,6 +43,8 @@ fn main() -> io::Result<()> {
     io::stdin().read_to_end(&mut bytes_to_be_signed).unwrap();
 
     // We provide a few arguments to this process via CLI args as [ExternalSignerArgs].
+    // These arguments can be used for logging, determining which private key should be used,
+    // or determining which algorithm should be used, etc...
     let _cli = ExternalSignerArgs::parse();
 
     // 2. Sign the bytes using your private key.

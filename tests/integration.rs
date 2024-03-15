@@ -306,6 +306,9 @@ fn tool_fail_if_thumbnail_missing() -> Result<(), Box<dyn Error>> {
 fn test_succeed_using_example_signer() -> Result<(), Box<dyn Error>> {
     let output = temp_path("./output_external.jpg");
 
+    // We are calling a cargo/bin here that successfully signs claim bytes. We are using
+    // a cargo/bin because it works on all OSs, we like Rust, and our example external signing
+    // code is compiled and verified during every test of this project.
     let mut successful_process = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     successful_process.push("target/debug/signer-process-success");
 
