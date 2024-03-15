@@ -258,8 +258,6 @@ fn tool_embed_jpeg_with_ingredients_report() -> Result<(), Box<dyn Error>> {
 #[test]
 fn tool_extensions_do_not_match() -> Result<(), Box<dyn Error>> {
     let path = temp_path("./foo.png");
-    println!("Hello! {:?}", path);
-
     Command::cargo_bin("c2patool")?
         .arg(fixture_path("C.jpg"))
         .arg("-m")
