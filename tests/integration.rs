@@ -370,6 +370,8 @@ fn test_fails_for_external_signer_failure() -> Result<(), Box<dyn Error>> {
         .arg("-f")
         .assert()
         .stderr(str::contains("User supplied signer process failed"))
+        // Ensures stderr from user executable is revealed to client.
+        .stderr(str::contains("signer-process-fail-stderr"))
         .failure();
 
     Ok(())

@@ -52,6 +52,7 @@ impl SignCallback for ExternalProcessRunner {
         let mut child = Command::new(&self.process_name)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .args(["--reserve-size", &self.config.reserve_size.to_string()])
             .args(["--alg", &format!("{}", &self.config.alg)])
             .args(["--sign-cert", sign_cert])
