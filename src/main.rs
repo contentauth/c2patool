@@ -105,9 +105,25 @@ struct CliArgs {
     #[clap(long)]
     signer_path: Option<PathBuf>,
 
-    /// To be used with the [callback_signer] argument.
-    #[clap(long)]
-    reserve_size: Option<usize>,
+    /// To be used with the [callback_signer] argument. This value should equal: 1024 (CoseSign1) +
+    /// the size of cert provided in the manifest definition's `sign_cert` field + the size of the
+    /// signature of the Time Stamp Authority response. For example:
+    ///
+    /// The reserve-size can be calculated like this if you aren't including a `tsa_url` key in
+    /// your manifest description:
+    ///
+    ///     1024 + sign_cert.len()
+    ///
+    /// Or, if you are including a `tsa_url` in your manifest definition, you will calculate the
+    /// reserve size like this:
+    ///
+    ///     1024 + sign_cert.len() + tsa_signature_response.len()
+    ///
+    /// Note:
+    /// We'll default the `reserve-size` to a value of 20_000, if no value is provided. This
+    /// will probably leave extra `0`s of unused space. Please specify a reserve-size if possible.
+    #[clap(long, default_value("20000"))]
+    reserve_size: usize,
 }
 
 #[derive(Debug, Subcommand)]
@@ -387,12 +403,7 @@ fn main() -> Result<()> {
             }
 
             let signer = if let Some(signer_process_name) = args.signer_path {
-                let cb_config = CallbackSignerConfig::new(
-                    &sign_config,
-                    args.reserve_size.context(
-                        "The --reserve_size argument is required when using an external_signer",
-                    )?,
-                )?;
+                let cb_config = CallbackSignerConfig::new(&sign_config, args.reserve_size)?;
 
                 let process_runner = Box::new(ExternalProcessRunner::new(
                     cb_config.clone(),

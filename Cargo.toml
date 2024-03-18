@@ -1,5 +1,6 @@
 [package]
 name = "c2patool"
+default-run = "c2patool"
 
 # Please do not manually edit `version`. Version updates will be generated
 # automatically when c2patool is published. Remember to use (MINOR) or (MAJOR)
