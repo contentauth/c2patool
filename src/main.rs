@@ -101,9 +101,9 @@ struct CliArgs {
     #[clap(long)]
     info: bool,
 
-    /// Name of an external process which will sign the claim bytes.
+    /// Path to an executable that will sign the claim bytes.
     #[clap(long)]
-    signer_process: Option<String>,
+    signer_path: Option<PathBuf>,
 
     /// To be used with the [callback_signer] argument.
     #[clap(long)]
@@ -386,7 +386,7 @@ fn main() -> Result<()> {
                 bail!("Missing extension output");
             }
 
-            let signer = if let Some(signer_process_name) = args.signer_process {
+            let signer = if let Some(signer_process_name) = args.signer_path {
                 let cb_config = CallbackSignerConfig::new(
                     &sign_config,
                     args.reserve_size.context(

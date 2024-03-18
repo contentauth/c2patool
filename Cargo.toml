@@ -41,10 +41,10 @@ opt-level = 3
 lto = "thin" # Link time optimization.
 
 [[bin]]
-name = "signer-process-fail"
+name = "signer-path-fail"
 
 [[bin]]
-name = "signer-process-no-stdout"
+name = "signer-path-no-stdout"
 
 [[bin]]
-name = "signer-process-success"
+name = "signer-path-success"

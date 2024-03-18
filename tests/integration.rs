@@ -310,11 +310,11 @@ fn test_succeed_using_example_signer() -> Result<(), Box<dyn Error>> {
     // a cargo/bin because it works on all OSs, we like Rust, and our example external signing
     // code is compiled and verified during every test of this project.
     let mut successful_process = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    successful_process.push("target/debug/signer-process-success");
+    successful_process.push("target/debug/signer-path-success");
 
     Command::cargo_bin("c2patool")?
         .arg(fixture_path("earth_apollo17.jpg"))
-        .arg("--signer-process")
+        .arg("--signer-path")
         .arg(&successful_process)
         .arg("--reserve-size")
         .arg("20248")
@@ -335,8 +335,8 @@ fn test_fails_for_not_found_external_signer() -> Result<(), Box<dyn Error>> {
 
     Command::cargo_bin("c2patool")?
         .arg(fixture_path("earth_apollo17.jpg"))
-        .arg("--signer-process")
-        .arg("executable-not-found-test")
+        .arg("--signer-path")
+        .arg("./executable-not-found-test")
         .arg("--reserve-size")
         .arg("10248")
         .arg("--manifest")
@@ -345,9 +345,7 @@ fn test_fails_for_not_found_external_signer() -> Result<(), Box<dyn Error>> {
         .arg(&output)
         .arg("-f")
         .assert()
-        .stderr(str::contains(
-            "Failed to spawn process executable-not-found-test",
-        ))
+        .stderr(str::contains("Failed to run command at"))
         .failure();
 
     Ok(())
@@ -358,11 +356,11 @@ fn test_fails_for_external_signer_failure() -> Result<(), Box<dyn Error>> {
     let output = temp_path("./output_external.jpg");
 
     let mut failing_process = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    failing_process.push("target/debug/signer-process-fail");
+    failing_process.push("target/debug/signer-path-fail");
 
     Command::cargo_bin("c2patool")?
         .arg(fixture_path("earth_apollo17.jpg"))
-        .arg("--signer-process")
+        .arg("--signer-path")
         .arg(&failing_process)
         .arg("--reserve-size")
         .arg("20248")
@@ -374,7 +372,7 @@ fn test_fails_for_external_signer_failure() -> Result<(), Box<dyn Error>> {
         .assert()
         .stderr(str::contains("User supplied signer process failed"))
         // Ensures stderr from user executable is revealed to client.
-        .stderr(str::contains("signer-process-fail-stderr"))
+        .stderr(str::contains("signer-path-fail-stderr"))
         .failure();
 
     Ok(())
@@ -385,11 +383,11 @@ fn test_fails_for_external_signer_success_without_stdout() -> Result<(), Box<dyn
     let output = temp_path("./output_external.jpg");
 
     let mut failing_process = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    failing_process.push("target/debug/signer-process-no-stdout");
+    failing_process.push("target/debug/signer-path-no-stdout");
 
     Command::cargo_bin("c2patool")?
         .arg(fixture_path("earth_apollo17.jpg"))
-        .arg("--signer-process")
+        .arg("--signer-path")
         .arg(&failing_process)
         .arg("--reserve-size")
         .arg("10248")

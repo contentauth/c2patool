@@ -25,14 +25,14 @@ use crate::signer::SignConfig;
 /// external signer to get the signed bytes for the asset.
 pub(crate) struct ExternalProcessRunner {
     config: CallbackSignerConfig,
-    process_name: String,
+    signer_path: PathBuf,
 }
 
 impl ExternalProcessRunner {
-    pub fn new(config: CallbackSignerConfig, process_name: String) -> Self {
+    pub fn new(config: CallbackSignerConfig, signer_path: PathBuf) -> Self {
         Self {
             config,
-            process_name,
+            signer_path,
         }
     }
 }
@@ -49,7 +49,7 @@ impl SignCallback for ExternalProcessRunner {
             .context("Unable to read sign_certs. Is the sign_cert path valid?")?;
 
         // Spawn external process provided by the `c2patool` client.
-        let mut child = Command::new(&self.process_name)
+        let mut child = Command::new(&self.signer_path)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -57,7 +57,7 @@ impl SignCallback for ExternalProcessRunner {
             .args(["--alg", &format!("{}", &self.config.alg)])
             .args(["--sign-cert", sign_cert])
             .spawn()
-            .context(format!("Failed to spawn process {}", self.process_name))?;
+            .context(format!("Failed to run command at {:?}", self.signer_path))?;
 
         // Write claim bytes to spawned processes' `stdin`.
         child
@@ -69,7 +69,7 @@ impl SignCallback for ExternalProcessRunner {
 
         let output = child
             .wait_with_output()
-            .context(format!("Failed to read stdout from {}", self.process_name))?;
+            .context(format!("Failed to read stdout from {:?}", self.signer_path))?;
 
         if !output.status.success() {
             bail!(format!(

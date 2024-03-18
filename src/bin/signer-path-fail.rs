@@ -11,6 +11,6 @@
 // each license.
 
 fn main() {
-    eprintln!("signer-process-fail-stderr");
+    eprintln!("signer-path-fail-stderr");
     std::process::exit(1);
 }
