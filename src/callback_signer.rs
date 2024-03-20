@@ -80,10 +80,10 @@ impl SignCallback for ExternalProcessRunner {
 
         let bytes = output.stdout;
         if bytes.is_empty() {
-            bail!("User supplied process succeeded, but the external process did not write signature bytes to stdout")
-        } else {
-            Ok(bytes)
+            bail!("User supplied process succeeded, but the external process did not write signature bytes to stdout");
         }
+
+        Ok(bytes)
     }
 }
 
