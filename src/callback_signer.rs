@@ -96,8 +96,7 @@ pub(crate) struct CallbackSignerConfig {
     pub alg: SigningAlg,
     /// A path to a file containing the signing cert required for signing
     pub sign_cert_path: PathBuf,
-
-    /// TODO: still needs documentation, based on feedback from the team.
+    /// Size of the claim bytes.
     pub reserve_size: usize,
     pub tsa_url: Option<String>,
 }
