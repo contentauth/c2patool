@@ -403,3 +403,37 @@ fn test_fails_for_external_signer_success_without_stdout() -> Result<(), Box<dyn
 
     Ok(())
 }
+
+#[test]
+// c2patool tests/fixtures/C.jpg trust --trust_anchors=tests/fixtures/trust/anchors.pem --trust_config=tests/fixtures/trust/store.cfg
+fn tool_load_trust_settings_from_file_trusted() -> Result<(), Box<dyn Error>> {
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE_WITH_MANIFEST))
+        .arg("trust")
+        .arg("--trust_anchors")
+        .arg(fixture_path("trust/anchors.pem"))
+        .arg("--trust_config")
+        .arg(fixture_path("trust/store.cfg"))
+        .assert()
+        .success()
+        .stdout(str::contains("C2PA Test Signing Cert"))
+        .stdout(str::contains("signingCredential.untrusted").not());
+    Ok(())
+}
+
+#[test]
+// c2patool tests/fixtures/C.jpg trust --trust_anchors=tests/fixtures/trust/no-match.pem --trust_config=tests/fixtures/trust/store.cfg
+fn tool_load_trust_settings_from_file_untrusted() -> Result<(), Box<dyn Error>> {
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE_WITH_MANIFEST))
+        .arg("trust")
+        .arg("--trust_anchors")
+        .arg(fixture_path("trust/no-match.pem"))
+        .arg("--trust_config")
+        .arg(fixture_path("trust/store.cfg"))
+        .assert()
+        .success()
+        .stdout(str::contains("C2PA Test Signing Cert"))
+        .stdout(str::contains("signingCredential.untrusted"));
+    Ok(())
+}
