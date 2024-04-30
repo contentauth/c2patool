@@ -30,6 +30,7 @@ use clap::{Parser, Subcommand};
 use log::debug;
 use serde::Deserialize;
 use signer::SignConfig;
+use url::Url;
 
 use crate::{
     callback_signer::{CallbackSigner, CallbackSignerConfig, ExternalProcessRunner},
@@ -131,12 +132,12 @@ struct CliArgs {
 #[derive(Clone, Debug)]
 enum TrustResource {
     File(PathBuf),
-    Url(String),
+    Url(Url),
 }
 
 fn parse_resource_string(s: &str) -> Result<TrustResource> {
-    if s.starts_with("http://") || s.starts_with("https://") {
-        Ok(TrustResource::Url(s.to_string()))
+    if let Ok(url) = s.parse::<Url>() {
+        Ok(TrustResource::Url(url))
     } else {
         let p = PathBuf::from_str(s)?;
 
@@ -227,7 +228,7 @@ fn load_trust_resource(resource: &TrustResource) -> Result<String> {
             Ok(data)
         }
         TrustResource::Url(url) => {
-            let data = reqwest::blocking::get(url)?
+            let data = reqwest::blocking::get(url.to_string())?
                 .text()
                 .with_context(|| format!("Failed to read trust resource from URL: {}", url))?;
 

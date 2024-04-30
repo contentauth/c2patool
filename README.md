@@ -258,7 +258,7 @@ By default, `c2patool` validates the signature immediately after signing a manif
 
 ## Configuring trust support
 
-Enable trust support by using the `trust` sub-command, as follows:
+Enable trust support by using the `trust` subcommand, as follows:
 
 ```
 c2patool [path] trust [OPTIONS]
