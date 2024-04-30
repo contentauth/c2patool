@@ -284,8 +284,7 @@ c2patool sample/C.jpg trust \
 
 **IMPORTANT:** The C2PA intends to publish an official C2PA Public Trust List. Until that time, temporary known certificate lists used by https://contentcredentials.org/verify have been published. These lists are subject to change, and will be deprecated.
 
-You can configure your client to use the temporary trust settings used by contentcredentials.org / Verify by setting
-the following environment variables on your system:
+You can configure your client to use the temporary trust settings used by contentcredentials.org / Verify by setting the following environment variables on your system:
 
 ```shell
 export C2PATOOL_TRUST_ANCHORS='https://contentcredentials.org/trust/anchors.pem'
@@ -301,8 +300,16 @@ You can then run:
 c2patool sample/C.jpg trust
 ```
 
-**Note:** This sample image should show a `signingCredential.untrusted` validation status since the test signing certificate
-used to sign them is not contained on the trust lists above.
+**Note:** This sample image should show a `signingCredential.untrusted` validation status since the test signing certificate used to sign them is not contained on the trust lists above.
+
+Additionally, if you do not want to use environment variables, you can pass these values as arguments instead:
+
+```shell
+c2patool sample/C.jpg trust \
+  --trust_anchors='https://contentcredentials.org/trust/anchors.pem' \
+  --allowed_list='https://contentcredentials.org/trust/allowed.sha256.txt' \
+  --trust_config='https://contentcredentials.org/trust/store.cfg'
+```
 
 ## Nightly builds
 
