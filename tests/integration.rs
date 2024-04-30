@@ -15,6 +15,7 @@ use std::{error::Error, fs, fs::create_dir_all, path::PathBuf, process::Command}
 
 // Add methods on commands
 use assert_cmd::prelude::*;
+use httpmock::{prelude::*, Mock};
 use predicate::str;
 use predicates::prelude::*;
 use serde_json::Value;
@@ -435,5 +436,115 @@ fn tool_load_trust_settings_from_file_untrusted() -> Result<(), Box<dyn Error>> 
         .success()
         .stdout(str::contains("C2PA Test Signing Cert"))
         .stdout(str::contains("signingCredential.untrusted"));
+    Ok(())
+}
+
+fn create_mock_server<'a>(
+    server: &'a MockServer,
+    anchor_source: &str,
+    config_source: &str,
+) -> Vec<Mock<'a>> {
+    let anchor_path = fixture_path(anchor_source).to_str().unwrap().to_owned();
+    let trust_mock = server.mock(|when, then| {
+        when.method(GET).path("/trust/anchors.pem");
+        then.status(200)
+            .header("content-type", "text/plain")
+            .body_from_file(anchor_path);
+    });
+    let config_path = fixture_path(config_source).to_str().unwrap().to_owned();
+    let config_mock = server.mock(|when, then| {
+        when.method(GET).path("/trust/store.cfg");
+        then.status(200)
+            .header("content-type", "text/plain")
+            .body_from_file(config_path);
+    });
+
+    vec![trust_mock, config_mock]
+}
+
+#[test]
+fn tool_load_trust_settings_from_url_arg_trusted() -> Result<(), Box<dyn Error>> {
+    let server = MockServer::start();
+    let mocks = create_mock_server(&server, "trust/anchors.pem", "trust/store.cfg");
+
+    // Test flags
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE_WITH_MANIFEST))
+        .arg("trust")
+        .arg("--trust_anchors")
+        .arg(server.url("/trust/anchors.pem"))
+        .arg("--trust_config")
+        .arg(server.url("/trust/store.cfg"))
+        .assert()
+        .success()
+        .stdout(str::contains("C2PA Test Signing Cert"))
+        .stdout(str::contains("signingCredential.untrusted").not());
+
+    mocks.iter().for_each(|m| m.assert());
+
+    Ok(())
+}
+
+#[test]
+fn tool_load_trust_settings_from_url_arg_untrusted() -> Result<(), Box<dyn Error>> {
+    let server = MockServer::start();
+    let mocks = create_mock_server(&server, "trust/no-match.pem", "trust/store.cfg");
+
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE_WITH_MANIFEST))
+        .arg("trust")
+        .arg("--trust_anchors")
+        .arg(server.url("/trust/anchors.pem"))
+        .arg("--trust_config")
+        .arg(server.url("/trust/store.cfg"))
+        .assert()
+        .success()
+        .stdout(str::contains("C2PA Test Signing Cert"))
+        .stdout(str::contains("signingCredential.untrusted"));
+
+    mocks.iter().for_each(|m| m.assert());
+
+    Ok(())
+}
+
+#[test]
+fn tool_load_trust_settings_from_url_env_trusted() -> Result<(), Box<dyn Error>> {
+    let server = MockServer::start();
+    let mocks = create_mock_server(&server, "trust/anchors.pem", "trust/store.cfg");
+
+    // Test flags
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE_WITH_MANIFEST))
+        .arg("trust")
+        .env("C2PATOOL_TRUST_ANCHORS", server.url("/trust/anchors.pem"))
+        .env("C2PATOOL_TRUST_CONFIG", server.url("/trust/store.cfg"))
+        .assert()
+        .success()
+        .stdout(str::contains("C2PA Test Signing Cert"))
+        .stdout(str::contains("signingCredential.untrusted").not());
+
+    mocks.iter().for_each(|m| m.assert());
+
+    Ok(())
+}
+
+#[test]
+fn tool_load_trust_settings_from_url_env_untrusted() -> Result<(), Box<dyn Error>> {
+    let server = MockServer::start();
+    let mocks = create_mock_server(&server, "trust/no-match.pem", "trust/store.cfg");
+
+    // Test flags
+    Command::cargo_bin("c2patool")?
+        .arg(fixture_path(TEST_IMAGE_WITH_MANIFEST))
+        .arg("trust")
+        .env("C2PATOOL_TRUST_ANCHORS", server.url("/trust/anchors.pem"))
+        .env("C2PATOOL_TRUST_CONFIG", server.url("/trust/store.cfg"))
+        .assert()
+        .success()
+        .stdout(str::contains("C2PA Test Signing Cert"))
+        .stdout(str::contains("signingCredential.untrusted"));
+
+    mocks.iter().for_each(|m| m.assert());
+
     Ok(())
 }
