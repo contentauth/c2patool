@@ -6,6 +6,25 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.8.2
+_28 March 2024_
+
+* fixed c2patool asset name ([#171](https://github.com/contentauth/c2pa-rs/pull/171))
+## 0.8.1
+_25 March 2024_
+
+* use c2pa-rs 0.31.1 for actions.changes support ([#170](https://github.com/contentauth/c2pa-rs/pull/170))
+## 0.8.0
+_20 March 2024_
+
+* (MINOR) allow clients to sign with a process outside of c2patool ([#169](https://github.com/contentauth/c2pa-rs/pull/169))
+* Add trust and verification options to c2pa_tool ([#168](https://github.com/contentauth/c2pa-rs/pull/168))
+* adds version to c2patool artifact names ([#158](https://github.com/contentauth/c2pa-rs/pull/158))
+## 0.7.0
+_22 November 2023_
+
+* (MINOR) updates to c2pa-rs v0.28.2 ([#153](https://github.com/contentauth/c2pa-rs/pull/153))
+* Update to c2pa-rs 0.28.1
 ## 0.6.2
 _05 October 2023_
 
