@@ -113,23 +113,23 @@ Where `PATH` is the (relative or absolute) file path to the asset to read or emb
 
 The following table describes the command-line options.
 
-| CLI&nbsp;option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Short version | Argument          | Description                                                                                                                                                        |
-| --------------------------------------------------------------------- | ------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--certs`                                                             |               | N/A               | Extract a certificate chain to stdout.                                                                                                                             |
-| `--config`                                                            | `-c`          | `<config>`        | Specifies a manifest definition as a JSON string. See [Providing a manifest definition on the command line](#providing-a-manifest-definition-on-the-command-line). |
-| `--detailed`                                                          | `-d`          | N/A               | Display detailed C2PA-formatted manifest data. See [Displaying a detailed manifest report](#detailed-manifest-report).                                             |
-| `--force`                                                             | `-f`          | N/A               | Force overwriting output file. See [Forced overwrite](#forced-overwrite).                                                                                          |
-| `--help`                                                              | `-h`          | N/A               | Display CLI help information.                                                                                                                                      |
-| `--info`                                                              |               | N/A               | Display brief information about the file.                                                                                                                          |
-| `--ingredient`                                                        | `-i`          | N/A               | Creates an Ingredient definition in --output folder.                                                                                                               |
-| `--output`                                                            | `-o`          | `<output_file>`   | Specifies path to output folder or file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).                                            |
-| `--manifest`                                                          | `-m`          | `<manifest_file>` | Specifies a manifest file to add to an asset file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).                                  |
-| `--no_signing_verify`                                                 | None          | N/A               | Does not validate the signature after signing an asset, which speeds up signing. See [Speeding up signing](#speeding-up-signing)                                   |
-| `--parent`                                                            | `-p`          | `<parent_file>`   | Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file).                                                                          |
-| `--remote`                                                            | `-r`          | `<manifest_url>`  | Specify URL for remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)                                             | N/A? |
-| `--sidecar`                                                           | `-s`          | N/A               | Put manifest in external "sidecar" file with `.c2pa` extension. See [Generating an external manifest](#generating-an-external-manifest).                           |
-| `--tree`                                                              |               | N/A               | Create a tree diagram of the manifest store.                                                                                                                       |
-| `--version`                                                           | `-V`          | N/A               | Display version information.                                                                                                                                       |
+| CLI&nbsp;option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Short version | Argument | Description |
+|-----|----|----|----|
+| `--certs` | | N/A | Extract a certificate chain to stdout. |
+| `--config` | `-c` | `<config>` | Specifies a manifest definition as a JSON string. See [Providing a manifest definition on the command line](#providing-a-manifest-definition-on-the-command-line). |
+| `--detailed` | `-d` | N/A | Display detailed C2PA-formatted manifest data. See [Displaying a detailed manifest report](#detailed-manifest-report). |
+| `--force` | `-f` | N/A | Force overwriting output file. See [Forced overwrite](#forced-overwrite). |
+| `--help` | `-h` | N/A | Display CLI help information. |
+| `--info` |  | N/A | Display brief information about the file. |
+| `--ingredient` | `-i` | N/A | Creates an Ingredient definition in --output folder. |
+| `--output` | `-o` | `<output_file>` | Specifies path to output folder or file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file). |
+| `--manifest` | `-m` | `<manifest_file>` | Specifies a manifest file to add to an asset file. See [Adding a manifest to an asset file](#adding-a-manifest-to-an-asset-file).
+| `--no_signing_verify` | None | N/A |  Does not validate the signature after signing an asset, which speeds up signing. See [Speeding up signing](#speeding-up-signing) |
+| `--parent` | `-p` | `<parent_file>` | Specifies path to parent file. See [Specifying a parent file](#specifying-a-parent-file). |
+| `--remote` | `-r` | `<manifest_url>` | Specify URL for remote manifest available over HTTP. See [Generating a remote manifest](#generating-a-remote-manifest)| N/A? |
+| `--sidecar` | `-s` | N/A | Put manifest in external "sidecar" file with `.c2pa` extension. See [Generating an external manifest](#generating-an-external-manifest). |
+| `--tree` | | N/A | Create a tree diagram of the manifest store. |
+| `--version` | `-V` | N/A | Display version information. |
 
 Use the optional `trust` sub-command to enable and configure trust support.  When you use this sub-command, several other options are available; see [Configuring trust support](#configuring-trust-support) for details.
 
@@ -284,11 +284,11 @@ c2patool [path] trust [OPTIONS]
 
 The following additional CLI options are available with the `trust` sub-command:
 
-| Option            | Environment variable     | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Example                                                     |
-| ----------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Option | Environment variable | Description | Example |
+| ------ | --------------- | ----------- | ------- |
 | `--trust_anchors` | `C2PATOOL_TRUST_ANCHORS` | Specifies a list of trust anchors (in PEM format) used to validate the manifest certificate chain. To be valid, the manifest certificate chain must lead to a certificate on the trust list. All certificates in the trust anchor list must have the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) and the CA attribute of this extension must be `True`. | `sample/trust_anchors.pem` `https://server.com/anchors.pem` |
-| `--allowed_list`  | `C2PATOOL_ALLOWED_LIST`  | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) with the CA attribute `True`.                                                      | `sample/allowed_list.pem` `https://server.com/allowed.pem`  |
-| `--trust_config`  | `C2PATOOL_TRUST_CONFIG`  | Specifies a set of custom certificate extended key usages (EKUs) to allow. Format is a list with object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format.                                                                                                                                                                                                                                                                                                               | `sample/store.cfg` `https://server.com/store.cfg`           |
+| `--allowed_list` | `C2PATOOL_ALLOWED_LIST` | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) with the CA attribute `True`. | `sample/allowed_list.pem` `https://server.com/allowed.pem` |
+| `--trust_config` | `C2PATOOL_TRUST_CONFIG` | Specifies a set of custom certificate extended key usages (EKUs) to allow. Format is a list with object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format. | `sample/store.cfg` `https://server.com/store.cfg` |
 
 For example:
 
