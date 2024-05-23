@@ -54,12 +54,3 @@ bin = "c2patool"
 strip = true  # Automatically strip symbols from the binary. 
 opt-level = 3
 lto = "thin"  # Link time optimization.
-
-[[bin]]
-name = "signer-path-fail"
-
-[[bin]]
-name = "signer-path-no-stdout"
-
-[[bin]]
-name = "signer-path-success"
