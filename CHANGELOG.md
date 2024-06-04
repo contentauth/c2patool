@@ -6,6 +6,23 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.3
+_29 May 2024_
+
+* Remove binary modules ([#179](https://github.com/contentauth/c2pa-rs/pull/179))
+## 0.9.2
+_24 May 2024_
+
+* Remove integration tests for now due to extraneous binaries ([#178](https://github.com/contentauth/c2pa-rs/pull/178))
+## 0.9.1
+_22 May 2024_
+
+* Add better support for cargo-binstall ([#177](https://github.com/contentauth/c2pa-rs/pull/177))
+## 0.9.0
+_07 May 2024_
+
+* Integrate with c2pa-rs 0.32.0, various test case fixes. ([#175](https://github.com/contentauth/c2pa-rs/pull/175))
+* (MINOR) Add HTTP source option for trust config ([#174](https://github.com/contentauth/c2pa-rs/pull/174))
 ## 0.8.2
 _28 March 2024_
 
