@@ -8,7 +8,7 @@ Use the tool on a file in one of the [supported file formats](#supported-file-fo
 - Read a low-level report of C2PA manifest data.
 - Add a C2PA manifest to the file.
 
-For a simple example of calling c2patool from a server-based application, see the [c2pa-service-example](https://github.com/contentauth/c2pa-service-example) repository.
+For a simple example of calling c2patool from a Node.js server application, see the [c2pa-service-example](https://github.com/contentauth/c2patool-service-example) repository.
 
 <div style={{display: 'none'}}>
 
@@ -28,11 +28,60 @@ For a simple example of calling c2patool from a server-based application, see th
 
 ## Installation
 
-Prebuilt versions of the tool are available for [download](https://github.com/contentauth/c2patool/tags).
+There are two ways to install C2PA Tool:
+- Using a pre-built binary executable: This is the quickest way to install the tool.  If you just want to try C2PA Tool quickly, use this method.
+- Using Cargo [Binstall](#using-cargo-binstall), a low-complexity way to install Rust binaries.  This method is preferable for long-term use. If you know you want to use C2PA Tool for development, use this method.  
 
-PREREQUISITE: Install [Rust](https://www.rust-lang.org/tools/install).
+### Installing a pre-built binary
 
-Enter this command to install or update the tool:
+The quickest way to install the tool is to use the binary executable builds.  If you just want to try C2PA Tool quickly:
+
+1. Go to the [c2patool repository releases page](https://github.com/contentauth/c2patool/releases). 
+1. Under the latest release, click **Assets**.
+1. Download the archive for your operating system (Linux, macOS, or Windows).
+1. Copy the executable file to a location on your `PATH`.
+
+Confirm that you can run the tool by entering a command such as:
+```
+c2patool -h
+```
+
+NOTE: You also may want to get some of the example files provided in the repository `sample` directory.   To do so, clone the repository with `git clone https://github.com/contentauth/c2patool.git`.
+
+### Using Cargo Binstall
+
+Installing C2PA Tool using Cargo [Binstall](https://github.com/cargo-bins/cargo-binstall?tab=readme-ov-file) is recommended because it makes it easier to:
+- Automatically select the correct installation package for your platform/architecture.
+- Update the tool when a new version is released.
+- Maintain, since you don't have to manually keep track of random binaries on your system.
+- Integrate into CI or other scripting environments.
+
+Additionally, using Binstall enables you to automate code signing to ensure package integrity.
+
+#### Process
+
+**PREREQUISITE:** Install [Rust](https://www.rust-lang.org/tools/install).
+
+To install by using Binstall:
+
+1. Install `cargo-binstall` by following the [quick install method](https://github.com/cargo-bins/cargo-binstall?tab=readme-ov-file#quickly) for your OS, or by building from source by running `cargo install cargo-binstall`
+2. Run `cargo binstall c2patool`.
+
+#### Upgrading
+
+To ensure you have the latest version, enter this command:
+
+```
+c2patool -V
+```
+
+The tool will display the version installed. Compare the version number displayed with the latest release version shown in the [repository releases page](https://github.com/contentauth/c2patool/releases). 
+
+If you need to upgrade, simply run `cargo binstall c2patool` again, or use [cargo-update](https://github.com/nabijaczleweli/cargo-update).
+
+### Building from source
+
+**NOTE:** Please use one of the installation methods described above unless you are doing active development work on C2PA Tool, or if a pre-built binary is not available for your system.
 
 ```shell
 cargo install c2patool
@@ -46,21 +95,10 @@ NOTE: If you encounter errors installing, you may need to update your Rust insta
 rustup update
 ```
 
-### Updating
-
-To ensure you have the latest version, enter this command:
-
-```
-c2patool -V
-```
-
-The tool will display the version installed. Compare the version number displayed with the latest release version shown in the [repository releases page](https://github.com/contentauth/c2patool/releases). To update to the latest version, use the installation command shown above.
-
-
 ## Supported file formats
 
  | Extensions    | MIME type                                           |
- |---------------| --------------------------------------------------- |
+ | ------------- | --------------------------------------------------- |
  | `avi`         | `video/msvideo`, `video/avi`, `application-msvideo` |
  | `avif`        | `image/avif`                                        |
  | `c2pa`        | `application/x-c2pa-manifest-store`                 |
@@ -73,7 +111,7 @@ The tool will display the version installed. Compare the version number displaye
  | `mp4`         | `video/mp4`, `application/mp4` <sup>*</sup>         |
  | `mov`         | `video/quicktime`                                   |
  | `otf`         | `font/otf`                                          |
- | `pdf`         | `application/pdf`  <sup>**</sup>                    |
+ | `pdf`         | `application/pdf` <sup>**</sup>                     |
  | `png`         | `image/png`                                         |
  | `svg`         | `image/svg+xml`                                     |
  | `tif`,`tiff`  | `image/tiff`                                        |
@@ -83,7 +121,7 @@ The tool will display the version installed. Compare the version number displaye
 
 <sup>*</sup> Fragmented MP4 is not yet supported.
 
-<sup>**</sup> Read only
+<sup>**</sup> Read-only
 
 ## Usage
 
@@ -224,7 +262,7 @@ In the example above, the tool will embed the URL `http://my_server/myasset.c2pa
 
 If you use both the `-s` and `-r` options, the tool embeds a manifest in the output file and also adds the remote reference.
 
-### Signing Claim Bytes With Your Own Signer
+### Signing claim bytes with your own signer
 
 You may be unable to provide `c2patool` with a private key when generating a manifest because the private key is not accessible on the system on which you are executing `c2patool`. We provide the `--signer-path` argument for this case. `--signer-path` takes a path to a command-line executable. This executable will receive the claim bytes (the bytes to be signed) via `stdin`, along with a few CLI arguments, and should output, via `stdout` the signature bytes. For example, the following command will use an external signer to sign the asset's claim bytes:
 
@@ -260,19 +298,19 @@ By default, `c2patool` validates the signature immediately after signing a manif
 
 ## Configuring trust support
 
-Enable trust support by using the `trust` sub-command, as follows:
+Enable trust support by using the `trust` subcommand, as follows:
 
 ```
-c2patool trust [path] [OPTIONS]
+c2patool [path] trust [OPTIONS]
 ```
 
 The following additional CLI options are available with the `trust` sub-command:
 
-| Option&nbsp;option&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Description | Example |
-|--------------|-------------|---------|
-| `--trust_anchors` | Specifies a list of trust anchors (in PEM format) used to validate the manifest certificate chain. To be valid, the manifest certificate chain must lead to a certificate on the trust list. All certificates in the trust anchor list must have the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) and the CA attribute of this extension must be `True`. | `sample/trust_anchors.pem` |
-| `--allowed_list` | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) with the CA attribute `True`.  |  `sample/allowed_list.pem` |
-| `--trust_config` | Specifies a set of custom certificate extended key usages (EKUs) to allow. Format is a list with object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format. | `sample/store.cfg` |
+| Option | Environment variable | Description | Example |
+| ------ | --------------- | ----------- | ------- |
+| `--trust_anchors` | `C2PATOOL_TRUST_ANCHORS` | Specifies a list of trust anchors (in PEM format) used to validate the manifest certificate chain. To be valid, the manifest certificate chain must lead to a certificate on the trust list. All certificates in the trust anchor list must have the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) and the CA attribute of this extension must be `True`. | `sample/trust_anchors.pem` `https://server.com/anchors.pem` |
+| `--allowed_list` | `C2PATOOL_ALLOWED_LIST` | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) with the CA attribute `True`. | `sample/allowed_list.pem` `https://server.com/allowed.pem` |
+| `--trust_config` | `C2PATOOL_TRUST_CONFIG` | Specifies a set of custom certificate extended key usages (EKUs) to allow. Format is a list with object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format. | `sample/store.cfg` `https://server.com/store.cfg` |
 
 For example:
 
@@ -280,6 +318,37 @@ For example:
 c2patool sample/C.jpg trust \
   --allowed_list sample/allowed_list.pem \
   --trust_config sample/store.cfg
+```
+
+### Using the temporary contentcredentials.org / Verify trust settings
+
+**IMPORTANT:** The C2PA intends to publish an official C2PA Public Trust List. Until that time, temporary known certificate lists used by https://contentcredentials.org/verify have been published. These lists are subject to change, and will be deprecated.
+
+You can configure your client to use the temporary trust settings used by contentcredentials.org / Verify by setting the following environment variables on your system:
+
+```shell
+export C2PATOOL_TRUST_ANCHORS='https://contentcredentials.org/trust/anchors.pem'
+export C2PATOOL_ALLOWED_LIST='https://contentcredentials.org/trust/allowed.sha256.txt'
+export C2PATOOL_TRUST_CONFIG='https://contentcredentials.org/trust/store.cfg'
+```
+
+**Note:** Setting these variables will make several HTTP requests each time `c2patool` is called. As these lists may change without notice (with the allowed list changing quite frequently) this may be desired to stay in sync with what is displayed on the Verify site. However, if working with bulk operations, you may want to locally cache these files to avoid an abundance of network calls.
+
+You can then run:
+
+```shell
+c2patool sample/C.jpg trust
+```
+
+**Note:** This sample image should show a `signingCredential.untrusted` validation status since the test signing certificate used to sign them is not contained on the trust lists above.
+
+Additionally, if you do not want to use environment variables, you can pass these values as arguments instead:
+
+```shell
+c2patool sample/C.jpg trust \
+  --trust_anchors='https://contentcredentials.org/trust/anchors.pem' \
+  --allowed_list='https://contentcredentials.org/trust/allowed.sha256.txt' \
+  --trust_config='https://contentcredentials.org/trust/store.cfg'
 ```
 
 ## Nightly builds
