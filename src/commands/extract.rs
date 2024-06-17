@@ -217,9 +217,7 @@ impl Resources {
                     .replace(':', "_"),
             );
             for resource_ref in manifest.iter_resources() {
-                if !self.unknown
-                    || self.unknown && resource_ref.format == "application/octet-stream"
-                {
+                if !self.unknown || resource_ref.format != "application/octet-stream" {
                     // TODO: need a method in c2pa-rs to normalize the identifier (removing jumbf tag)
                     //       maybe it should be contained within a struct/enum that impls Display
                     let resource_path = manifest_path.join(&resource_ref.identifier);
