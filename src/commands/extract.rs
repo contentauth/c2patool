@@ -16,7 +16,7 @@ use std::{
 };
 
 use anyhow::{bail, Context, Result};
-use c2pa::{jumbf_io, Ingredient, ManifestStore, Reader};
+use c2pa::{jumbf_io, Ingredient, Reader};
 use clap::Parser;
 use log::error;
 
@@ -117,10 +117,10 @@ impl Extract {
                         // Validates the jumbf refers to a valid manifest.
                         match c2pa::format_from_path(path) {
                             Some(format) => {
-                                ManifestStore::from_manifest_and_asset_bytes(
+                                Reader::from_manifest_data_and_stream(
                                     &manifest,
                                     &format,
-                                    &fs::read(path)?,
+                                    &File::open(path)?,
                                 )?;
                             }
                             None => bail!("Path `{}` is missing file extension", path.display()),
@@ -128,8 +128,8 @@ impl Extract {
                         fs::write(output, manifest)?;
                     }
                     false => {
-                        let manifest = ManifestStore::from_file(path)?;
-                        fs::write(output, manifest.to_string())?;
+                        let reader = Reader::from_file(path)?;
+                        fs::write(output, reader.to_string())?;
                     }
                 }
             }

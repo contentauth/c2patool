@@ -57,6 +57,13 @@ fn test_extract_manifest_binary() -> Result<()> {
         TEST_IMAGE_WITH_MANIFEST_FORMAT,
         &fs::read(test_img_path())?
     )?);
+    // TODO: need json without formatting from c2pa-rs
+    // assert_json_snapshot!(Reader::from_manifest_data_and_stream(
+    //     &fs::read(output_path)?,
+    //     TEST_IMAGE_WITH_MANIFEST_FORMAT,
+    //     &File::open(test_img_path())?
+    // )?
+    // .json());
 
     Ok(())
 }

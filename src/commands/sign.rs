@@ -46,12 +46,7 @@ pub struct Sign {
     /// Generate a .c2pa manifest file next to the output without embedding.
     #[clap(short, long)]
     pub sidecar: bool,
-    //
-    // TODO:
-    // /// Do not embed manifest and generate a .c2pa manifest file at the specified path.
-    // #[clap(short, long)]
-    // pub sidecar: Option<PathBuf>,
-    //
+
     /// Force overwrite output file(s) if they already exists.
     #[clap(short, long)]
     pub force: bool,
@@ -295,8 +290,7 @@ impl Sign {
 
         let binary_manifest = builder.sign_file(signer.as_ref(), src, dst)?;
 
-        // TODO: if sidecar is specified, expect the output to be sidecar path? or take sidecar as path instead of flag?
-        //       This could fix #134
+        // TODO: Take sidecar as output path similar to self.output, fixes #134
         if self.sidecar {
             let mut dst = dst.to_owned();
             dst.set_extension("c2pa");
