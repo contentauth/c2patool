@@ -4,7 +4,7 @@
     "instance_id": "xmp:iid:a60dfda7-0606-42db-a4f0-398ab4fb79cf",
     "thumbnail": {
       "format": "image/png",
-      "identifier": "../libpng-test.png"
+      "identifier": "libpng-test.png"
     },
     "relationship": "componentOf"
   }

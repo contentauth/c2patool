@@ -10,10 +10,13 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use std::path::{Path, PathBuf};
+use std::{
+    io::Cursor,
+    path::{Path, PathBuf},
+};
 
-use anyhow::{anyhow, bail, Result};
-use c2pa::{Error, Ingredient, IngredientOptions, ManifestStore, ManifestStoreReport};
+use anyhow::{bail, Result};
+use c2pa::{Ingredient, IngredientOptions, ManifestStoreReport, Reader};
 use clap::Subcommand;
 
 use crate::commands::{load_trust_settings, Trust};
@@ -76,19 +79,12 @@ impl View {
 
                 load_trust_settings(trust)?;
 
-                let report = match debug {
-                    true => ManifestStoreReport::from_file(path).map(|r| r.to_string()),
-                    false => ManifestStore::from_file(path).map(|r| r.to_string()),
+                let reader = Reader::from_file(path)?;
+                match debug {
+                    // TODO: c2pa-rs shouldn't output pretty by default unless if # is included (rust convention)
+                    true => println!("{:#?}", reader),
+                    false => println!("{}", reader),
                 };
-
-                let report = match report {
-                    Ok(report) => Ok(report),
-                    Err(Error::JumbfNotFound) => Err(anyhow!("No claim found")),
-                    Err(Error::PrereleaseError) => Err(anyhow!("Prerelease claim found")),
-                    Err(err) => Err(err.into()),
-                }?;
-
-                println!("{report}");
             }
             View::Ingredient { path, trust } => {
                 if !path.is_file() {
@@ -150,8 +146,9 @@ impl View {
                     } else {
                         println!("Validated");
                     }
-                    let manifest_store = ManifestStore::from_bytes("c2pa", &manifest_data, false)?;
-                    match manifest_store.manifests().len() {
+                    let manifest_store =
+                        Reader::from_stream("c2pa", Cursor::new(manifest_data.as_ref()))?;
+                    match manifest_store.iter_manifests().count() {
                         0 => println!("No manifests"),
                         1 => println!("One manifest"),
                         n => println!("{n} manifests"),
@@ -169,6 +166,7 @@ impl View {
 
                 load_trust_settings(trust)?;
 
+                // TODO: no alternative in c2pa-rs unstable API
                 ManifestStoreReport::dump_tree(path)?;
             }
             View::Certs { path, trust } => {
@@ -178,6 +176,7 @@ impl View {
 
                 load_trust_settings(trust)?;
 
+                // TODO: no alternative in c2pa-rs unstable API
                 ManifestStoreReport::dump_cert_chain(path)?;
             }
         }
