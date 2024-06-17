@@ -55,7 +55,7 @@ expression: "&ManifestStore::from_file(output_path.join(\"C.jpg\"))?"
       "label": "[MANIFEST_URN]"
     },
     "[MANIFEST_URN]": {
-      "claim_generator": "TestApp c2patool/0.9.3 c2pa-rs/0.32.0",
+      "claim_generator": "test_app/0.0.1 c2patool/0.9.3 c2pa-rs/0.32.1",
       "claim_generator_info": [
         {
           "icon": {
@@ -64,9 +64,16 @@ expression: "&ManifestStore::from_file(output_path.join(\"C.jpg\"))?"
           },
           "name": "Test App",
           "version": "0.0.1"
+        },
+        {
+          "name": "c2patool",
+          "version": "0.9.3"
+        },
+        {
+          "name": "c2pa-rs",
+          "version": "0.32.1"
         }
       ],
-      "title": "C.jpg",
       "format": "image/jpeg",
       "instance_id": [XMP_ID]",
       "thumbnail": {
@@ -74,17 +81,6 @@ expression: "&ManifestStore::from_file(output_path.join(\"C.jpg\"))?"
         "identifier": "[JUMBF_URI]"
       },
       "ingredients": [
-        {
-          "title": "C.jpg",
-          "format": "image/jpeg",
-          "instance_id": [XMP_ID]",
-          "thumbnail": {
-            "format": "image/jpeg",
-            "identifier": "[JUMBF_URI]"
-          },
-          "relationship": "parentOf",
-          "active_manifest": "[MANIFEST_URN]"
-        },
         {
           "title": "earth_apollo17.jpg",
           "format": "image/jpeg",
@@ -116,6 +112,17 @@ expression: "&ManifestStore::from_file(output_path.join(\"C.jpg\"))?"
             "identifier": "[JUMBF_URI]"
           },
           "relationship": "componentOf"
+        },
+        {
+          "title": "C.jpg",
+          "format": "image/jpeg",
+          "instance_id": [XMP_ID]",
+          "thumbnail": {
+            "format": "image/jpeg",
+            "identifier": "[JUMBF_URI]"
+          },
+          "relationship": "parentOf",
+          "active_manifest": "[MANIFEST_URN]"
         }
       ],
       "assertions": [
