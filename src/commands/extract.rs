@@ -10,10 +10,13 @@
 // specific language governing permissions and limitations under
 // each license.
 
-use std::{fs, path::PathBuf};
+use std::{
+    fs::{self, File},
+    path::{Path, PathBuf},
+};
 
-use anyhow::{bail, Result};
-use c2pa::{jumbf_io, Ingredient, ManifestStore};
+use anyhow::{bail, Context, Result};
+use c2pa::{jumbf_io, Ingredient, ManifestStore, Reader};
 use clap::Parser;
 use log::error;
 
@@ -58,24 +61,28 @@ pub enum Extract {
         trust: Trust,
     },
     /// Extract known resources from a manifest (e.g. thumbnails).
-    Resources {
-        /// Input path(s) to asset(s).
-        paths: Vec<PathBuf>,
+    Resources(Resources),
+}
 
-        /// Path to output folder.
-        #[clap(short, long)]
-        output: PathBuf,
+#[derive(Debug, Parser)]
+pub struct Resources {
+    /// Input path(s) to asset(s).
+    paths: Vec<PathBuf>,
 
-        /// Force overwrite output and clear children if it already exists.
-        #[clap(short, long)]
-        force: bool,
+    /// Path to output folder.
+    #[clap(short, long)]
+    output: PathBuf,
 
-        #[clap(flatten)]
-        trust: Trust,
-        //
-        // TODO: add flag for additionally exporting unknown ingredients (ingredients that
-        // do not have a standardized label) as a binary file
-    },
+    /// Force overwrite output and clear children if it already exists.
+    #[clap(short, long)]
+    force: bool,
+
+    /// Also extract resources that are unknown into binary files (unlike known resources, such as thumbnails).
+    #[clap(short, long)]
+    unknown: bool,
+
+    #[clap(flatten)]
+    trust: Trust,
 }
 
 impl Extract {
@@ -151,53 +158,84 @@ impl Extract {
                 let ingredient = Ingredient::from_file(path)?;
                 fs::write(output, ingredient.to_string())?;
             }
-            Extract::Resources {
-                paths,
-                output,
-                force,
-                trust,
-            } => {
-                if paths.is_empty() {
-                    bail!("Input path does not exist")
-                }
+            Extract::Resources(resources) => resources.execute()?,
+        }
+        Ok(())
+    }
+}
 
-                if !output.exists() {
-                    fs::create_dir_all(output)?;
-                } else if !output.is_dir() {
-                    bail!("Output path must be a folder");
-                } else if !force {
-                    bail!(
-                        "Output path already exists use `--force` to overwrite and clear children"
-                    );
-                }
+impl Resources {
+    pub fn execute(&self) -> Result<()> {
+        if self.paths.is_empty() {
+            bail!("Input path does not exist")
+        }
 
-                load_trust_settings(trust)?;
+        if !self.output.exists() {
+            fs::create_dir_all(&self.output)?;
+        } else if !self.output.is_dir() {
+            bail!("Output path must be a folder");
+        } else if !self.force {
+            bail!("Output path already exists use `--force` to overwrite and clear children");
+        }
 
-                let mut errs = Vec::new();
-                for path in paths {
-                    if path.is_dir() {
-                        bail!("Input path cannot be a folder when extracting resources");
-                    }
+        load_trust_settings(&self.trust)?;
 
-                    if let Err(err) = ManifestStore::from_file_with_resources(path, output) {
-                        error!(
-                            "Failed to extract resources from asset at path `{}`, {}",
-                            path.display(),
-                            err.to_string()
-                        );
-                        errs.push(err);
-                    }
-                }
+        let mut errs = Vec::new();
+        for path in &self.paths {
+            if path.is_dir() {
+                bail!("Input path cannot be a folder when extracting resources");
+            }
 
-                if !errs.is_empty() {
-                    bail!(
-                        "Failed to extract resources from {}/{} assets",
-                        errs.len(),
-                        paths.len()
-                    );
+            if let Err(err) = self.extract_resources(path) {
+                error!(
+                    "Failed to extract resources from asset at path `{}`, {}",
+                    path.display(),
+                    err.to_string()
+                );
+                errs.push(err);
+            }
+        }
+
+        if !errs.is_empty() {
+            bail!(
+                "Failed to extract resources from {}/{} assets",
+                errs.len(),
+                self.paths.len()
+            );
+        }
+
+        Ok(())
+    }
+
+    fn extract_resources(&self, path: &Path) -> Result<()> {
+        let reader = Reader::from_file(path)?;
+        for manifest in reader.iter_manifests() {
+            let manifest_path = self.output.join(
+                manifest
+                    .label()
+                    .context("Failed to get maniest label")?
+                    .replace(':', "_"),
+            );
+            for resource_ref in manifest.iter_resources() {
+                if !self.unknown
+                    || self.unknown && resource_ref.format == "application/octet-stream"
+                {
+                    // TODO: need a method in c2pa-rs to normalize the identifier (removing jumbf tag)
+                    //       maybe it should be contained within a struct/enum that impls Display
+                    let resource_path = manifest_path.join(&resource_ref.identifier);
+                    fs::create_dir_all(
+                        resource_path
+                            .parent()
+                            .context("Failed to find resource parent path from label")?,
+                    )?;
+                    reader.resource_to_stream(
+                        &resource_ref.identifier,
+                        File::create(&resource_path)?,
+                    )?;
                 }
             }
         }
+
         Ok(())
     }
 }
