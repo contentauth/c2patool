@@ -192,9 +192,7 @@ impl Sign {
         if let Some(ingredients) = definition_ext.ingredients {
             for ingredient_source in ingredients {
                 match ingredient_source {
-                    IngredientSource::Ingredient(mut ingredient) => {
-                        ingredient.with_base_path(&base_path)?;
-
+                    IngredientSource::Ingredient(ingredient) => {
                         // TODO: not a beautiful sight
                         let data = ingredient
                             .data_ref()
@@ -217,13 +215,18 @@ impl Sign {
                         }
 
                         let ingredient = load_ingredient(&path)?;
-                        builder.add_ingredient(
+                        let ingredient = builder.add_ingredient(
                             // TODO: shouldn't have to reserialize
                             serde_json::to_string(&ingredient)?,
                             ingredient.format(),
                             // TODO: shouldn't have to read from file again
-                            &mut File::open(path)?,
+                            &mut File::open(&path)?,
                         )?;
+
+                        // TODO: shouldn't have to set this again
+                        if let Some(base) = path.parent() {
+                            ingredient.with_base_path(base)?;
+                        }
                     }
                 }
             }
@@ -232,13 +235,18 @@ impl Sign {
         if let Some(parent_path) = &self.parent {
             let mut ingredient = load_ingredient(parent_path)?;
             ingredient.set_is_parent();
-            builder.add_ingredient(
+            let ingredient = builder.add_ingredient(
                 // TODO: shouldn't have to reserialize
                 serde_json::to_string(&ingredient)?,
                 ingredient.format(),
                 // TODO: shouldn't have to read from file again
                 &mut File::open(parent_path)?,
             )?;
+
+            // TODO: shouldn't have to set this again
+            if let Some(base) = parent_path.parent() {
+                ingredient.with_base_path(base)?;
+            }
         }
 
         // If the source file has a manifest store, and no parent is specified treat the source as a parent.
@@ -252,13 +260,19 @@ impl Sign {
             let mut source_ingredient = Ingredient::from_file(src)?;
             if source_ingredient.manifest_data().is_some() {
                 source_ingredient.set_is_parent();
-                builder.add_ingredient(
+
+                let ingredient = builder.add_ingredient(
                     // TODO: we shouldn't have to reserialize this
                     serde_json::to_string(&source_ingredient)?,
                     source_ingredient.format(),
                     // TODO: shouldn't have to read from file again
                     &mut File::open(src)?,
                 )?;
+
+                // TODO: shouldn't have to set this again
+                if let Some(base) = src.parent() {
+                    ingredient.with_base_path(base)?;
+                }
             }
         }
 
@@ -267,10 +281,6 @@ impl Sign {
         }
 
         sign_config.set_base_path(&base_path);
-        // TODO: since the builder reuses its ResourceStore for all ingredients, its base path can be off
-        //       for instance, ingredient/ingredient.json normally uses ../some_image.png, but since the base
-        //       path is tests/fixtures, it will be incorrect. The builder needs each ingredient to have its own
-        //       base path w/ separate resource stores
         builder.base_path = Some(base_path);
 
         let signer = match &self.signer_path {
