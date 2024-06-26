@@ -1,0 +1,212 @@
+// Copyright 2022 Adobe. All rights reserved.
+// This file is licensed to you under the Apache License,
+// Version 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+// or the MIT license (http://opensource.org/licenses/MIT),
+// at your option.
+// Unless required by applicable law or agreed to in writing,
+// this software is distributed on an "AS IS" BASIS, WITHOUT
+// WARRANTIES OR REPRESENTATIONS OF ANY KIND, either express or
+// implied. See the LICENSE-MIT and LICENSE-APACHE files for the
+// specific language governing permissions and limitations under
+// each license.
+
+use std::{fs, path::PathBuf};
+
+use anyhow::{bail, Result};
+use c2pa::{jumbf_io, Ingredient, ManifestStore};
+use clap::Parser;
+use log::error;
+
+use crate::commands::{load_trust_settings, Trust};
+
+#[derive(Debug, Parser)]
+pub enum Extract {
+    /// Extract the .json or .c2pa manifest.
+    Manifest {
+        /// Input path to asset.
+        path: PathBuf,
+
+        /// Path to output file.
+        #[clap(short, long)]
+        output: PathBuf,
+
+        /// Extract binary .c2pa manifest.
+        #[clap(short, long)]
+        binary: bool,
+
+        /// Do not perform validation of manifest during extraction (only applicable when `--binary` is specified).
+        #[clap(short, long, requires = "binary")]
+        no_verify: bool,
+
+        /// Force overwrite output if it already exists.
+        #[clap(short, long)]
+        force: bool,
+
+        #[clap(flatten)]
+        trust: Trust,
+    },
+    /// Extract the .json ingredient.
+    Ingredient {
+        /// Input path to asset.
+        path: PathBuf,
+
+        /// Path to output ingredient .json.
+        #[clap(short, long)]
+        output: PathBuf,
+
+        /// Force overwrite output if it already exists.
+        #[clap(short, long)]
+        force: bool,
+
+        #[clap(flatten)]
+        trust: Trust,
+    },
+    /// Extract known resources from a manifest (e.g. thumbnails).
+    Resources {
+        /// Input path(s) to asset(s).
+        paths: Vec<PathBuf>,
+
+        /// Path to output folder.
+        #[clap(short, long)]
+        output: PathBuf,
+
+        /// Force overwrite output and clear children if it already exists.
+        #[clap(short, long)]
+        force: bool,
+
+        #[clap(flatten)]
+        trust: Trust,
+        //
+        // TODO: add flag for additionally exporting unknown ingredients (ingredients that
+        // do not have a standardized label) as a binary file
+    },
+}
+
+impl Extract {
+    pub fn execute(&self) -> Result<()> {
+        match self {
+            Extract::Manifest {
+                path,
+                output,
+                binary,
+                no_verify,
+                force,
+                trust,
+            } => {
+                if !path.exists() {
+                    bail!("Input path does not exist")
+                } else if !path.is_file() {
+                    bail!("Input path must be a file")
+                }
+
+                if output.exists() {
+                    if !output.is_file() {
+                        bail!("Output path must be a file");
+                    } else if !force {
+                        bail!("Output path already exists use `--force` to overwrite");
+                    }
+                }
+
+                load_trust_settings(trust)?;
+
+                match binary {
+                    true => {
+                        let manifest = jumbf_io::load_jumbf_from_file(path)?;
+                        if !no_verify {
+                            // Validates the jumbf refers to a valid manifest.
+                            match c2pa::format_from_path(path) {
+                                Some(format) => {
+                                    ManifestStore::from_manifest_and_asset_bytes(
+                                        &manifest,
+                                        &format,
+                                        &fs::read(path)?,
+                                    )?;
+                                }
+                                None => {
+                                    bail!("Path `{}` is missing file extension", path.display())
+                                }
+                            }
+                        }
+                        fs::write(output, manifest)?;
+                    }
+                    false => {
+                        let manifest = ManifestStore::from_file(path)?;
+                        fs::write(output, manifest.to_string())?;
+                    }
+                }
+            }
+            Extract::Ingredient {
+                path,
+                output,
+                force,
+                trust,
+            } => {
+                if !path.exists() {
+                    bail!("Input path does not exist")
+                } else if !path.is_file() {
+                    bail!("Input path must be a file")
+                }
+
+                if output.exists() {
+                    if !output.is_file() {
+                        bail!("Output path must be a file");
+                    } else if !force {
+                        bail!("Output path already exists use `--force` to overwrite");
+                    }
+                }
+
+                load_trust_settings(trust)?;
+
+                let ingredient = Ingredient::from_file(path)?;
+                fs::write(output, ingredient.to_string())?;
+            }
+            Extract::Resources {
+                paths,
+                output,
+                force,
+                trust,
+            } => {
+                if paths.is_empty() {
+                    bail!("Input path does not exist")
+                }
+
+                if !output.exists() {
+                    fs::create_dir_all(output)?;
+                } else if !output.is_dir() {
+                    bail!("Output path must be a folder");
+                } else if !force {
+                    bail!(
+                        "Output path already exists use `--force` to overwrite and clear children"
+                    );
+                }
+
+                load_trust_settings(trust)?;
+
+                let mut errs = Vec::new();
+                for path in paths {
+                    if path.is_dir() {
+                        bail!("Input path cannot be a folder when extracting resources");
+                    }
+
+                    if let Err(err) = ManifestStore::from_file_with_resources(path, output) {
+                        error!(
+                            "Failed to extract resources from asset at path `{}`, {}",
+                            path.display(),
+                            err.to_string()
+                        );
+                        errs.push(err);
+                    }
+                }
+
+                if !errs.is_empty() {
+                    bail!(
+                        "Failed to extract resources from {}/{} assets",
+                        errs.len(),
+                        paths.len()
+                    );
+                }
+            }
+        }
+        Ok(())
+    }
+}
