@@ -6,6 +6,43 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.4
+_25 June 2024_
+
+* Update c2patool ([#190](https://github.com/contentauth/c2pa-rs/pull/190))
+* Match c2pa-rs minimum toolchain version and test in CI ([#188](https://github.com/contentauth/c2pa-rs/pull/188))
+* Document how to specify an icon ([#182](https://github.com/contentauth/c2pa-rs/pull/182))
+## 0.9.3
+_29 May 2024_
+
+* Remove binary modules ([#179](https://github.com/contentauth/c2pa-rs/pull/179))
+## 0.9.2
+_24 May 2024_
+
+* Remove integration tests for now due to extraneous binaries ([#178](https://github.com/contentauth/c2pa-rs/pull/178))
+## 0.9.1
+_22 May 2024_
+
+* Add better support for cargo-binstall ([#177](https://github.com/contentauth/c2pa-rs/pull/177))
+## 0.9.0
+_07 May 2024_
+
+* Integrate with c2pa-rs 0.32.0, various test case fixes. ([#175](https://github.com/contentauth/c2pa-rs/pull/175))
+* (MINOR) Add HTTP source option for trust config ([#174](https://github.com/contentauth/c2pa-rs/pull/174))
+## 0.8.2
+_28 March 2024_
+
+* fixed c2patool asset name ([#171](https://github.com/contentauth/c2pa-rs/pull/171))
+## 0.8.1
+_25 March 2024_
+
+* use c2pa-rs 0.31.1 for actions.changes support ([#170](https://github.com/contentauth/c2pa-rs/pull/170))
+## 0.8.0
+_20 March 2024_
+
+* (MINOR) allow clients to sign with a process outside of c2patool ([#169](https://github.com/contentauth/c2pa-rs/pull/169))
+* Add trust and verification options to c2pa_tool ([#168](https://github.com/contentauth/c2pa-rs/pull/168))
+* adds version to c2patool artifact names ([#158](https://github.com/contentauth/c2pa-rs/pull/158))
 ## 0.7.0
 _22 November 2023_
 
