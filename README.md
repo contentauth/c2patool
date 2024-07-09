@@ -130,7 +130,7 @@ c2patool [trust] [PATH] [OPTIONS]
 ```
 
 Where:
-- `trust` is an optional subcommand to [enable trust support](#configuring-trust-support) for certificates on a "known certificate list." With this sub-command, several other options are available.
+- `trust` is an optional subcommand to [enable trust support](#configuring-trust-support) for certificates on a "known certificate list." With this sub-command, several additional options are available.
 - `PATH` is the (relative or absolute) file path to the asset to read or embed a manifest into.
 - `OPTIONS` is one or more of the command-line options described in following table.
 
@@ -197,7 +197,7 @@ The tool displays the report to standard output (stdout).
 
 ### Creating an ingredient from a file
 
-The `--ingredient` option creates an ingredient report.  When used with the `--output` folder, it extracts or creates a thumbnail image and a binary `.c2pa` manifest store containing the C2PA data from the file. The JSON ingredient this produces can be added to a manifest definition to carry the full history and validation record of that asset into a newly created manifest.
+The `--ingredient` option creates an ingredient report.  When used with the `--output` folder, it extracts or creates a thumbnail image and a binary `.c2pa` manifest store containing the C2PA data from the file. The JSON ingredient this produces can be added to a manifest definition to carry the full history and validation record of that asset into a newly-created manifest.
 
 Provide the path to the file as the argument; for example:
 
@@ -217,6 +217,8 @@ The tool generates a new manifest using the values given in the file and display
 
 CAUTION: If the output file is the same as the source file, the tool will overwrite the source file.
 
+If the manifest definition file has `private_key` and `sign_cert` fields, then the tool signs the manifest using the private key and certificate they specify, respectively.  Otherwise, the tool uses the built-in test certificate and key, which is suitable for development and testing.  You can also specify the private key and certificate using environment variables; for more information, see [Creating and using an X.509 certificate](x_509.md). 
+
 #### Specifying a parent file
 
 A _parent file_ represents the state of the image before the current edits were made.
@@ -227,7 +229,7 @@ Specify a parent file as the argument to the `--parent` / `-p` option; for examp
 c2patool sample/image.jpg -m sample/test.json -p sample/c.jpg -o signed_image.jpg
 ```
 
-You can pass an ingredient generated with the --ingredient option by giving the folder or ingredient.json file.
+You can pass an ingredient generated with the `--ingredient` option by giving the folder or ingredient JSON file.
 
 ```shell
 c2patool sample/C.jpg --ingredient --output ./ingredient
@@ -267,7 +269,7 @@ If you use both the `-s` and `-r` options, the tool embeds a manifest in the out
 When generating a manifest, if the private key is not accessible on the system on which you are running the tool, use the `--signer-path` argument to specify the path to an executable that performs signing. 
 This executable receives the claim bytes (the bytes to be signed) from standard input (`stdin`) and outputs the signature bytes to standard output (`stdout`). 
  
- For example, the following command uses an external signer to sign the asset's claim bytes:
+ For example, the following command signs the asset's claim bytes by using an executable named `custom-signer`:
 
 ```shell
 c2patool sample/image.jpg            \
@@ -278,9 +280,7 @@ c2patool sample/image.jpg            \
     -f
 ```
 
-You can see an example external signer here: [signer-path-success.rs](./src/bin/signer-path-success.rs).
-
-Please see `c2patool --help` for how to calculate the `--reserve-size` argument.
+For information on calculating the value of the `--reserve-size` argument, see `c2patool --help`.
 
 ### Providing a manifest definition on the command line
 
@@ -307,7 +307,7 @@ Enable trust support by using the `trust` subcommand, as follows:
 c2patool [path] trust [OPTIONS]
 ```
 
-The following additional CLI options are available with the `trust` sub-command:
+Several additional CLI options are available with the `trust` sub-command to specify the location of files containing the trust anchors list or known certificate list, as described in the following table. You can also use environment variables to specify these files.
 
 | Option | Environment variable | Description | Example |
 | ------ | --------------- | ----------- | ------- |
@@ -323,11 +323,11 @@ c2patool sample/C.jpg trust \
   --trust_config sample/store.cfg
 ```
 
-### Using the temporary Verify trust settings
+### Using the Verify known certificate list
 
-**IMPORTANT:** The C2PA intends to publish an official C2PA trust list. Until that time, the [C2PA Verify tool uses a temporary known certificate list](https://opensource.contentauthenticity.org/docs/verify-known-cert-list). These lists are subject to change, and will be deprecated when C2PA publishes its trust list.
+**IMPORTANT:** The C2PA intends to publish an official trust list. Until that time, the [C2PA Verify tool uses a temporary known certificate list](https://opensource.contentauthenticity.org/docs/verify-known-cert-list). These lists are subject to change, and will be deprecated when C2PA publishes its trust list.
 
-You can configure your client to use the Verify temporary known certificate list by setting the following environment variables on your system:
+To configure C2PA tool to use the Verify temporary known certificate list, set the following environment variables on your system:
 
 ```shell
 export C2PATOOL_TRUST_ANCHORS='https://contentcredentials.org/trust/anchors.pem'
@@ -335,7 +335,7 @@ export C2PATOOL_ALLOWED_LIST='https://contentcredentials.org/trust/allowed.sha25
 export C2PATOOL_TRUST_CONFIG='https://contentcredentials.org/trust/store.cfg'
 ```
 
-**Note:** Setting these variables will make several HTTP requests each time C2PA Tool runs. Since these lists may change without notice (and the allowed list may change quite frequently) you may want to check these lists frequently to stay in sync with the Verify site. However, if working with bulk operations, you may want to locally cache these files to avoid a large number of network calls that might affect performance.
+**Note:** When these environment variables are set, C2PA Tool will make several HTTP requests each time it  runs. Since these lists may change without notice (and the allowed list may change quite often), check these lists frequently to stay in sync with the Verify site. However, when performing bulk operations, you may want to cache these files locally to avoid a large number of network calls that might affect performance.
 
 You can then run:
 
@@ -343,9 +343,7 @@ You can then run:
 c2patool sample/C.jpg trust
 ```
 
-**Note:** This sample image should show a `signingCredential.untrusted` validation status since the test signing certificate used to sign them is not contained on the trust lists above.
-
-Additionally, if you do not want to use environment variables, you can pass these values as arguments instead:
+You can also specify these values as CLI arguments instead:
 
 ```shell
 c2patool sample/C.jpg trust \
@@ -353,6 +351,8 @@ c2patool sample/C.jpg trust \
   --allowed_list='https://contentcredentials.org/trust/allowed.sha256.txt' \
   --trust_config='https://contentcredentials.org/trust/store.cfg'
 ```
+
+**Note:** This sample image should show a `signingCredential.untrusted` validation status since the test signing certificate used to sign them is not contained on the trust lists above.
 
 ## Nightly builds
 
