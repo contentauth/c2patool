@@ -59,13 +59,15 @@ pub enum View {
         #[clap(flatten)]
         trust: Trust,
     },
-    /// View the manifest certificate chain.
+    /// View the active manifest certificate chain.
     Certs {
         /// Input path to asset.
         path: PathBuf,
 
         #[clap(flatten)]
         trust: Trust,
+        //
+        // TODO: expose args to extract certificates from specific manifest
     },
 }
 
@@ -166,7 +168,8 @@ impl View {
 
                 load_trust_settings(trust)?;
 
-                // TODO: no alternative in c2pa-rs unstable API
+                // TODO: need a way to iterate assertions on an ingredient
+                //       (ideally an ingredient is a manifest)
                 ManifestStoreReport::dump_tree(path)?;
             }
             View::Certs { path, trust } => {
@@ -176,8 +179,14 @@ impl View {
 
                 load_trust_settings(trust)?;
 
-                // TODO: no alternative in c2pa-rs unstable API
-                ManifestStoreReport::dump_cert_chain(path)?;
+                let reader = Reader::from_file(path)?;
+                match reader.active_manifest() {
+                    Some(active_manifest) => match active_manifest.signature_info() {
+                        Some(signature_info) => println!("{}", signature_info.cert_chain()),
+                        None => bail!("Unable to get signature info from active manifest"),
+                    },
+                    None => bail!("Unable to find active manifest"),
+                }
             }
         }
 
