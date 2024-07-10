@@ -307,13 +307,13 @@ Enable trust support by using the `trust` subcommand, as follows:
 c2patool [path] trust [OPTIONS]
 ```
 
-Several additional CLI options are available with the `trust` sub-command to specify the location of files containing the trust anchors list or known certificate list, as described in the following table. You can also use environment variables to specify these files.
+Several additional CLI options are available with the `trust` sub-command to specify the location of files containing the trust anchors list or known certificate list, as described in the following table. You can also use environment variables to specify these values.
 
-| Option | Environment variable | Description | Example |
-| ------ | --------------- | ----------- | ------- |
-| `--trust_anchors` | `C2PATOOL_TRUST_ANCHORS` | Specifies a list of trust anchors (in PEM format) used to validate the manifest certificate chain. To be valid, the manifest certificate chain must lead to a certificate on the trust list. All certificates in the trust anchor list must have the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) and the CA attribute of this extension must be `True`. | `sample/trust_anchors.pem` `https://server.com/anchors.pem` |
-| `--allowed_list` | `C2PATOOL_ALLOWED_LIST` | Supersedes the `trust_anchors` check and specifies a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. The allowed list must NOT contain certificates with the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) with the CA attribute `True`. | `sample/allowed_list.pem` `https://server.com/allowed.pem` |
-| `--trust_config` | `C2PATOOL_TRUST_CONFIG` | Specifies a set of custom certificate extended key usages (EKUs) to allow. Format is a list with object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format. | `sample/store.cfg` `https://server.com/store.cfg` |
+| Option | Environment variable | Description |
+| ------ | -------------------- | ----------- | 
+| `--trust_anchors` | `C2PATOOL_TRUST_ANCHORS` | URL or relative path to a file containing a list of trust anchors (in PEM format) used to validate the manifest certificate chain. To be valid, the manifest certificate chain must lead to a certificate on the trust list. All certificates in the trust anchor list must have the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) and the CA attribute of this extension must be `True`.  |
+| `--allowed_list` | `C2PATOOL_ALLOWED_LIST` | URL or relative path to a file containing a list of end-entity certificates (in PEM format) to trust. These certificates are used to sign the manifest. Supersedes the `trust_anchors` setting. The list must NOT contain certificates with the [Basic Constraints extension](https://docs.digicert.com/en/iot-trust-manager/certificate-templates/create-json-formatted-certificate-templates/extensions/basic-constraints.html) with the CA attribute `True`. |
+| `--trust_config` | `C2PATOOL_TRUST_CONFIG` | URL or relative path to a file containing the allowed set of custom certificate extended key usages (EKUs). Each entry in the list is an object identifiers in [OID dot notation](http://www.oid-info.com/#oid) format.  |
 
 For example:
 
@@ -321,6 +321,14 @@ For example:
 c2patool sample/C.jpg trust \
   --allowed_list sample/allowed_list.pem \
   --trust_config sample/store.cfg
+```
+
+Another example with URL argument values:
+
+```shell
+c2patool sample/C.jpg trust \
+  --trust_anchors https://server.com/anchors.pem \
+  --trust_config https://server.com/store.cfg
 ```
 
 ### Using the Verify known certificate list
