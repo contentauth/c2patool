@@ -207,7 +207,7 @@ c2patool sample/C.jpg --ingredient --output ./ingredient
 
 ### Adding a manifest to an asset file
 
-Use the `--manifest` / `-m` option to add the C2PA manifest store JSON file specified in the argument to the asset file to be signed. Specify the output file as the argument to the `--output` / `-o` option. The output extension type must match the source. The tool will not convert between file types. For example:
+Use the `--manifest` / `-m` option to add the C2PA manifest definition file specified in the argument to the asset file to be signed. Specify the output file as the argument to the `--output` / `-o` option. The output extension type must match the source. The tool will not convert between file types. For example:
 
 ```shell
 c2patool sample/image.jpg -m sample/test.json -o signed_image.jpg
