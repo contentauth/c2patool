@@ -6,6 +6,11 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.5
+_18 July 2024_
+
+* Update to lastest c2pa-rs ([#197](https://github.com/contentauth/c2pa-rs/pull/197))
+* added security.md ([#196](https://github.com/contentauth/c2pa-rs/pull/196))
 ## 0.9.4
 _25 June 2024_
 
