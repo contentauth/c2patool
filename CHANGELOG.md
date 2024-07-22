@@ -6,6 +6,63 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.5
+_18 July 2024_
+
+* Update to lastest c2pa-rs ([#197](https://github.com/contentauth/c2pa-rs/pull/197))
+* added security.md ([#196](https://github.com/contentauth/c2pa-rs/pull/196))
+## 0.9.4
+_25 June 2024_
+
+* Update c2patool ([#190](https://github.com/contentauth/c2pa-rs/pull/190))
+* Match c2pa-rs minimum toolchain version and test in CI ([#188](https://github.com/contentauth/c2pa-rs/pull/188))
+* Document how to specify an icon ([#182](https://github.com/contentauth/c2pa-rs/pull/182))
+## 0.9.3
+_29 May 2024_
+
+* Remove binary modules ([#179](https://github.com/contentauth/c2pa-rs/pull/179))
+## 0.9.2
+_24 May 2024_
+
+* Remove integration tests for now due to extraneous binaries ([#178](https://github.com/contentauth/c2pa-rs/pull/178))
+## 0.9.1
+_22 May 2024_
+
+* Add better support for cargo-binstall ([#177](https://github.com/contentauth/c2pa-rs/pull/177))
+## 0.9.0
+_07 May 2024_
+
+* Integrate with c2pa-rs 0.32.0, various test case fixes. ([#175](https://github.com/contentauth/c2pa-rs/pull/175))
+* (MINOR) Add HTTP source option for trust config ([#174](https://github.com/contentauth/c2pa-rs/pull/174))
+## 0.8.2
+_28 March 2024_
+
+* fixed c2patool asset name ([#171](https://github.com/contentauth/c2pa-rs/pull/171))
+## 0.8.1
+_25 March 2024_
+
+* use c2pa-rs 0.31.1 for actions.changes support ([#170](https://github.com/contentauth/c2pa-rs/pull/170))
+## 0.8.0
+_20 March 2024_
+
+* (MINOR) allow clients to sign with a process outside of c2patool ([#169](https://github.com/contentauth/c2pa-rs/pull/169))
+* Add trust and verification options to c2pa_tool ([#168](https://github.com/contentauth/c2pa-rs/pull/168))
+* adds version to c2patool artifact names ([#158](https://github.com/contentauth/c2pa-rs/pull/158))
+## 0.7.0
+_22 November 2023_
+
+* (MINOR) updates to c2pa-rs v0.28.2 ([#153](https://github.com/contentauth/c2pa-rs/pull/153))
+* Update to c2pa-rs 0.28.1
+## 0.6.2
+_05 October 2023_
+
+* update to c2pa 0.27.1 ([#146](https://github.com/contentauth/c2pa-rs/pull/146))
+* Merge branch 'main' of https://github.com/contentauth/c2patool
+* Add Do not train example
+* Upgrade to c2pa-rs 0.26.0 ([#143](https://github.com/contentauth/c2pa-rs/pull/143))
+* Fix issue with docusaurus styling and fix broken links ([#138](https://github.com/contentauth/c2pa-rs/pull/138))
+* Updates to c2pa-rs 0.25.1 ([#128](https://github.com/contentauth/c2pa-rs/pull/128))
+* Fix windows release ([#132](https://github.com/contentauth/c2pa-rs/pull/132))
 ## 0.6.1
 _24 July 2023_
 
