@@ -35,20 +35,25 @@ log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1.0"
-tempfile = "3.3"
 pem = "3.0.3"
 openssl = { version = "0.10.61", features = ["vendored"] }
 reqwest = { version = "0.12.4", features = ["blocking"] }
-url = "2.5.0"
+wild = "2.2.1"
 
 [dev-dependencies]
-assert_cmd = "2.0.14"
+tempfile = "3.3"
 httpmock = "0.7.0"
-predicates = "2.1"
 mockall = "0.12.1"
+insta = { version = "1.39.0", features = ["json", "redactions", "filters"] }
+insta-cmd = "0.6.0"
 
 [package.metadata.binstall]
 # Use defaults
+
+# https://insta.rs/docs/quickstart/
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3
 
 [profile.release]
 strip = true  # Automatically strip symbols from the binary. 

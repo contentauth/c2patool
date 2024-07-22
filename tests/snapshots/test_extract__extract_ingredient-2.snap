@@ -1,0 +1,21 @@
+---
+source: tests/test_extract.rs
+expression: "unescape_json(&fs::read_to_string(output_path.join(\"ingredient.json\"))?)?"
+---
+{
+  "title": "C.jpg",
+  "format": "image/jpeg",
+  "instance_id": "[XMP_ID]",
+  "provenance": "self#jumbf=/c2pa/contentauth:urn:uuid:a621a5d8-147d-499b-95d7-2eaff1009efc/c2pa.claim",
+  "thumbnail": {
+    "format": "image/jpeg",
+    "identifier": "self#jumbf=/c2pa/contentauth:urn:uuid:a621a5d8-147d-499b-95d7-2eaff1009efc/c2pa.assertions/c2pa.thumbnail.claim.jpeg",
+    "hash": "BkI+QPdyZ1fEXETg2uOBTpM5wmlwx+erq7a8KnDTOt4="
+  },
+  "relationship": "componentOf",
+  "active_manifest": "contentauth:urn:uuid:a621a5d8-147d-499b-95d7-2eaff1009efc",
+  "manifest_data": {
+    "format": "application/c2pa",
+    "identifier": "manifest_data.c2pa"
+  }
+}
