@@ -45,7 +45,7 @@ url = "2.5.0"
 assert_cmd = "2.0.14"
 httpmock = "0.7.0"
 predicates = "2.1"
-mockall = "0.12.1"
+mockall = "0.13.0"
 
 [package.metadata.binstall]
 # Use defaults
