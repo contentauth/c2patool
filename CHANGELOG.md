@@ -6,6 +6,13 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.6
+_30 July 2024_
+
+* Pull latest c2pa-rs bug fixes into c2patool ([#212](https://github.com/contentauth/c2pa-rs/pull/212))
+* only run tests/clippy if labeled ([#205](https://github.com/contentauth/c2pa-rs/pull/205))
+* Bump env_logger from 0.10.2 to 0.11.4 ([#204](https://github.com/contentauth/c2pa-rs/pull/204))
+* Updates cargo packages and cargo.deny file. ([#200](https://github.com/contentauth/c2pa-rs/pull/200))
 ## 0.9.5
 _18 July 2024_
 
