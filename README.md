@@ -218,7 +218,8 @@ The tool generates a new manifest using the values given in the file and display
 CAUTION: If the output file is the same as the source file, the tool will overwrite the source file.
 
 If the manifest definition file has `private_key` and `sign_cert` fields, then the tool signs the manifest using the private key and certificate they specify, respectively.  Otherwise, the tool uses the built-in test certificate and key, which is suitable ONLY for development and testing.  You can also specify the private key and certificate using environment variables; for more information, see [Creating and using an X.509 certificate](x_509.md). 
-**WARNING**: Accessing a private key directly this way in production is not secure.  Instead use a hardware security module (HSM) and optionally a Key Management Service (KMS) to access the key; for example, as show in the [C2PA Python Example](https://github.com/contentauth/c2pa-python-example).
+
+**WARNING**: Do not access a private key directly this way in production because it's not secure.  Instead use a hardware security module (HSM) and optionally a Key Management Service (KMS) to access the key; for example as show in the [C2PA Python Example](https://github.com/contentauth/c2pa-python-example).
 
 #### Specifying a parent file
 
