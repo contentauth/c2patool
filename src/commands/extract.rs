@@ -175,6 +175,7 @@ impl Resources {
         } else if !self.output.is_dir() {
             bail!("Output path must be a folder");
         } else if !self.force {
+            // TODO: if self.force is specified, shuld we clear the folder?
             bail!("Output path already exists use `--force` to overwrite and clear children");
         }
 
@@ -221,9 +222,8 @@ impl Resources {
                     continue;
                 }
 
-                // TODO: need a method in c2pa-rs to normalize the identifier (removing jumbf tag)
-                //       maybe it should be contained within a struct/enum that impls Display
-                let resource_path = manifest_path.join(&resource_ref.identifier);
+                let uri = self.normalize_uri(&resource_ref.identifier);
+                let resource_path = manifest_path.join(uri);
                 fs::create_dir_all(
                     resource_path
                         .parent()
@@ -235,5 +235,10 @@ impl Resources {
         }
 
         Ok(())
+    }
+
+    // TODO: this functionality should be exposed from c2pa-rs
+    fn normalize_uri<'a>(&self, uri: &'a str) -> &'a str {
+        uri.strip_prefix("self#jumbf=").unwrap_or(uri)
     }
 }

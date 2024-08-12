@@ -70,7 +70,7 @@ pub struct Tree {
     /// Input path to asset.
     path: PathBuf,
 
-    // TODO: Ideally this would provide full URNs to assertions/manifests, but we need a reliable way to
+    // TODO: Ideally this would provide full URIs to assertions/manifests, but we need a reliable way to
     //       get them or manipulate them
     // /// Display detailed information about the manifest.
     // #[clap(short, long)]
