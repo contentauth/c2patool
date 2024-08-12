@@ -186,8 +186,12 @@ impl Sign {
             env::current_dir()?
         };
 
-        // TODO: we shouldn't need to reserialize this
+        // TODO: https://github.com/contentauth/c2pa-rs/pull/544
         let mut builder = Builder::from_json(&serde_json::to_string(&definition_ext.definition)?)?;
+        builder.no_embed = self.sidecar;
+        if let Some(url) = &self.manifest_source.manifest_url {
+            builder.remote_url = Some(url.to_string());
+        }
 
         if let Some(ingredients) = definition_ext.ingredients {
             for ingredient_source in ingredients {
@@ -274,10 +278,6 @@ impl Sign {
                     ingredient.with_base_path(base)?;
                 }
             }
-        }
-
-        if let Some(url) = &self.manifest_source.manifest_url {
-            builder.remote_url = Some(url.to_string());
         }
 
         sign_config.set_base_path(&base_path);
