@@ -646,7 +646,7 @@ checksum = "8318a53db07bb3f8dca91a600466bdb3f2eaadeedfdbcf02e1accbad9271ba50"
 [[package]]
 name = "c2pa"
 version = "0.33.1"
-source = "git+https://github.com/contentauth/c2pa-rs.git#345e24b2300a484ed6e41ac321d7c6b542b51852"
+source = "git+https://github.com/contentauth/c2pa-rs.git?branch=ok-nick/roi#83d06b7434a4af79911df80d2d14d1c70faefe67"
 dependencies = [
  "asn1-rs",
  "async-generic",

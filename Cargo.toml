@@ -23,7 +23,8 @@ repository = "https://github.com/contentauth/c2patool"
 
 [dependencies]
 anyhow = "1.0"
-c2pa = { git = "https://github.com/contentauth/c2pa-rs.git", features = [
+# TODO: temp use ok-nick/roi branch since our fixtures are signed using features from 2.1 spec
+c2pa = { git = "https://github.com/contentauth/c2pa-rs.git", branch = "ok-nick/roi", features = [
 	"fetch_remote_manifests",
 	"file_io",
 	"add_thumbnails",
