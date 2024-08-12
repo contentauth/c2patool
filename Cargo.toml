@@ -23,7 +23,7 @@ repository = "https://github.com/contentauth/c2patool"
 
 [dependencies]
 anyhow = "1.0"
-c2pa = { git = "https://github.com/contentauth/c2pa-rs.git", branch = "ok-nick/builder_base_path", features = [
+c2pa = { git = "https://github.com/contentauth/c2pa-rs.git", features = [
 	"fetch_remote_manifests",
 	"file_io",
 	"add_thumbnails",
@@ -36,10 +36,11 @@ log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
 serde_json = "1.0"
-pem = "3.0.3"
+pem = "3.0.2"
 openssl = { version = "0.10.61", features = ["vendored"] }
 reqwest = { version = "0.12.4", features = ["blocking"] }
 wild = "2.2.1"
+termtree = "0.5.1"
 
 [dev-dependencies]
 tempfile = "3.3"
