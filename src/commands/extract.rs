@@ -223,7 +223,7 @@ impl Resources {
             let manifest_path = self.output.join(
                 manifest
                     .label()
-                    .context("Failed to get maniest label")?
+                    .context("Failed to get manifest label")?
                     .replace(':', "_"),
             );
             for resource_ref in manifest.iter_resources() {
@@ -232,7 +232,7 @@ impl Resources {
                 }
 
                 let uri = self.normalize_uri(&resource_ref.identifier);
-                let resource_path = manifest_path.join(uri);
+                let resource_path = manifest_path.join(&uri);
                 fs::create_dir_all(
                     resource_path
                         .parent()
@@ -247,7 +247,13 @@ impl Resources {
     }
 
     // TODO: this functionality should be exposed from c2pa-rs
-    fn normalize_uri<'a>(&self, uri: &'a str) -> &'a str {
-        uri.strip_prefix("self#jumbf=").unwrap_or(uri)
+    //       taken from https://github.com/contentauth/c2pa-rs/blob/2aeafd3888a6b96d00543d29a58c9783f6785f31/sdk/src/resource_store.rs#L225-L263
+    fn normalize_uri(&self, uri: &str) -> String {
+        let mut uri = uri.replace("self#jumbf=", "");
+        if uri.starts_with("/c2pa/") {
+            uri = uri.replacen("/c2pa/", "", 1);
+        }
+        uri = uri.replace([':'], "_");
+        uri
     }
 }
