@@ -47,6 +47,10 @@ pub struct Sign {
     #[clap(short, long)]
     pub sidecar: bool,
 
+    /// Do not embed manifest into input.
+    #[clap(long)]
+    pub no_embed: bool,
+
     /// Force overwrite output file(s) if they already exists.
     #[clap(short, long)]
     pub force: bool,
@@ -188,7 +192,7 @@ impl Sign {
 
         // TODO: https://github.com/contentauth/c2pa-rs/pull/544
         let mut builder = Builder::from_json(&serde_json::to_string(&definition_ext.definition)?)?;
-        builder.no_embed = self.sidecar;
+        builder.no_embed = self.no_embed;
         if let Some(url) = &self.manifest_source.manifest_url {
             builder.remote_url = Some(url.to_string());
         }
