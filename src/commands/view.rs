@@ -96,7 +96,7 @@ impl View {
 
                 let reader = Reader::from_file(path)?;
                 match detailed {
-                    // TODO: c2pa-rs shouldn't output pretty by default unless if # is included (rust convention)
+                    // TODO: c2pa-rs shouldn't output pretty by default unless if # is included
                     true => println!("{:#?}", reader),
                     false => println!("{}", reader),
                 };
@@ -205,7 +205,6 @@ impl Tree {
 
         load_trust_settings(&self.trust)?;
 
-        // TODO: this doesn't include all assertions (like thumbnail, hash, ingredient, etc.)
         let reader = Reader::from_file(&self.path)?;
         match reader.active_manifest() {
             Some(active_manifest) => {
