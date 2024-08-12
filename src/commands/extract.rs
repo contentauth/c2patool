@@ -217,20 +217,20 @@ impl Resources {
                     .replace(':', "_"),
             );
             for resource_ref in manifest.iter_resources() {
-                if !self.unknown || resource_ref.format != "application/octet-stream" {
-                    // TODO: need a method in c2pa-rs to normalize the identifier (removing jumbf tag)
-                    //       maybe it should be contained within a struct/enum that impls Display
-                    let resource_path = manifest_path.join(&resource_ref.identifier);
-                    fs::create_dir_all(
-                        resource_path
-                            .parent()
-                            .context("Failed to find resource parent path from label")?,
-                    )?;
-                    reader.resource_to_stream(
-                        &resource_ref.identifier,
-                        File::create(&resource_path)?,
-                    )?;
+                if !self.unknown && resource_ref.format == "application/octet-stream" {
+                    continue;
                 }
+
+                // TODO: need a method in c2pa-rs to normalize the identifier (removing jumbf tag)
+                //       maybe it should be contained within a struct/enum that impls Display
+                let resource_path = manifest_path.join(&resource_ref.identifier);
+                fs::create_dir_all(
+                    resource_path
+                        .parent()
+                        .context("Failed to find resource parent path from label")?,
+                )?;
+                reader
+                    .resource_to_stream(&resource_ref.identifier, File::create(&resource_path)?)?;
             }
         }
 
