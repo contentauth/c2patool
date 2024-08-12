@@ -37,6 +37,10 @@ pub enum Extract {
         #[clap(short, long)]
         binary: bool,
 
+        /// Do not perform validation of manifest during extraction (only applicable when `--binary` is specified).
+        #[clap(short, long, requires = "binary")]
+        no_verify: bool,
+
         /// Force overwrite output if it already exists.
         #[clap(short, long)]
         force: bool,
@@ -92,6 +96,7 @@ impl Extract {
                 path,
                 output,
                 binary,
+                no_verify,
                 force,
                 trust,
             } => {
@@ -114,16 +119,20 @@ impl Extract {
                 match binary {
                     true => {
                         let manifest = jumbf_io::load_jumbf_from_file(path)?;
-                        // Validates the jumbf refers to a valid manifest.
-                        match c2pa::format_from_path(path) {
-                            Some(format) => {
-                                Reader::from_manifest_data_and_stream(
-                                    &manifest,
-                                    &format,
-                                    &File::open(path)?,
-                                )?;
+                        if !no_verify {
+                            // Validates the jumbf refers to a valid manifest.
+                            match c2pa::format_from_path(path) {
+                                Some(format) => {
+                                    Reader::from_manifest_data_and_stream(
+                                        &manifest,
+                                        &format,
+                                        &File::open(path)?,
+                                    )?;
+                                }
+                                None => {
+                                    bail!("Path `{}` is missing file extension", path.display())
+                                }
                             }
-                            None => bail!("Path `{}` is missing file extension", path.display()),
                         }
                         fs::write(output, manifest)?;
                     }
