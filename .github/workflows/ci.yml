@@ -1,7 +1,8 @@
 name: CI
 
 on:
-  pull_request:
+  pull_request_target:
+    types: [labeled]
   push:
     branches: main
   schedule:
@@ -10,13 +11,14 @@ on:
 jobs:
   tests:
     name: Unit tests
+    if: contains(github.event.pull_request.labels.*.name, 'safe to test')
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         os: [ windows-latest, macos-latest, ubuntu-latest ]
-        rust_version: [ stable, 1.74.0 ]
+        rust_version: [ stable ]
 
     steps:
       - name: Checkout repository
@@ -48,6 +50,7 @@ jobs:
 
   clippy_check:
     name: Clippy
+    if: contains(github.event.pull_request.labels.*.name, 'safe to test')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

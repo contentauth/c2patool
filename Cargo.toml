@@ -5,7 +5,7 @@ default-run = "c2patool"
 # Please do not manually edit `version`. Version updates will be generated
 # automatically when c2patool is published. Remember to use (MINOR) or (MAJOR)
 # tags in the PR title to trigger non-patch updates as needed.
-version = "0.9.4"
+version = "0.9.6"
 
 description = "Tool for displaying and creating C2PA manifests."
 authors = [
@@ -17,20 +17,19 @@ documentation = "https://opensource.contentauthenticity.org/docs/c2patool"
 readme = "README.md"
 keywords = ["c2pa", "xmp", "metadata"]
 edition = "2018"
-rust-version = "1.74.0"
 homepage = "https://contentauthenticity.org"
 repository = "https://github.com/contentauth/c2patool"
 
 [dependencies]
 anyhow = "1.0"
-c2pa = { version = "0.32.7", features = [
+c2pa = { version = "0.33.1", features = [
 	"fetch_remote_manifests",
 	"file_io",
 	"add_thumbnails",
 	"pdf",
 ] }
-clap = { version = "4.5.2", features = ["derive", "env"] }
-env_logger = "0.9"
+clap = { version = "4.5.10", features = ["derive", "env"] }
+env_logger = "0.11.4"
 log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1.0"
@@ -44,8 +43,8 @@ url = "2.5.0"
 [dev-dependencies]
 assert_cmd = "2.0.14"
 httpmock = "0.7.0"
-predicates = "2.1"
-mockall = "0.12.1"
+predicates = "3.1"
+mockall = "0.13.0"
 
 [package.metadata.binstall]
 # Use defaults
