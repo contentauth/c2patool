@@ -1,0 +1,23 @@
+---
+source: tests/test_sign.rs
+info:
+  program: c2patool
+  args:
+    - sign
+    - /Users/nicky/Documents/repos/c2patool/tests/fixtures/C.jpg
+    - "--manifest"
+    - /Users/nicky/Documents/repos/c2patool/tests/fixtures/ingredient_test.json
+    - "--output"
+    - /tmp/.tmpvSJkyC/C.jpg
+---
+success: true
+exit_code: 0
+----- stdout -----
+
+----- stderr -----
+
+
+-----------
+
+Note: Using default private key and signing certificate. This is only valid for development.
+A permanent key and cert should be provided in the manifest definition or in the environment variables.
