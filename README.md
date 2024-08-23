@@ -219,7 +219,7 @@ CAUTION: If the output file is the same as the source file, the tool will overwr
 
 If the manifest definition file has `private_key` and `sign_cert` fields, then the tool signs the manifest using the private key and certificate they specify, respectively.  Otherwise, the tool uses the built-in test certificate and key, which is suitable ONLY for development and testing.  You can also specify the private key and certificate using environment variables; for more information, see [Creating and using an X.509 certificate](x_509.md). 
 
-**WARNING**: Do not access a private key directly this way in production.  Doing so is not secure because it exposes these sensitive files to potential attackers. Instead use a hardware security module (HSM) and optionally a Key Management Service (KMS) to access them; for example as show in the [C2PA Python Example](https://github.com/contentauth/c2pa-python-example).
+**WARNING**: Accessing the private key and signing certificate directly like this is fine during development, but doing so in production may be insecure. Instead use a Key Management Service (KMS) or a hardware security module (HSM) to access the certificate and key; for example as show in the [C2PA Python Example](https://github.com/contentauth/c2pa-python-example).
 
 #### Specifying a parent file
 
