@@ -164,11 +164,19 @@ enum Commands {
         trust_config: Option<TrustResource>,
     },
     /// Sub-command to add manifest to fragmented BMFF content
+    ///
+    /// The init path can be a glob to process entire directories of content, for example:
+    ///
+    /// c2patool -m test2.json -o /my_output_folder "/my_renditions/**/my_init.mp4" fragment --fragments_glob "myfile_abc*[0-9].m4s"
+    ///
+    /// Note: the glob patterns are quoted to prevent shell expansion.
     Fragment {
-        /// Glob pattern to find the fragments of the video. The path is automatically set to be the same as
-        /// the init segment. The glob pattern should only match fragment file names (e.g. "myfile_abc*.m4s"
-        /// to match [myfile_abc1.m4s, myfile_abc21.m4s, ...] )
-        #[arg(long = "fragments_glob")]
+        /// Glob pattern to find the fragments of the asset. The path is automatically set to be the same as
+        /// the init segment.
+        ///
+        /// The fragments_glob pattern should only match fragment file names not the full paths (e.g. "myfile_abc*[0-9].m4s"
+        /// to match [myfile_abc1.m4s, myfile_abc2180.m4s, ...] )
+        #[arg(long = "fragments_glob", verbatim_doc_comment)]
         fragments_glob: Option<PathBuf>,
     },
 }
@@ -327,23 +335,28 @@ fn sign_fragmented(
     let ip = init_pattern.to_str().ok_or(c2pa::Error::OtherError(
         "could not parse source pattern".into(),
     ))?;
-    let inits = glob::glob(ip)
-        .map_err(|_e| c2pa::Error::OtherError("could not process glob pattern".into()))?;
+    let inits = glob::glob(ip).context("could not process glob pattern")?;
     let mut count = 0;
     for init in inits {
         match init {
             Ok(p) => {
                 let mut fragments = Vec::new();
-                let init_dir = p.parent().unwrap();
+                let init_dir = p.parent().context("init segment had no parent dir")?;
                 let seg_glob = init_dir.join(frag_pattern); // segment match pattern
 
                 // grab the fragments that go with this init segment
-                for seg in glob::glob(seg_glob.to_str().unwrap()).unwrap().flatten() {
-                    fragments.push(seg);
+                let seg_glob_str = seg_glob.to_str().context("fragment path not valid")?;
+                let seg_paths = glob::glob(seg_glob_str).context("fragment glob not valid")?;
+                for seg in seg_paths {
+                    match seg {
+                        Ok(f) => fragments.push(f),
+                        Err(_) => return Err(anyhow!("fragment path not valid")),
+                    }
                 }
 
                 println!("Adding manifest to: {:?}", p);
-                let new_output_path = output_path.join(init_dir.file_name().unwrap());
+                let new_output_path =
+                    output_path.join(init_dir.file_name().context("invalid file name")?);
                 manifest.embed_to_bmff_fragmented(&p, &fragments, &new_output_path, signer)?;
 
                 count += 1;
@@ -357,17 +370,13 @@ fn sign_fragmented(
     Ok(())
 }
 
-fn verify_fragmented(
-    init_pattern: &PathBuf,
-    frag_pattern: &PathBuf,
-) -> Result<Vec<ManifestStore>> {
+fn verify_fragmented(init_pattern: &PathBuf, frag_pattern: &PathBuf) -> Result<Vec<ManifestStore>> {
     let mut stores = Vec::new();
 
-    let ip = init_pattern.to_str().ok_or(c2pa::Error::OtherError(
-        "could not parse source pattern".into(),
-    ))?;
-    let inits = glob::glob(ip)
-        .map_err(|_e| c2pa::Error::OtherError("could not process glob pattern".into()))?;
+    let ip = init_pattern
+        .to_str()
+        .context("could not parse source pattern")?;
+    let inits = glob::glob(ip).context("could not process glob pattern")?;
     let mut count = 0;
 
     // search folders for init segments
@@ -375,20 +384,24 @@ fn verify_fragmented(
         match init {
             Ok(p) => {
                 let mut fragments = Vec::new();
-                let init_dir = p.parent().unwrap();
+                let init_dir = p.parent().context("init segment had no parent dir")?;
                 let seg_glob = init_dir.join(frag_pattern); // segment match pattern
 
                 // grab the fragments that go with this init segment
-                for seg in glob::glob(seg_glob.to_str().unwrap()).unwrap().flatten() {
-                    fragments.push(seg);
+                let seg_glob_str = seg_glob.to_str().context("fragment path not valid")?;
+                let seg_paths = glob::glob(seg_glob_str).context("fragment glob not valid")?;
+                for seg in seg_paths {
+                    match seg {
+                        Ok(f) => fragments.push(f),
+                        Err(_) => return Err(anyhow!("fragment path not valid")),
+                    }
                 }
 
                 println!("Verifying manifest: {:?}", p);
                 let store = ManifestStore::from_fragments(p, &fragments, true)?;
                 if let Some(vs) = store.validation_status() {
-                    if let Some(e) =  vs.iter().find(|v| !v.passed()) 
-                    {
-                        println!("Error validating segments: {:?}", e);
+                    if let Some(e) = vs.iter().find(|v| !v.passed()) {
+                        eprintln!("Error validating segments: {:?}", e);
                         return Ok(stores);
                     }
                 }
@@ -541,26 +554,26 @@ fn main() -> Result<()> {
             manifest.set_sidecar_manifest();
         }
 
+        let signer = if let Some(signer_process_name) = args.signer_path {
+            let cb_config = CallbackSignerConfig::new(&sign_config, args.reserve_size)?;
+
+            let process_runner = Box::new(ExternalProcessRunner::new(
+                cb_config.clone(),
+                signer_process_name,
+            ));
+            let signer = CallbackSigner::new(process_runner, cb_config);
+
+            Box::new(signer)
+        } else {
+            sign_config.signer()?
+        };
+
         if let Some(output) = args.output {
             // fragmented embedding
             if let Some(Commands::Fragment { fragments_glob }) = &args.command {
                 if output.exists() && !output.is_dir() {
                     bail!("Output cannot point to existing file, must be a directory");
                 }
-
-                let signer = if let Some(signer_process_name) = args.signer_path {
-                    let cb_config = CallbackSignerConfig::new(&sign_config, args.reserve_size)?;
-
-                    let process_runner = Box::new(ExternalProcessRunner::new(
-                        cb_config.clone(),
-                        signer_process_name,
-                    ));
-                    let signer = CallbackSigner::new(process_runner, cb_config);
-
-                    Box::new(signer)
-                } else {
-                    sign_config.signer()?
-                };
 
                 if let Some(fg) = &fragments_glob {
                     return sign_fragmented(
@@ -587,20 +600,6 @@ fn main() -> Result<()> {
                 if output.extension().is_none() {
                     bail!("Missing extension output");
                 }
-
-                let signer = if let Some(signer_process_name) = args.signer_path {
-                    let cb_config = CallbackSignerConfig::new(&sign_config, args.reserve_size)?;
-
-                    let process_runner = Box::new(ExternalProcessRunner::new(
-                        cb_config.clone(),
-                        signer_process_name,
-                    ));
-                    let signer = CallbackSigner::new(process_runner, cb_config);
-
-                    Box::new(signer)
-                } else {
-                    sign_config.signer()?
-                };
 
                 manifest
                     .embed(&args.path, &output, signer.as_ref())
