@@ -397,7 +397,7 @@ For example, to add manifest to a video file:
 
 ```
 c2patool -m test2.json -o  /1080p_out \
-  /Downloads/1080p/video/avc1/init.mp4 \ 
+  /Downloads/1080p/avc1/init.mp4 \ 
   fragment --fragments_glob "seg-*[0-9].m4s"
 ```
 
