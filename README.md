@@ -391,7 +391,21 @@ Add a manifest to a fragmented BMFF file by using the `fragment` subcommand, as 
 c2patool <PATH | PATTERN> fragment [--fragments_glob]
 ```
 
-Where `<PATTERN>` is a glob pattern.
+Where `<PATTERN>` is a [glob pattern](https://en.wikipedia.org/wiki/Glob_(programming)).
+
+For example, to add manifest to a video file:
+
+```
+c2patool -m test2.json -o  /1080p_out \
+  /Downloads/1080p/video/avc1/init.mp4 \ 
+  fragment --fragments_glob "seg-*[0-9].m4s"
+```
+
+Or to verify a manifest and fragments:
+```
+c2patool  /Downloads/1080p_out/avc1/init.mp4 \
+  fragment --fragments_glob "seg-*[0-9].m4s"
+```
 
 ### Additional option
 
