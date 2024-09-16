@@ -385,15 +385,17 @@ c2patool sample/C.jpg trust \
 
 The ISO base media file format (BMFF) is a container file format that defines a structure for files that contain time-based multimedia data such as video and audio.
 
-Add a manifest to fragmented BMFF by using the `fragment` subcommand, as follows:
+Add a manifest to a fragmented BMFF file by using the `fragment` subcommand, as follows:
 
 ```
-c2patool <PATH> fragment [--fragments_glob <PATTERN>]
+c2patool <PATH | PATTERN> fragment [--fragments_glob]
 ```
+
+Where `<PATTERN>` is a glob pattern.
 
 ### Additional option
 
-The `--fragments_glob` option is only available with the `fragment` subcommand and specifies the glob pattern to find the fragments of the asset. The path is automatically set to be the same as the "init" segment.
+The `--fragments_glob` option is only available with the `fragment` subcommand and specifies the glob pattern to find the fragments of the asset. The path is automatically set to be the same as the "init" segment so the pattern  only matches segment file names.
 
 ## Nightly builds
 
