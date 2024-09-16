@@ -42,6 +42,9 @@ mod info;
 mod callback_signer;
 mod signer;
 
+// file extension for external manifests
+const MANIFEST_STORE_EXT: &str = "c2pa";
+
 /// Tool for displaying and creating C2PA manifests.
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None, arg_required_else_help(true))]
@@ -352,6 +355,11 @@ fn main() -> Result<()> {
     //     return Ok(());
     // }
 
+    // Determine if the asset is a sidecar.
+    let is_sidecar = path
+        .extension()
+        .map_or(false, |ext| ext == MANIFEST_STORE_EXT);
+
     // if we have a manifest config, process it
     if args.manifest.is_some() || args.config.is_some() {
         // read the json from file or config, and get base path if from file
@@ -464,12 +472,13 @@ fn main() -> Result<()> {
             if args.detailed {
                 println!(
                     "{}",
-                    ManifestStoreReport::from_file(&output).map_err(special_errs)?
+                    ManifestStoreReport::from_file(&output, is_sidecar == false)
+                        .map_err(special_errs)?
                 );
             } else {
                 println!(
                     "{}",
-                    ManifestStore::from_file(&output).map_err(special_errs)?
+                    ManifestStore::from_file(&output, is_sidecar == false).map_err(special_errs)?
                 )
             }
         } else {
@@ -496,13 +505,14 @@ fn main() -> Result<()> {
             File::create(output.join("ingredient.json"))?.write_all(&report.into_bytes())?;
             println!("Ingredient report written to the directory {:?}", &output);
         } else {
-            let report = ManifestStore::from_file_with_resources(&args.path, &output)
-                .map_err(special_errs)?
-                .to_string();
+            let report =
+                ManifestStore::from_file_with_resources(&args.path, &output, is_sidecar == false)
+                    .map_err(special_errs)?
+                    .to_string();
             if args.detailed {
                 // for a detailed report first call the above to generate the thumbnails
                 // then call this to add the detailed report
-                let detailed = ManifestStoreReport::from_file(&args.path)
+                let detailed = ManifestStoreReport::from_file(&args.path, is_sidecar == false)
                     .map_err(special_errs)?
                     .to_string();
                 File::create(output.join("detailed.json"))?.write_all(&detailed.into_bytes())?;
@@ -518,12 +528,13 @@ fn main() -> Result<()> {
     } else if args.detailed {
         println!(
             "{}",
-            ManifestStoreReport::from_file(&args.path).map_err(special_errs)?
+            ManifestStoreReport::from_file(&args.path, is_sidecar == false)
+                .map_err(special_errs)?
         )
     } else {
         println!(
             "{}",
-            ManifestStore::from_file(&args.path).map_err(special_errs)?
+            ManifestStore::from_file(&args.path, is_sidecar == false).map_err(special_errs)?
         )
     }
 
@@ -566,7 +577,7 @@ pub mod tests {
             .embed(SOURCE_PATH, OUTPUT_PATH, signer.as_ref())
             .expect("embed");
 
-        let ms = ManifestStore::from_file(OUTPUT_PATH)
+        let ms = ManifestStore::from_file(OUTPUT_PATH, true)
             .expect("from_file")
             .to_string();
         //let ms = report_from_path(&OUTPUT_PATH, false).expect("report_from_path");

@@ -29,7 +29,7 @@ anyhow = "1.0"
 #	"add_thumbnails",
 #	"pdf",
 #] }
-c2pa = { git = "https://github.com/Monotype/c2pa-rs", branch = "monotype/fontSupport", features=["fetch_remote_manifests", "file_io",  "xmp_write", "sfnt", "woff"] }
+c2pa = { git = "https://github.com/Monotype/c2pa-rs", branch = "feature/C2PA-557/fixSidecarManifests", features=["fetch_remote_manifests", "file_io",  "xmp_write", "sfnt", "woff"] }
 clap = { version = "4.5.2", features = ["derive", "env"] }
 env_logger = "0.9"
 log = "0.4"

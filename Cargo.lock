@@ -633,7 +633,7 @@ checksum = "a2bd12c1caf447e69cd4528f47f94d203fd2582878ecb9e9465484c4148a8223"
 [[package]]
 name = "c2pa"
 version = "0.33.0"
-source = "git+https://github.com/Monotype/c2pa-rs?branch=monotype/fontSupport#81a1ab7bb21f0fe5c2d8ba8fc7e79edc9ef9ebf5"
+source = "git+https://github.com/Monotype/c2pa-rs?branch=feature/C2PA-557/fixSidecarManifests#46afd01ee36638909ca624c43f001e2ef0f1ef03"
 dependencies = [
  "asn1-rs",
  "async-generic",
