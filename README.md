@@ -409,7 +409,7 @@ c2patool  /Downloads/1080p_out/avc1/init.mp4 \
 
 ### Additional option
 
-The `--fragments_glob` option is only available with the `fragment` subcommand and specifies the glob pattern to find the fragments of the asset. The path is automatically set to be the same as the "init" segment so the pattern  only matches segment file names.
+The `--fragments_glob` option is only available with the `fragment` subcommand and specifies the glob pattern to find the fragments of the asset. The path is automatically set to be the same as the "init" segment, so the pattern must match only segment file names, not full paths.
 
 ## Nightly builds
 
