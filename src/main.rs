@@ -150,6 +150,7 @@ fn parse_resource_string(s: &str) -> Result<TrustResource> {
 // We only construct one per invocation, not worth shrinking this.
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Subcommand)]
+#[allow(clippy::large_enum_variant)]
 enum Commands {
     /// Sub-command to configure trust store options, "trust --help for more details"
     Trust {
@@ -600,6 +601,7 @@ fn main() -> Result<()> {
                     bail!("Missing extension output");
                 }
 
+                #[allow(deprecated)] // todo: remove when we can
                 manifest
                     .embed(&args.path, &output, signer.as_ref())
                     .context("embedding manifest")?;
@@ -717,6 +719,7 @@ pub mod tests {
             .signer()
             .expect("get_signer");
 
+        #[allow(deprecated)] // todo: remove when we can
         let _result = manifest
             .embed(SOURCE_PATH, OUTPUT_PATH, signer.as_ref())
             .expect("embed");
