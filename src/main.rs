@@ -147,6 +147,8 @@ fn parse_resource_string(s: &str) -> Result<TrustResource> {
     }
 }
 
+// We only construct one per invocation, not worth shrinking this.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Subcommand)]
 enum Commands {
     /// Sub-command to configure trust store options, "trust --help for more details"
@@ -368,7 +370,7 @@ fn sign_fragmented(
     Ok(())
 }
 
-fn verify_fragmented(init_pattern: &Path, frag_pattern: &PathBuf) -> Result<Vec<ManifestStore>> {
+fn verify_fragmented(init_pattern: &Path, frag_pattern: &Path) -> Result<Vec<ManifestStore>> {
     let mut stores = Vec::new();
 
     let ip = init_pattern
