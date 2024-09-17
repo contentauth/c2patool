@@ -6,6 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.9
+_17 September 2024_
+
+* Pull in latest bug fixes ([#237](https://github.com/contentauth/c2pa-rs/pull/237))
+* Document fragment subcommand ([#236](https://github.com/contentauth/c2pa-rs/pull/236))
+* Switch back to using `pull_request` instead of `pull_request_target` trigger
+* Bump actions/checkout from 3 to 4 ([#243](https://github.com/contentauth/c2pa-rs/pull/243))
+* Remove no-longer-maintained clippy-check action ([#238](https://github.com/contentauth/c2pa-rs/pull/238))
 ## 0.9.8
 _30 August 2024_
 
