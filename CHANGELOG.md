@@ -6,6 +6,25 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.9
+_17 September 2024_
+
+* Pull in latest bug fixes ([#237](https://github.com/contentauth/c2pa-rs/pull/237))
+* Document fragment subcommand ([#236](https://github.com/contentauth/c2pa-rs/pull/236))
+* Switch back to using `pull_request` instead of `pull_request_target` trigger
+* Bump actions/checkout from 3 to 4 ([#243](https://github.com/contentauth/c2pa-rs/pull/243))
+* Remove no-longer-maintained clippy-check action ([#238](https://github.com/contentauth/c2pa-rs/pull/238))
+## 0.9.8
+_30 August 2024_
+
+* Initial fragment support ([#230](https://github.com/contentauth/c2pa-rs/pull/230))
+* Add warning about accessing a private key directly ([#218](https://github.com/contentauth/c2pa-rs/pull/218))
+## 0.9.7
+_15 August 2024_
+
+* Update to latest c2pa SDK ([#222](https://github.com/contentauth/c2pa-rs/pull/222))
+* Remove rust toolchain version lock ([#221](https://github.com/contentauth/c2pa-rs/pull/221))
+* Update security guidance to link to SECURITY.md ([#217](https://github.com/contentauth/c2pa-rs/pull/217))
 ## 0.9.6
 _30 July 2024_
 

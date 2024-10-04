@@ -25,7 +25,7 @@ use std::{
 };
 
 use anyhow::{anyhow, bail, Context, Result};
-use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport};
+use c2pa::{Error, Ingredient, Manifest, ManifestStore, ManifestStoreReport, Signer};
 use clap::{Parser, Subcommand};
 use log::debug;
 use serde::Deserialize;
@@ -147,7 +147,10 @@ fn parse_resource_string(s: &str) -> Result<TrustResource> {
     }
 }
 
+// We only construct one per invocation, not worth shrinking this.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Subcommand)]
+#[allow(clippy::large_enum_variant)]
 enum Commands {
     /// Sub-command to configure trust store options, "trust --help for more details"
     Trust {
@@ -162,6 +165,22 @@ enum Commands {
         /// URL or path to file containing configured EKUs in Oid dot notation
         #[arg(long = "trust_config", env="C2PATOOL_TRUST_CONFIG", value_parser = parse_resource_string)]
         trust_config: Option<TrustResource>,
+    },
+    /// Sub-command to add manifest to fragmented BMFF content
+    ///
+    /// The init path can be a glob to process entire directories of content, for example:
+    ///
+    /// c2patool -m test2.json -o /my_output_folder "/my_renditions/**/my_init.mp4" fragment --fragments_glob "myfile_abc*[0-9].m4s"
+    ///
+    /// Note: the glob patterns are quoted to prevent shell expansion.
+    Fragment {
+        /// Glob pattern to find the fragments of the asset. The path is automatically set to be the same as
+        /// the init segment.
+        ///
+        /// The fragments_glob pattern should only match fragment file names not the full paths (e.g. "myfile_abc*[0-9].m4s"
+        /// to match [myfile_abc1.m4s, myfile_abc2180.m4s, ...] )
+        #[arg(long = "fragments_glob", verbatim_doc_comment)]
+        fragments_glob: Option<PathBuf>,
     },
 }
 
@@ -241,53 +260,51 @@ fn load_trust_resource(resource: &TrustResource) -> Result<String> {
 }
 
 fn configure_sdk(args: &CliArgs) -> Result<()> {
-    let ta = r#"{"trust": { "trust_anchors": replacement_val } }"#;
-    let al = r#"{"trust": { "allowed_list": replacement_val } }"#;
-    let tc = r#"{"trust": { "trust_config": replacement_val } }"#;
-    let vs = r#"{"verify": { "verify_after_sign": replacement_val } }"#;
+    const TA: &str = r#"{"trust": { "trust_anchors": replacement_val } }"#;
+    const AL: &str = r#"{"trust": { "allowed_list": replacement_val } }"#;
+    const TC: &str = r#"{"trust": { "trust_config": replacement_val } }"#;
+    const VS: &str = r#"{"verify": { "verify_after_sign": replacement_val } }"#;
 
     let mut enable_trust_checks = false;
 
-    match &args.command {
-        Some(Commands::Trust {
-            trust_anchors,
-            allowed_list,
-            trust_config,
-        }) => {
-            if let Some(trust_list) = &trust_anchors {
-                let data = load_trust_resource(trust_list)?;
-                debug!("Using trust anchors from {:?}", trust_list);
-                let replacement_val = serde_json::Value::String(data).to_string(); // escape string
-                let setting = ta.replace("replacement_val", &replacement_val);
+    if let Some(Commands::Trust {
+        trust_anchors,
+        allowed_list,
+        trust_config,
+    }) = &args.command
+    {
+        if let Some(trust_list) = &trust_anchors {
+            let data = load_trust_resource(trust_list)?;
+            debug!("Using trust anchors from {:?}", trust_list);
+            let replacement_val = serde_json::Value::String(data).to_string(); // escape string
+            let setting = TA.replace("replacement_val", &replacement_val);
 
-                c2pa::settings::load_settings_from_str(&setting, "json")?;
+            c2pa::settings::load_settings_from_str(&setting, "json")?;
 
-                enable_trust_checks = true;
-            }
-
-            if let Some(allowed_list) = &allowed_list {
-                let data = load_trust_resource(allowed_list)?;
-                debug!("Using allowed list from {:?}", allowed_list);
-                let replacement_val = serde_json::Value::String(data).to_string(); // escape string
-                let setting = al.replace("replacement_val", &replacement_val);
-
-                c2pa::settings::load_settings_from_str(&setting, "json")?;
-
-                enable_trust_checks = true;
-            }
-
-            if let Some(trust_config) = &trust_config {
-                let data = load_trust_resource(trust_config)?;
-                debug!("Using trust config from {:?}", trust_config);
-                let replacement_val = serde_json::Value::String(data).to_string(); // escape string
-                let setting = tc.replace("replacement_val", &replacement_val);
-
-                c2pa::settings::load_settings_from_str(&setting, "json")?;
-
-                enable_trust_checks = true;
-            }
+            enable_trust_checks = true;
         }
-        None => {}
+
+        if let Some(allowed_list) = &allowed_list {
+            let data = load_trust_resource(allowed_list)?;
+            debug!("Using allowed list from {:?}", allowed_list);
+            let replacement_val = serde_json::Value::String(data).to_string(); // escape string
+            let setting = AL.replace("replacement_val", &replacement_val);
+
+            c2pa::settings::load_settings_from_str(&setting, "json")?;
+
+            enable_trust_checks = true;
+        }
+
+        if let Some(trust_config) = &trust_config {
+            let data = load_trust_resource(trust_config)?;
+            debug!("Using trust config from {:?}", trust_config);
+            let replacement_val = serde_json::Value::String(data).to_string(); // escape string
+            let setting = TC.replace("replacement_val", &replacement_val);
+
+            c2pa::settings::load_settings_from_str(&setting, "json")?;
+
+            enable_trust_checks = true;
+        }
     }
 
     // if any trust setting is provided enable the trust checks
@@ -300,12 +317,109 @@ fn configure_sdk(args: &CliArgs) -> Result<()> {
     // enable or disable verification after signing
     {
         let replacement_val = serde_json::Value::Bool(!args.no_signing_verify).to_string();
-        let setting = vs.replace("replacement_val", &replacement_val);
+        let setting = VS.replace("replacement_val", &replacement_val);
 
         c2pa::settings::load_settings_from_str(&setting, "json")?;
     }
 
     Ok(())
+}
+
+fn sign_fragmented(
+    manifest: &mut Manifest,
+    signer: &dyn Signer,
+    init_pattern: &Path,
+    frag_pattern: &PathBuf,
+    output_path: &Path,
+) -> Result<()> {
+    // search folders for init segments
+    let ip = init_pattern.to_str().ok_or(c2pa::Error::OtherError(
+        "could not parse source pattern".into(),
+    ))?;
+    let inits = glob::glob(ip).context("could not process glob pattern")?;
+    let mut count = 0;
+    for init in inits {
+        match init {
+            Ok(p) => {
+                let mut fragments = Vec::new();
+                let init_dir = p.parent().context("init segment had no parent dir")?;
+                let seg_glob = init_dir.join(frag_pattern); // segment match pattern
+
+                // grab the fragments that go with this init segment
+                let seg_glob_str = seg_glob.to_str().context("fragment path not valid")?;
+                let seg_paths = glob::glob(seg_glob_str).context("fragment glob not valid")?;
+                for seg in seg_paths {
+                    match seg {
+                        Ok(f) => fragments.push(f),
+                        Err(_) => return Err(anyhow!("fragment path not valid")),
+                    }
+                }
+
+                println!("Adding manifest to: {:?}", p);
+                let new_output_path =
+                    output_path.join(init_dir.file_name().context("invalid file name")?);
+                manifest.embed_to_bmff_fragmented(&p, &fragments, &new_output_path, signer)?;
+
+                count += 1;
+            }
+            Err(_) => bail!("bad path to init segment"),
+        }
+    }
+    if count == 0 {
+        println!("No files matching pattern: {}", ip);
+    }
+    Ok(())
+}
+
+fn verify_fragmented(init_pattern: &Path, frag_pattern: &Path) -> Result<Vec<ManifestStore>> {
+    let mut stores = Vec::new();
+
+    let ip = init_pattern
+        .to_str()
+        .context("could not parse source pattern")?;
+    let inits = glob::glob(ip).context("could not process glob pattern")?;
+    let mut count = 0;
+
+    // search folders for init segments
+    for init in inits {
+        match init {
+            Ok(p) => {
+                let mut fragments = Vec::new();
+                let init_dir = p.parent().context("init segment had no parent dir")?;
+                let seg_glob = init_dir.join(frag_pattern); // segment match pattern
+
+                // grab the fragments that go with this init segment
+                let seg_glob_str = seg_glob.to_str().context("fragment path not valid")?;
+                let seg_paths = glob::glob(seg_glob_str).context("fragment glob not valid")?;
+                for seg in seg_paths {
+                    match seg {
+                        Ok(f) => fragments.push(f),
+                        Err(_) => return Err(anyhow!("fragment path not valid")),
+                    }
+                }
+
+                println!("Verifying manifest: {:?}", p);
+                let store = ManifestStore::from_fragments(p, &fragments, true)?;
+                if let Some(vs) = store.validation_status() {
+                    if let Some(e) = vs.iter().find(|v| !v.passed()) {
+                        eprintln!("Error validating segments: {:?}", e);
+                        return Ok(stores);
+                    }
+                }
+
+                stores.push(store);
+
+                count += 1;
+            }
+            Err(_) => bail!("bad path to init segment"),
+        }
+    }
+
+    if count == 0 {
+        println!("No files matching pattern: {}", ip);
+    }
+
+    Ok(stores)
 }
 
 fn main() -> Result<()> {
@@ -331,6 +445,16 @@ fn main() -> Result<()> {
     if args.tree {
         ManifestStoreReport::dump_tree(path)?;
         return Ok(());
+    }
+
+    let is_fragment = matches!(
+        &args.command,
+        Some(Commands::Fragment { fragments_glob: _ })
+    );
+
+    // make sure path is not a glob when not fragmented
+    if !args.path.is_file() && !is_fragment {
+        bail!("glob patterns only allowed when using \"fragment\" command")
     }
 
     // configure the SDK
@@ -413,7 +537,7 @@ fn main() -> Result<()> {
 
         // If the source file has a manifest store, and no parent is specified treat the source as a parent.
         // note: This could be treated as an update manifest eventually since the image is the same
-        if manifest.parent().is_none() {
+        if manifest.parent().is_none() && !is_fragment {
             let source_ingredient = Ingredient::from_file(&args.path)?;
             if source_ingredient.manifest_data().is_some() {
                 manifest.set_parent(source_ingredient)?;
@@ -430,50 +554,70 @@ fn main() -> Result<()> {
             manifest.set_sidecar_manifest();
         }
 
+        let signer = if let Some(signer_process_name) = args.signer_path {
+            let cb_config = CallbackSignerConfig::new(&sign_config, args.reserve_size)?;
+
+            let process_runner = Box::new(ExternalProcessRunner::new(
+                cb_config.clone(),
+                signer_process_name,
+            ));
+            let signer = CallbackSigner::new(process_runner, cb_config);
+
+            Box::new(signer)
+        } else {
+            sign_config.signer()?
+        };
+
         if let Some(output) = args.output {
-            if ext_normal(&output) != ext_normal(&args.path) {
-                bail!("Output type must match source type");
-            }
-            if output.exists() && !args.force {
-                bail!("Output already exists, use -f/force to force write");
-            }
+            // fragmented embedding
+            if let Some(Commands::Fragment { fragments_glob }) = &args.command {
+                if output.exists() && !output.is_dir() {
+                    bail!("Output cannot point to existing file, must be a directory");
+                }
 
-            if output.file_name().is_none() {
-                bail!("Missing filename on output");
-            }
-            if output.extension().is_none() {
-                bail!("Missing extension output");
-            }
-
-            let signer = if let Some(signer_process_name) = args.signer_path {
-                let cb_config = CallbackSignerConfig::new(&sign_config, args.reserve_size)?;
-
-                let process_runner = Box::new(ExternalProcessRunner::new(
-                    cb_config.clone(),
-                    signer_process_name,
-                ));
-                let signer = CallbackSigner::new(process_runner, cb_config);
-
-                Box::new(signer)
+                if let Some(fg) = &fragments_glob {
+                    return sign_fragmented(
+                        &mut manifest,
+                        signer.as_ref(),
+                        &args.path,
+                        fg,
+                        &output,
+                    );
+                } else {
+                    bail!("fragments_glob must be set");
+                }
             } else {
-                sign_config.signer()?
-            };
+                if ext_normal(&output) != ext_normal(&args.path) {
+                    bail!("Output type must match source type");
+                }
+                if output.exists() && !args.force {
+                    bail!("Output already exists, use -f/force to force write");
+                }
 
-            manifest
-                .embed(&args.path, &output, signer.as_ref())
-                .context("embedding manifest")?;
+                if output.file_name().is_none() {
+                    bail!("Missing filename on output");
+                }
+                if output.extension().is_none() {
+                    bail!("Missing extension output");
+                }
 
-            // generate a report on the output file
-            if args.detailed {
-                println!(
-                    "{}",
-                    ManifestStoreReport::from_file(&output).map_err(special_errs)?
-                );
-            } else {
-                println!(
-                    "{}",
-                    ManifestStore::from_file(&output).map_err(special_errs)?
-                )
+                #[allow(deprecated)] // todo: remove when we can
+                manifest
+                    .embed(&args.path, &output, signer.as_ref())
+                    .context("embedding manifest")?;
+
+                // generate a report on the output file
+                if args.detailed {
+                    println!(
+                        "{}",
+                        ManifestStoreReport::from_file(&output).map_err(special_errs)?
+                    );
+                } else {
+                    println!(
+                        "{}",
+                        ManifestStore::from_file(&output).map_err(special_errs)?
+                    )
+                }
             }
         } else {
             bail!("Output path required with manifest definition")
@@ -523,6 +667,16 @@ fn main() -> Result<()> {
             "{}",
             ManifestStoreReport::from_file(&args.path).map_err(special_errs)?
         )
+    } else if let Some(Commands::Fragment {
+        fragments_glob: Some(fg),
+    }) = &args.command
+    {
+        let stores = verify_fragmented(&args.path, fg)?;
+        if stores.len() == 1 {
+            println!("{}", stores[0]);
+        } else {
+            println!("{} Init manifests validated", stores.len());
+        }
     } else {
         println!(
             "{}",
@@ -565,6 +719,7 @@ pub mod tests {
             .signer()
             .expect("get_signer");
 
+        #[allow(deprecated)] // todo: remove when we can
         let _result = manifest
             .embed(SOURCE_PATH, OUTPUT_PATH, signer.as_ref())
             .expect("embed");
