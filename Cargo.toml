@@ -38,7 +38,7 @@ serde_json = "1.0"
 tempfile = "3.3"
 pem = "3.0.3"
 openssl = { version = "0.10.61", features = ["vendored"] }
-reqwest = { version = "0.12.4", features = ["blocking"] }
+reqwest = { version = "0.12.8", features = ["blocking"] }
 url = "2.5.0"
 
 [dev-dependencies]
