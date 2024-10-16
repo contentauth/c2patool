@@ -37,9 +37,8 @@ use crate::{
     info::info,
 };
 
-mod info;
-
 mod callback_signer;
+mod info;
 mod signer;
 
 /// Tool for displaying and creating C2PA manifests.
