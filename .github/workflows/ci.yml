@@ -22,13 +22,14 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'safe to test') ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'MEMBER'
+
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, macos-latest, ubuntu-latest ]
-        rust_version: [ stable ]
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        rust_version: [stable]
 
     steps:
       - name: Checkout repository
@@ -70,7 +71,9 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'safe to test') ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'MEMBER'
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -79,9 +82,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      
-      - name: Debug which branch we have
-        run: git branch -v
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
@@ -95,7 +95,9 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'safe to test') ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'MEMBER'
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -114,6 +116,7 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'safe to test') ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'MEMBER'
+
     runs-on: ubuntu-latest
 
     strategy:
@@ -141,7 +144,9 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'safe to test') ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'MEMBER'
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
