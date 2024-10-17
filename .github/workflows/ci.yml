@@ -19,16 +19,18 @@ jobs:
   tests:
     name: Unit tests
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
+
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest, macos-latest, ubuntu-latest ]
-        rust_version: [ stable ]
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        rust_version: [stable]
 
     steps:
       - name: Checkout repository
@@ -55,6 +57,7 @@ jobs:
       # so we don't attempt to upload code coverage in that case.
       - name: Upload code coverage results
         if: |
+          github.event_name != 'pull_request' ||
           github.event.pull_request.author_association == 'COLLABORATOR' ||
           github.event.pull_request.author_association == 'MEMBER' ||
           github.event.pull_request.user.login == 'dependabot[bot]'
@@ -67,10 +70,13 @@ jobs:
   clippy_check:
     name: Clippy
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -79,9 +85,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      
-      - name: Debug which branch we have
-        run: git branch -v
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@v2
@@ -92,10 +95,13 @@ jobs:
   cargo_fmt:
     name: Enforce Rust code format
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -111,9 +117,11 @@ jobs:
   cargo-deny:
     name: License / vulnerability audit
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
+
     runs-on: ubuntu-latest
 
     strategy:
@@ -138,10 +146,13 @@ jobs:
   unused_deps:
     name: Check for unused dependencies
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
