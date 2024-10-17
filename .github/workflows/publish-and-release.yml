@@ -86,7 +86,7 @@ jobs:
         run: git diff
 
       - name: Commit Cargo.toml, Cargo.lock, and changelog
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         id: commit
         with:
           commit_message: Prepare ${{ steps.set-version.outputs.version }} release
