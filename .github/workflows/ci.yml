@@ -19,9 +19,10 @@ jobs:
   tests:
     name: Unit tests
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
 
     runs-on: ${{ matrix.os }}
 
@@ -56,6 +57,7 @@ jobs:
       # so we don't attempt to upload code coverage in that case.
       - name: Upload code coverage results
         if: |
+          github.event_name != 'pull_request' ||
           github.event.pull_request.author_association == 'COLLABORATOR' ||
           github.event.pull_request.author_association == 'MEMBER' ||
           github.event.pull_request.user.login == 'dependabot[bot]'
@@ -68,9 +70,10 @@ jobs:
   clippy_check:
     name: Clippy
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
 
     runs-on: ubuntu-latest
 
@@ -92,9 +95,10 @@ jobs:
   cargo_fmt:
     name: Enforce Rust code format
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
 
     runs-on: ubuntu-latest
 
@@ -113,9 +117,10 @@ jobs:
   cargo-deny:
     name: License / vulnerability audit
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
 
     runs-on: ubuntu-latest
 
@@ -141,9 +146,10 @@ jobs:
   unused_deps:
     name: Check for unused dependencies
     if: |
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
+      github.event_name != 'pull_request' ||
       github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER'
+      github.event.pull_request.author_association == 'MEMBER' ||
+      contains(github.event.pull_request.labels.*.name, 'safe to test')
 
     runs-on: ubuntu-latest
 
