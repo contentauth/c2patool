@@ -22,11 +22,13 @@ repository = "https://github.com/contentauth/c2patool"
 
 [dependencies]
 anyhow = "1.0"
-c2pa = { version = "0.37.0", features = [
+c2pa = { git="https://github.com/contentauth/c2pa-rs", branch = "main", features = [
+#c2pa = { version = "0.37.0", features = [
 	"fetch_remote_manifests",
 	"file_io",
 	"add_thumbnails",
 	"pdf",
+	"unstable_api",
 ] }
 clap = { version = "4.5.10", features = ["derive", "env"] }
 env_logger = "0.11.4"
