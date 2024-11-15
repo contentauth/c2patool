@@ -6,6 +6,21 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.12
+_18 October 2024_
+
+* fix: Update c2pa-rs for RegionOfInterest support. ([#269](https://github.com/contentauth/c2pa-rs/pull/269))
+* Fix broken link that was causing os site workflow to fail ([#266](https://github.com/contentauth/c2pa-rs/pull/266))
+* Bump codecov/codecov-action from 3 to 4 ([#242](https://github.com/contentauth/c2pa-rs/pull/242))
+* chore: Run all CI jobs when user is dependabot[bot]
+* chore: Debug CI again
+* chore: Format for consistency with c2pa-rs CI workflow ([#265](https://github.com/contentauth/c2pa-rs/pull/265))
+* chore: Don't skip CI jobs for non-pull-request events
+* chore: Retry debug
+* chore: Debug action context
+* chore: Skip CodeCov upload for non-member PRs ([#263](https://github.com/contentauth/c2pa-rs/pull/263))
+* Bump EmbarkStudios/cargo-deny-action from 1 to 2 ([#245](https://github.com/contentauth/c2pa-rs/pull/245))
+* chore: Adjust conditions for running CI jobs ([#261](https://github.com/contentauth/c2pa-rs/pull/261))
 ## 0.9.11
 _16 October 2024_
 
