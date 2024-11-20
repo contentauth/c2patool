@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org), except that â
 
 Do not manually edit this file. It will be automatically updated when a new release is published.
 
+## 0.9.13
+_20 November 2024_
+
+* enlarged description of c2pa command-line behavior ([#285](https://github.com/contentauth/c2patool/pull/285))
 ## 0.9.12
 _18 October 2024_
 

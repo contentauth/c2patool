@@ -5,7 +5,7 @@ default-run = "c2patool"
 # Please do not manually edit `version`. Version updates will be generated
 # automatically when c2patool is published. Remember to use (MINOR) or (MAJOR)
 # tags in the PR title to trigger non-patch updates as needed.
-version = "0.9.12"
+version = "0.9.13-nightly+2024-11-20-ebfe851"
 
 description = "Tool for displaying and creating C2PA manifests."
 authors = [
@@ -22,7 +22,7 @@ repository = "https://github.com/contentauth/c2patool"
 
 [dependencies]
 anyhow = "1.0"
-c2pa = { version = "0.37.0", features = [
+c2pa = { git = "https://github.com/contentauth/c2pa-rs.git", branch = "nightly", features = [
 	"fetch_remote_manifests",
 	"file_io",
 	"add_thumbnails",
