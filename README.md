@@ -2,7 +2,7 @@
 
 `c2patool` is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.3/specs/C2PA_Specification.html#_manifests) and media assets (audio, image or video files).
 
-Use the tool on a file in one of the [supported file formats](#supported-file-formats) to:
+Use the tool on a file in one of the [supported formats](https://github.com/contentauth/c2pa-rs/blob/main/docs/supported-formats.md) to:
 
 - Read a summary JSON report of C2PA manifests.
 - Read a low-level report of C2PA manifest data.
@@ -88,32 +88,6 @@ NOTE: If you encounter errors installing, you may need to update your Rust insta
 ```
 rustup update
 ```
-
-## Supported file formats
-
- | Extensions    | MIME type                                           |
- | ------------- | --------------------------------------------------- |
- | `avi`         | `video/msvideo`, `video/avi`, `application-msvideo` |
- | `avif`        | `image/avif`                                        |
- | `c2pa`        | `application/x-c2pa-manifest-store`                 |
- | `dng`         | `image/x-adobe-dng`                                 |
- | `heic`        | `image/heic`                                        |
- | `heif`        | `image/heif`                                        |
- | `jpg`, `jpeg` | `image/jpeg`                                        |
- | `m4a`         | `audio/mp4`                                         |
- | `mp3`         | `"audio/mpeg"`                                      |
- | `mp4`         | `video/mp4`, `application/mp4` <sup>*</sup>         |
- | `mov`         | `video/quicktime`                                   |
- | `pdf`         | `application/pdf` <sup>**</sup>                     |
- | `png`         | `image/png`                                         |
- | `svg`         | `image/svg+xml`                                     |
- | `tif`,`tiff`  | `image/tiff`                                        |
- | `wav`         | `audio/x-wav`                                       |
- | `webp`        | `image/webp`                                        |
-
-<sup>*</sup> Fragmented MP4 is not yet supported.
-
-<sup>**</sup> Read-only
 
 ## Usage
 
