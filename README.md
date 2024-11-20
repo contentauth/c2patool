@@ -12,12 +12,6 @@ For a simple example of calling c2patool from a Node.js server application, see 
 
 <div style={{display: 'none'}}>
 
-**Contents**:
-- [Installation](#installation)
-- [Supported file formats](#supported-file-formats)
-- [Usage](#usage)
-- [Configuring trust support](#configuring-trust-support)
-
 **Additional documentation**:
 
 - [Manifest definition file](./docs/manifest.md)
