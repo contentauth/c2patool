@@ -72,7 +72,7 @@ fn walk_tree(tree: &Arena<String>, token: &Token) -> Tree<String> {
 }
 
 /// Prints tree view of manifest store
-pub fn tree<P: AsRef<Path>>(path: P) -> Result<()> {
+pub fn tree<P: AsRef<Path>>(path: P) -> Result<String> {
     let os_filename = path
         .as_ref()
         .file_name()
@@ -82,15 +82,26 @@ pub fn tree<P: AsRef<Path>>(path: P) -> Result<()> {
     let reader = Reader::from_file(path)?;
 
     // walk through the manifests and show the contents
-    if let Some(manifest_label) = reader.active_label() {
+    Ok(if let Some(manifest_label) = reader.active_label() {
         let data = format!("Asset:{}, Manifest:{}", asset_name, manifest_label);
         let (mut tree, root_token) = Arena::with_data(data);
         populate_node(&mut tree, &reader, manifest_label, &root_token, false)?;
         // print tree
-        println!("Tree View:\n {}", walk_tree(&tree, &root_token));
+        format!("Tree View:\n {}", walk_tree(&tree, &root_token))
     } else {
-        println!("Tree View:\n Asset:{asset_name}");
-    }
+        format!("Tree View:\n Asset:{asset_name}")
+    })
+}
 
-    Ok(())
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_tree() -> Result<()> {
+        let result = tree("tests/fixtures/C.jpg")?;
+        assert!(result.contains("Tree View:"));
+        assert!(result.contains("Assertion:c2pa.actions"));
+        Ok(())
+    }
 }

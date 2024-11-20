@@ -451,8 +451,7 @@ fn main() -> Result<()> {
     }
 
     if args.tree {
-        //ManifestStoreReport::dump_tree(path)?;
-        tree::tree(path)?;
+        println!("{}", tree::tree(path)?);
         return Ok(());
     }
 
