@@ -25,10 +25,7 @@ use std::{
 };
 
 use anyhow::{anyhow, bail, Context, Result};
-use c2pa::{
-    Builder, ClaimGeneratorInfo, Error, Ingredient, ManifestDefinition, ManifestStoreReport,
-    Reader, Signer,
-};
+use c2pa::{Builder, ClaimGeneratorInfo, Error, Ingredient, ManifestDefinition, Reader, Signer};
 use clap::{Parser, Subcommand};
 use log::debug;
 use serde::Deserialize;
@@ -41,6 +38,7 @@ use crate::{
 };
 
 mod info;
+mod tree;
 
 mod callback_signer;
 mod signer;
@@ -444,17 +442,17 @@ fn main() -> Result<()> {
         let reader = Reader::from_file(path).map_err(special_errs)?;
         if let Some(manifest) = reader.active_manifest() {
             if let Some(si) = manifest.signature_info() {
-                println!("{}", si.cert_chain())
+                println!("{}", si.cert_chain());
+                // todo: add ocsp validation info
+                return Ok(());
             }
-        } else {
-            bail!("No certificate chain found");
         }
-        // todo: add ocsp validation info
-        return Ok(());
+        bail!("No certificate chain found");
     }
 
     if args.tree {
-        ManifestStoreReport::dump_tree(path)?;
+        //ManifestStoreReport::dump_tree(path)?;
+        tree::tree(path)?;
         return Ok(());
     }
 
