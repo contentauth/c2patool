@@ -14,19 +14,21 @@ For a simple example of calling c2patool from a Node.js server application, see 
 
 **Additional documentation**:
 
+- [Using C2PA Tool](./docs/usage.md)
 - [Manifest definition file](./docs/manifest.md)
 - [Creating and using an X.509 certificate](./docs/x_509.md)
 - [Release notes](./docs/release-notes.md)
+- [Contributing to the project](./docs/project-contributions.md)
 
 </div>
 
 ## Installation
 
 There are two ways to install C2PA Tool:
-- Using a pre-built binary executable: This is the quickest way to install the tool.  If you just want to try C2PA Tool quickly, use this method.
-- Using Cargo [Binstall](#using-cargo-binstall), a low-complexity way to install Rust binaries.  This method is preferable for long-term use. If you know you want to use C2PA Tool for development, use this method.
+- [Using a pre-built binary executable](#installing-a-pre-built-binary): This is the quickest way to install the tool.  If you just want to try C2PA Tool quickly, use this method.
+- [Using Cargo Binstall](#using-cargo-binstall), a low-complexity way to install Rust binaries.  This method is preferable for long-term use. If you know you want to use C2PA Tool for development, use this method.
 
-**NOTE:** Please use one of the installation methods described here unless you are doing active development work on C2PA Tool, or if a pre-built binary is not available for your system.
+**NOTE:** If you want to contribute to the C2PA Tool project itself, or if a pre-built binary is not available for your system, see [Contributing to the project](./docs/project-contributions.md).
 
 ### Installing a pre-built binary
 
