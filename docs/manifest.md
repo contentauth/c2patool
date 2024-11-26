@@ -1,11 +1,11 @@
 # Manifest definition file
 
-C2PA Tool reads a manifest definition JSON file with a `.json` extension.  This file defines a single manifest to be added to an asset's manifest store.
+C2PA Tool reads a manifest definition JSON file with a `.json` extension. This file defines a single manifest to be added to an asset's manifest store.
 In the manifest definition file, file paths are relative to the location of the file unless you specify a `base_path` field.
 
 ## JSON format
 
-The C2PA specification describes a manifest that has a binary structure in JPEG universal metadata box format (JUMBF). Because the binary structure is hard to understand and program to, However, C2PA Tool works with a JSON manifest structure that's a declarative language for representing and creating a manifest in binary format. For more information on the JSON manifest, see [Working with manifests](https://opensource.contentauthenticity.org/docs/manifest/understanding-manifest).
+The C2PA specification describes a manifest that has a binary structure in JPEG universal metadata box format (JUMBF).  However, C2PA Tool works with a JSON manifest structure that's easier to understand and work with.  It's a declarative language for representing and creating a manifest in binary format. For more information on the JSON manifest, see [Working with manifests](https://opensource.contentauthenticity.org/docs/manifest/understanding-manifest).
 
 See also:
 
