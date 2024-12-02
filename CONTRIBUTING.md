@@ -38,7 +38,7 @@ This will give us an opportunity to discuss API design and avoid duplicate effor
 
 ### Pull request titles
 
-Titles of pull requests that target a long-lived branch such as _main_ or a release-specific branch should follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#specification). This means that the first word of the pull request title should be one of the following:
+Titles of pull requests that target a long-lived branch such as _main_ or a release-specific branch should follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#specification). The repository's [commit lint rules](https://github.com/contentauth/c2pa-rs/blob/main/.commitlintrc.yml) require that the first word of the pull request title must be one of the following:
 
 - `fix`
 - `feat`
