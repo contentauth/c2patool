@@ -40,17 +40,11 @@ This will give us an opportunity to discuss API design and avoid duplicate effor
 
 Titles of pull requests that target a long-lived branch such as _main_ or a release-specific branch should follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#specification). This means that the first word of the pull request title should be one of the following:
 
-  * `build`
-  * `chore`
-  * `ci`
-  * `docs`
-  * `feat`
-  * `fix`
-  * `perf`
-  * `refactor`
-  * `revert`
-  * `style`
-  * `test`
+- `fix`
+- `feat`
+- `chore`
+- `update`
+- `doc`
 
 Optionally, but preferred, a scope can be added in parentheses after the type. The scope should be the name of the module or component that the commit affects. For example, `feat(api): Introduce a new API to validate 1.0 claims`.
 
