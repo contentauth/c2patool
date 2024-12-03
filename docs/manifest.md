@@ -9,10 +9,10 @@ The C2PA specification describes a manifest that has a binary structure in JPEG 
 
 See also:
 
-* [Manifest store reference](https://opensource.contentauthenticity.org/docs/manifest/manifest-ref)
-* [Manifest store schema](https://opensource.contentauthenticity.org/docs/manifest/manifest-json-schema)
-* [Manifest definition schema](https://github.com/contentauth/c2patool/blob/main/schemas/manifest-definition.json)
-* [Ingredient schema](https://github.com/contentauth/c2patool/blob/main/schemas/ingredient.json)
+* <a href="https://opensource.contentauthenticity.org/docs/manifest/manifest-ref" target="_self">Manifest store reference</a>
+* <a href="https://opensource.contentauthenticity.org/docs/manifest/manifest-json-schema" target="_self">Manifest store schema</a>
+* <a href="https://github.com/contentauth/c2patool/blob/main/schemas/manifest-definition.json" target="_self">Manifest definition schema</a>
+* <a href="https://github.com/contentauth/c2patool/blob/main/schemas/ingredient.json" target="_self">Ingredient schema</a>
 
 ## Adding a claim generator icon
 
