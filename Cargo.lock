@@ -622,9 +622,9 @@ checksum = "325918d6fe32f23b19878fe4b34794ae41fc19ddbe53b10571a4874d44ffd39b"
 
 [[package]]
 name = "c2pa"
-version = "0.38.0"
+version = "0.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e93785ddaf47fb89919b45f27e4090207571d0a155a5640ac6a9e6ce9c6deafd"
+checksum = "a0dbb94ebb6791797771edab9aab0b6496017a195f539fd5ff400cdaef8753c0"
 dependencies = [
  "asn1-rs 0.5.2",
  "async-generic",
@@ -636,6 +636,7 @@ dependencies = [
  "byteorder",
  "byteordered",
  "bytes",
+ "c2pa-status-tracker",
  "chrono",
  "ciborium",
  "config",
@@ -694,6 +695,12 @@ dependencies = [
  "x509-parser",
  "zip",
 ]
+
+[[package]]
+name = "c2pa-status-tracker"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ec266c1d423452366bd98d97aef750540471985bd48d6d2ab25ff0619db3f4c6"
 
 [[package]]
 name = "c2patool"
