@@ -30,7 +30,7 @@ c2pa = { version = "0.38.0", features = [
 	"pdf",
 	"unstable_api",
 ] }
-clap = { version = "4.5.10", features = ["derive", "env"] }
+clap = { version = "4.5.23", features = ["derive", "env"] }
 env_logger = "0.11.4"
 glob = "0.3.1"
 log = "0.4"
