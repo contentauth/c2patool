@@ -18,12 +18,12 @@ readme = "README.md"
 keywords = ["c2pa", "xmp", "metadata"]
 edition = "2018"
 homepage = "https://contentauthenticity.org"
-repository = "https://github.com/contentauth/c2patool"
+repository = "https://github.com/contentauth/c2pa-rs/tree/main/cli"
 
 [dependencies]
 anyhow = "1.0"
 atree = "0.5.2"
-c2pa = { version = "0.38.0", features = [
+c2pa = { version = "0.39.0", features = [
 	"fetch_remote_manifests",
 	"file_io",
 	"add_thumbnails",
@@ -52,8 +52,3 @@ mockall = "0.13.0"
 
 [package.metadata.binstall]
 # Use defaults
-
-[profile.release]
-strip = true  # Automatically strip symbols from the binary. 
-opt-level = 3
-lto = "thin"  # Link time optimization.

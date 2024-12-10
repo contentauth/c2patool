@@ -12,7 +12,6 @@ targets = [
     { triple = "wasm32-unknown-unknown" },
 ]
 
-# Deny all advisories unless explicitly ignored.
 [advisories]
 yanked = "deny"
 ignore = [
@@ -21,12 +20,10 @@ ignore = [
   "RUSTSEC-2024-0384", # instant (https://github.com/contentauth/c2pa-rs/issues/663)
   "RUSTSEC-2024-0399", # tokio-rustls server: https://rustsec.org/advisories/RUSTSEC-2024-0399
 ]
-# Deny multiple versions unless explicitly skipped.
+
 [bans]
 multiple-versions = "allow" # "deny" # TODO: Re-enable when possible.
-wildcards = "allow"
 
-# List of allowed licenses.
 [licenses]
 allow = [
   "Apache-2.0",
@@ -41,7 +38,7 @@ allow = [
   "Unicode-DFS-2016",
   "Zlib",
 ]
-confidence-threshold = 0.8
+confidence-threshold = 0.9
 
 [[licenses.clarify]]
 name = "ring"

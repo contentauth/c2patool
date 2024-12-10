@@ -16,15 +16,37 @@ Start by filing an issue. The existing committers on this project work to reach
 consensus around project direction and issue solutions within issue threads
 (when appropriate).
 
+### Current areas of work
+
+The Adobe CAI team has been using this crate as the foundation of Adobe's Content Authenticity Initiative-related products and services since late 2020. 
+Groad categories of work (and thus things you might expect to change) are:
+
+* We'll be reviewing and refining our APIs for ease of use and comprehension. We'd appreciate feedback on areas that you find confusing or unnecessarily difficult.
+* We'll also be reviewing our APIs for compliance with Rust community best practices. There are some areas (for example, use of public fields and how we take ownership vs references) where we know some work is required.
+* Our documentation is incomplete. We'll be working on refining the documentation.
+* Our testing infrastructure is incomplete. We'll be working on improving test coverage, memory efficiency, and performance benchmarks.  See [docs/testing.md] for more details.
+
+### Desired feedback
+
+We welcome feedback on:
+
+* API design
+* Prioritization of upcoming development, especially:
+  * File format support
+  * Assertion support
+* Optimizations and performance concerns
+* Bugs or non-compliance with the C2PA spec
+* Additional platform support
+
 ## Contributor license agreement
 
 All third-party contributions to this project must be accompanied by a signed contributor
-license agreement (CLA). This gives Adobe permission to redistribute your contributions
+license agreement. This gives Adobe permission to redistribute your contributions
 as part of the project. [Sign our CLA](https://opensource.adobe.com/cla.html). You
 only need to submit an Adobe CLA one time, so if you have submitted one previously,
 you are good to go!
 
-## Code reviews
+### Code reviews
 
 All submissions should come in the form of pull requests and need to be reviewed
 by project committers. Read [GitHub's pull request documentation](https://help.github.com/articles/about-pull-requests/)
