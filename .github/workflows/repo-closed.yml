@@ -1,0 +1,23 @@
+name: Repo CLOSED
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+  push:
+    branches:
+      - main
+
+jobs:
+  tests:
+    name: c2patool moved
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Please file your PR in contentauth/c2pa-rs
+        run: |
+          echo "This repo is no longer in use. Please file your PR in contentauth/c2pa-rs instead."
+          exit 1

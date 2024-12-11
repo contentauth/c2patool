@@ -1,7 +1,3 @@
-## Changes in this pull request
-_Give a narrative description of what has been changed._
+PLEASE DO NOT FILE PULL REQUESTS IN THIS REPO.
 
-## Checklist
-- [ ] This PR represents a single feature, fix, or change.
-- [ ] All applicable changes have been documented.
-- [ ] Any `TO DO` items (or similar) have been entered as GitHub issues and the link to that issue has been included in a comment.
+As of 10 December 2024, all work on c2patool is hosted in the `cli` folder of the `contentauth/c2pa-rs` repo. Please file your pull request in that repo instead.
