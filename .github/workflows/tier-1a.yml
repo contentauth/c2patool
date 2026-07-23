@@ -61,14 +61,8 @@ jobs:
 
   tests-cli:
     name: Unit tests (c2patool)
-    needs: get-features
-    if: |
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.author_association == 'COLLABORATOR' ||
-      github.event.pull_request.author_association == 'MEMBER' ||
-      github.event.pull_request.user.login == 'dependabot[bot]' ||
-      contains(github.event.pull_request.labels.*.name, 'safe to test') ||
-      contains(github.event.pull_request.labels.*.name, 'check-release')
+    needs: [authorize, get-features]
+    if: needs.authorize.outputs.trusted == 'true'
 
     runs-on: ubuntu-latest
 
@@ -100,11 +94,7 @@ jobs:
       # Tokens aren't available for PRs originating from forks,
       # so we don't attempt to upload code coverage in that case.
       - name: Upload code coverage results
-        if: |
-          github.event_name != 'pull_request' ||
-          github.event.pull_request.author_association == 'COLLABORATOR' ||
-          github.event.pull_request.author_association == 'MEMBER' ||
-          github.event.pull_request.user.login == 'dependabot[bot]'
+        if: needs.authorize.outputs.same-repo == 'true'
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
