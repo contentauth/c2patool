@@ -7,6 +7,14 @@
 # If you change the supported platforms in this workflow, please also
 # update docs/support-tiers.md to match the changes you're making.
 
+# Fork-PR trust is handled by GitHub, not by this workflow: the repository's
+# "Fork pull request workflows from outside collaborators" Actions setting holds
+# a fork PR's workflows until a maintainer approves them, so by the time this
+# suite runs it is already authorized. Same-repo branches (which require write
+# access to push) always run. Secrets are still never exposed to fork PRs, so
+# the Codecov upload steps below additionally gate on the PR originating from
+# this repository.
+
 name: Tier 1A
 
 on:
@@ -25,7 +33,6 @@ on:
       - opened
       - reopened
       - synchronize
-      - labeled
   push:
     branches:
       - main
@@ -68,8 +75,7 @@ jobs:
 
   tests-cli:
     name: Unit tests (c2patool)
-    needs: [authorize, get-features]
-    if: needs.authorize.outputs.trusted == 'true'
+    needs: get-features
 
     runs-on: ubuntu-latest
 
@@ -101,7 +107,7 @@ jobs:
       # Tokens aren't available for PRs originating from forks,
       # so we don't attempt to upload code coverage in that case.
       - name: Upload code coverage results
-        if: needs.authorize.outputs.same-repo == 'true'
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
