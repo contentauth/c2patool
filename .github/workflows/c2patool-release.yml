@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   build:
-    name: Build c2patool binary
+    name: Build binary
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
