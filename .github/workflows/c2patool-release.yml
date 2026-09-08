@@ -62,17 +62,59 @@ jobs:
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Run make release
-        run: cd cli && make release
+        run: make release
 
       - name: Generate SBOM
-        run: cd cli && cargo sbom > c2patool-sbom.json
+        run: cargo sbom > c2patool-sbom.json
 
       - name: Stage named artifacts
         shell: bash
         run: |
           mkdir -p dist
           cp "target/${{ matrix.artifact_name }}" "dist/${{ matrix.asset_name }}"
-          cp "cli/c2patool-sbom.json" "dist/${{ matrix.sbom_asset_name }}"
+          cp "c2patool-sbom.json" "dist/${{ matrix.sbom_asset_name }}"
+
+      # Chocolatey/.deb/.rpm packages are additional download options for the
+      # same release, not separate artifact_name/asset_name/sbom_asset_name
+      # matrix entries -- their filenames come from the packaging tools
+      # themselves (nuspec/deb/rpm metadata) rather than a fixed name, so
+      # they're just dropped into dist/ and picked up by the `release` job's
+      # `files: dist/*` glob like everything else.
+      - name: Build Chocolatey package
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          # NuGet/Chocolatey <version> must be bare SemVer -- no leading "v".
+          $version = $tag -replace '^v', ''
+          $checksum = (Get-FileHash target\c2patool_win_intel.zip -Algorithm SHA256).Hash.ToLower()
+
+          Copy-Item -Recurse chocolatey chocolatey-pkg
+
+          (Get-Content chocolatey-pkg\c2patool.nuspec) `
+            -replace '__VERSION__', $version |
+            Set-Content chocolatey-pkg\c2patool.nuspec
+
+          (Get-Content chocolatey-pkg\tools\chocolateyInstall.ps1) `
+            -replace '__TAG__', $tag `
+            -replace '__CHECKSUM__', $checksum |
+            Set-Content chocolatey-pkg\tools\chocolateyInstall.ps1
+
+          choco pack chocolatey-pkg\c2patool.nuspec --outputdirectory dist
+
+      - name: Build .deb package
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cargo install cargo-deb
+          cargo deb --no-build
+          cp target/debian/*.deb dist/
+
+      - name: Build .rpm package
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          cargo install cargo-generate-rpm
+          cargo generate-rpm
+          cp target/generate-rpm/*.rpm dist/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
