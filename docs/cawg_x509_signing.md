@@ -24,7 +24,7 @@ If `sign_cert` and `private_key` are absent from `[cawg_x509_signer]`, no CAWG i
 
 Supported algorithm values: `ps256`, `ps384`, `ps512`, `es256`, `es384`, `es512`, `ed25519`. The algorithm must be compatible with the private key and signing certificate. For more information, see [Signing and certificates](https://opensource.contentauthenticity.org/docs/signing/).
 
-An example settings file is provided in the [c2patool repo sample folder](https://github.com/contentauth/c2pa-rs/tree/main/cli/tests/fixtures/trust/cawg_sign_settings.toml).
+An example settings file is provided in the [c2patool repo sample folder](https://github.com/contentauth/c2patool/tree/main/tests/fixtures/trust/cawg_sign_settings.toml).
 
 To sign an asset using this method:
 
