@@ -69,7 +69,7 @@ jobs:
           echo "openssl-features=$OPENSSL_FEATURES" >> "$GITHUB_OUTPUT"
 
   tests-cli:
-    name: Unit tests (c2patool)
+    name: Unit tests
     needs: get-features
 
     runs-on: ubuntu-latest
