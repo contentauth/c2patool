@@ -24,7 +24,14 @@ networking = [
 [dependencies]
 anyhow = "1.0"
 atree = "0.5.4"
-c2pa = {version = "0.91.0-dev",  features = [
+# Tracks c2pa-rs's `main` branch directly (see docs/release-process.md,
+# "Tracking c2pa-rs main") so integration breaks against upstream's
+# in-development code surface immediately rather than only once a new
+# `c2pa` version publishes. A scheduled workflow keeps Cargo.lock fresh
+# against this branch. `stable` (and any `v0.*` line) uses a real crates.io
+# version instead -- crates.io requires every dependency to resolve to a
+# published version, so this branch is never itself published.
+c2pa = { git = "https://github.com/contentauth/c2pa-rs", branch = "main", features = [
     "openssl",
     "fetch_remote_manifests",
     "file_io",
