@@ -1,0 +1,52 @@
+name: Check no patch/git deps
+
+# Reusable guard: fails if a `[patch]` section or a git dependency is present.
+# `main`'s own `c2pa` dependency IS a git dependency by design -- it tracks
+# c2pa-rs's `main` branch (see docs/release-process.md, "Tracking c2pa-rs
+# main") so integration breaks surface immediately. That's fine on `main`,
+# but it must never reach a release-line branch: crates.io requires every
+# dependency to resolve to a published version. This is the mechanical
+# enforcement of that split (note the triggers below deliberately exclude
+# `main`).
+
+on:
+  workflow_call:
+  pull_request:
+    branches:
+      - stable
+      - 'v0.*'
+      - '*-rc*'
+
+jobs:
+  check:
+    name: No patch/git dependencies
+
+    # Fork-PR trust is enforced by GitHub's "Fork pull request workflows from
+    # outside collaborators" Actions setting (see ci.yml), not in this
+    # workflow; `workflow_call` invocations run unconditionally.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+
+      - name: Fail if a [patch] section is present
+        run: |
+          if grep -rEn '^\[patch' --include=Cargo.toml .; then
+            echo "::error::A [patch] section is present in Cargo.toml. Settle it to a published version before releasing."
+            exit 1
+          fi
+          echo "No [patch] sections found."
+
+      - name: Fail if a git dependency is present
+        run: |
+          if cargo metadata --format-version=1 --no-deps \
+               | jq -e '.. | objects | select(.source? != null and (.source | tostring | test("git\\+")))' >/dev/null; then
+            echo "::error::A git dependency is present. Settle it to a published version before releasing."
+            exit 1
+          fi
+          echo "No git dependencies found."
