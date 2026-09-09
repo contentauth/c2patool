@@ -50,4 +50,7 @@ license-files = [
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
-allow-git = []
+# main's own c2pa dependency (see docs/release-process.md, "Tracking
+# c2pa-rs main") -- intentional there, never present on a release branch
+# (check-no-patch-deps.yml enforces that separately).
+allow-git = ["https://github.com/contentauth/c2pa-rs"]
