@@ -1,0 +1,52 @@
+name: Track c2pa-rs main
+
+# main's Cargo.toml pins `c2pa` to c2pa-rs's `main` branch (see
+# docs/release-process.md, "Tracking c2pa-rs main"), but a git dependency
+# only actually moves forward when something re-runs `cargo update` -- a
+# committed Cargo.lock otherwise keeps resolving to whatever commit was
+# current the last time it was regenerated. This refreshes it on a
+# schedule so integration breaks against upstream's latest code surface
+# quickly, without waiting for someone to touch Cargo.lock by hand.
+#
+# Runs directly against main (no PR): this is routine dependency-freshening,
+# analogous to how release-train-cut.yml commits its own dev-cycle bump
+# directly. If the update ever breaks the build, CI on main will go red and
+# surface it same as any other main-breaking change would.
+
+on:
+  schedule:
+    - cron: '0 13 * * 1-5' # weekday mornings (UTC), matching reconciliation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  track:
+    name: Refresh c2pa dependency from c2pa-rs main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: main
+          token: ${{ secrets.RELEASE_PLZ_ORG_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+
+      - name: Update c2pa to c2pa-rs's latest main
+        run: cargo update -p c2pa
+
+      - name: Commit and push if Cargo.lock changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- Cargo.lock; then
+            git commit -am "chore: Update c2pa to c2pa-rs's latest main"
+            git push origin HEAD:main
+          else
+            echo "Already up to date with c2pa-rs main."
+          fi
