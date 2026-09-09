@@ -56,7 +56,7 @@ The following manifest properties are specific to C2PA Tool and used for signing
 
 ## Example
 
-The example below is a minimal manifest definition that uses a default testing certificate in the [sample folder](https://github.com/contentauth/c2pa-rs/tree/main/cli/sample) that are also built into the `c2patool` binary.
+The example below is a minimal manifest definition that uses a default testing certificate in the [sample folder](https://github.com/contentauth/c2patool/tree/main/sample) that are also built into the `c2patool` binary.
 
 > [!NOTE]
 > When you don't specify a key or certificate in the manifest `private_key` and `sign_cert` fields, the tool will use the built-in key and cert. You'll see a warning message, since they are meant for development purposes only.
