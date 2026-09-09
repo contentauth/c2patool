@@ -45,7 +45,7 @@ jobs:
       - name: Generate code coverage
         env:
           RUST_BACKTRACE: "1"
-        run: cargo llvm-cov --bins --lcov --output-path lcov.info
+        run: cargo llvm-cov --bins --tests --lcov --output-path lcov.info
 
   docs-private:
     name: Internal docs build (private items, warnings denied)

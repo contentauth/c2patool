@@ -56,7 +56,7 @@ jobs:
       - name: Generate code coverage
         env:
           RUST_BACKTRACE: "1"
-        run: cargo llvm-cov --bins --lcov --output-path lcov.info
+        run: cargo llvm-cov --bins --tests --lcov --output-path lcov.info
 
       # Tokens aren't available for PRs originating from forks,
       # so we don't attempt to upload code coverage in that case.
