@@ -35,9 +35,11 @@ jobs:
   # the SDK crate this repo split from, where cross-platform testing is a
   # separate, more-expensive Tier 1B/2 concern deliberately kept out of the
   # fast per-PR gate. That trade-off doesn't apply here -- there's no other
-  # tier picking up cross-platform coverage -- so all three OSes are in the
-  # required gate directly. Coverage is collected on just the ubuntu leg to
-  # avoid three redundant/conflicting Codecov uploads for the same run.
+  # tier picking up cross-platform or MSRV coverage -- so both are in the
+  # required gate directly (matching how tier-1b.yml combines `os` and
+  # `rust_version: [stable, 1.88.0]` upstream). Coverage is collected on just
+  # the ubuntu+stable leg to avoid six redundant/conflicting Codecov uploads
+  # for the same run.
   tests-cli:
     name: Unit tests
     runs-on: ${{ matrix.os }}
@@ -46,6 +48,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        rust_version: [stable, "1.88.0"] # keep in sync with Cargo.toml's rust-version
 
     steps:
       - name: Checkout repository
@@ -54,24 +57,24 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
         with:
-          toolchain: stable
+          toolchain: ${{ matrix.rust_version }}
           components: llvm-tools-preview
 
       - name: Cache Rust dependencies
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
 
       - name: Run tests
-        if: matrix.os != 'ubuntu-latest'
+        if: matrix.os != 'ubuntu-latest' || matrix.rust_version != 'stable'
         run: cargo test --bins --tests
 
       - name: Install cargo-llvm-cov
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.rust_version == 'stable'
         uses: taiki-e/install-action@4684b8405694ae9dd42c9f39ba901a70ae83f4a3 # v2.82.9
         with:
           tool: cargo-llvm-cov
 
       - name: Generate code coverage
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-latest' && matrix.rust_version == 'stable'
         env:
           RUST_BACKTRACE: "1"
         run: cargo llvm-cov --bins --tests --lcov --output-path lcov.info
@@ -79,7 +82,7 @@ jobs:
       # Tokens aren't available for PRs originating from forks,
       # so we don't attempt to upload code coverage in that case.
       - name: Upload code coverage results
-        if: matrix.os == 'ubuntu-latest' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        if: matrix.os == 'ubuntu-latest' && matrix.rust_version == 'stable' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
         with:
           token: ${{ secrets.CODECOV_ORG_TOKEN }}
