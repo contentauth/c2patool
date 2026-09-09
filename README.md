@@ -45,6 +45,9 @@ If you're using another OS or don't want to use Homebrew, install a prebuilt bin
 3. Download and extract the archive file.
 4. Copy the `c2patool` executable file to a location on your `PATH`.
 
+> [!NOTE]
+> Looking for an older version? `c2patool` used to be part of the `c2pa-rs` monorepo. Releases `v0.27.15` and earlier live on [c2pa-rs's Releases page](https://github.com/contentauth/c2pa-rs/releases) instead, tagged `c2patool-vX.Y.Z`.
+
 
 After installing, confirm that you can run the tool by entering a command such as:
 ```
