@@ -27,17 +27,53 @@ For a simple example of calling c2patool from a Node.js server application, see 
 
 ## Installation
 
-If you are using macOS, you can install C2PA Tool using Homebrew:
+### Homebrew (macOS and Linux)
+
+You can install C2PA Tool using [Homebrew](https://brew.sh/):
 
 1. Install [Homebrew](https://brew.sh/) if you haven't already done so.
-1. Install C2PA Tool:
+2. Install C2PA Tool:
    ```
    brew install c2patool
    ```
 
-If you're using another OS or don't want to use Homebrew, install a prebuilt binary of C2PA Tool:
+### Windows package installation
 
-1. Go to the [Releases page and filter for c2patool](https://github.com/contentauth/c2pa-rs/releases?q=c2patool). 
+On Windows, you can install c2patool using [Chocolatey](https://chocolatey.org/):
+
+1. Install [Chocolatey](https://chocolatey.org/install) if you haven't already done so.
+2. Go to the [Releases page](https://github.com/contentauth/c2patool/releases).
+3. Under **Assets**, download the `.nupkg` file (for example, `c2patool.x.y.z.nupkg`).
+4. Install it:
+   ```
+   choco install c2patool --source ".;chocolatey"
+   ```
+
+### Linux package installation
+
+On Debian/Ubuntu-based systems, you can install the `.deb` package:
+
+1. Go to the [Releases page](https://github.com/contentauth/c2patool/releases).
+2. Under **Assets**, download the `.deb` file (for example, `c2patool_x.y.z-1_amd64.deb`).
+3. Install it:
+   ```
+   sudo dpkg -i c2patool_*.deb
+   ```
+
+On Fedora/RHEL/Rocky Linux-based systems, you can install the `.rpm` package:
+
+1. Go to the [Releases page](https://github.com/contentauth/c2patool/releases).
+2. Under **Assets**, download the `.rpm` file (for example, `c2patool-x.y.z-1.x86_64.rpm`).
+3. Install it:
+   ```
+   sudo rpm -i c2patool-*.rpm
+   ```
+
+### Other platforms
+
+If you don't want to use a package manager, install a prebuilt binary of C2PA Tool:
+
+1. Go to the [Releases page](https://github.com/contentauth/c2patool/releases). 
 2. Under **Assets**, click on the archive file for your operating system:
    - MacOS: `c2patool-vx.y.z-universal-apple-darwin.zip`
    - Windows: `c2patool-vx.y.z-x86_64-pc-windows-msvc.zip`
@@ -67,6 +103,6 @@ To display the version of C2PA Tool that you have, enter this command:
 c2patool -V
 ```
 
-The tool will display the version installed. Compare the version number displayed with the latest release version shown in the [repository releases page filtered for c2patool](https://github.com/contentauth/c2pa-rs/releases?q=c2patool).  
+The tool will display the version installed. Compare the version number displayed with the latest release version shown in the [repository releases page](https://github.com/contentauth/c2patool/releases).  
 
 If you don't have the latest version, simply reinstall C2PA Tool to get the latest version.
