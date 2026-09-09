@@ -646,7 +646,13 @@ fn atomic_write_file(dest: &Path, contents: &[u8]) -> Result<()> {
         .file_name()
         .and_then(|s| s.to_str())
         .unwrap_or("c2pa-trust");
-    let tmp = parent.join(format!(".{stem}.{}.tmp", std::process::id()));
+    // A nanosecond timestamp, not `std::process::id()`: WASI has no process-ID
+    // concept, and `std::process::id()` panics there rather than erroring.
+    let unique = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or_default();
+    let tmp = parent.join(format!(".{stem}.{unique}.tmp"));
     {
         let mut f = File::create(&tmp)?;
         f.write_all(contents)?;
@@ -1577,7 +1583,7 @@ pub mod tests {
 
     #[test]
     fn apply_trust_sidecars_reads_official_pem() {
-        const SAMPLE_ANCHOR_PEM: &str = include_str!("../../cli/tests/fixtures/trust/anchors.pem");
+        const SAMPLE_ANCHOR_PEM: &str = include_str!("../tests/fixtures/trust/anchors.pem");
         let tmp = tempdirectory().unwrap();
         let settings_path = tmp.path().join("c2pa.toml");
         write(
