@@ -160,7 +160,9 @@ The first build (`-rc.1`) is cut automatically when the train is cut. A maintain
 * **Any PR targeting a release-line (`stable`, `v0.x`) or release-candidate (`*-rc*`) branch** must pass Tier 1A before it can merge. This includes **backport PRs**, RC bake bugfix PRs, and the `release-plz` release PR: anything headed for a published (or soon-to-be-published) artifact gets the same validation.
 * During a train's bake, Tier 1A also runs on every push to the `*-rc*` branch.
 
-Commit-lint enforcement of PR titles (as c2pa-rs does via `pr_title.yml`/`.commitlintrc.yml`) and a dedicated `docs/support-tiers.md` are not yet ported to this repo -- follow-up work, not covered here.
+See [`docs/support-tiers.md`](support-tiers.md) for the build configurations Tier 1A actually covers.
+
+Commit-lint enforcement of PR titles (as c2pa-rs does via `pr_title.yml`/`.commitlintrc.yml`) is not yet ported to this repo -- follow-up work, not covered here.
 
 ## Troubleshooting
 
