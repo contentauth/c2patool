@@ -3,8 +3,9 @@ name: c2pa-rs release bump
 # Opens a PR against `stable` the moment c2pa-rs publishes a new version of the
 # `c2pa` crate, instead of waiting for a scheduled poll. c2pa-rs's own
 # `release.yml`, right after a successful crates.io publish, dispatches this
-# workflow cross-repo (repository_dispatch, authenticated with the shared
-# `RELEASE_PLZ_ORG_TOKEN` org token) with the new version.
+# workflow cross-repo (repository_dispatch, authenticated with the
+# `CROSS_ORG_PR_TOKEN` org token -- `RELEASE_PLZ_ORG_TOKEN` is not scoped for
+# cross-repo calls, confirmed empirically) with the new version.
 #
 # `stable`'s `Cargo.toml` pins `c2pa` to a real crates.io version (unlike
 # `main`, which tracks c2pa-rs's `main` branch directly -- see
