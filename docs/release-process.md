@@ -162,7 +162,28 @@ The first build (`-rc.1`) is cut automatically when the train is cut. A maintain
 
 See [`docs/support-tiers.md`](support-tiers.md) for the build configurations Tier 1A actually covers.
 
-Commit-lint enforcement of PR titles (as c2pa-rs does via `pr_title.yml`/`.commitlintrc.yml`) is not yet ported to this repo -- follow-up work, not covered here.
+## Commit lint used for PR title enforcement
+
+Because `release-plz` uses [Conventional Commit syntax](https://www.conventionalcommits.org/en/v1.0.0/#summary) to generate changelogs, all commits to long-lived branches must follow it. We [squash-merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/configuring-commit-squashing-for-pull-requests) PRs, and [`pr_title.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/pr_title.yml) checks that each PR title conforms, as configured by [`.commitlintrc.yml`](https://github.com/contentauth/c2patool/blob/main/.commitlintrc.yml) (the definitive specification).
+
+A quick, non-authoritative summary: the PR title must have this exact format:
+
+```
+type: description
+```
+
+The `type` must be one of (bold = preferred in most cases):
+
+* **`feat`**: a new feature. Use a `!` immediately before the `:` to signal an API breaking change (which queues for the next train).
+* **`fix`**: a bug fix.
+* **`chore`**: maintenance; does not trigger a release PR and is omitted from the changelog.
+* **`docs`**: documentation.
+* `build`, `ci`, `perf`, `refactor`, `revert`, `style`, `test`, `update` (the last used by Dependabot).
+
+Unlike c2pa-rs, `scope` is not allowed here: c2patool is a single crate, so `type(scope): description` would never carry information that `type: description` doesn't already. `description` is a short sentence, capitalized, no trailing period, preferably under 70 characters.
+
+> [!NOTE]
+> If these rules change, keep [`.github/workflows/pr_title.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/pr_title.yml) and [`.commitlintrc.yml`](https://github.com/contentauth/c2patool/blob/main/.commitlintrc.yml) in sync.
 
 ## Troubleshooting
 
