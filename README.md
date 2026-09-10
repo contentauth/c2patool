@@ -1,5 +1,7 @@
 # C2PA command line tool
 
+[![CI](https://github.com/contentauth/c2patool/actions/workflows/ci.yml/badge.svg)](https://github.com/contentauth/c2patool/actions/workflows/ci.yml) [![Latest Version](https://img.shields.io/crates/v/c2patool.svg)](https://crates.io/crates/c2patool) [![codecov](https://codecov.io/gh/contentauth/c2patool/graph/badge.svg?token=L9XKK0W9VE)](https://codecov.io/gh/contentauth/c2patool)
+
 C2PA Tool, `c2patool`, is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.4/specs/C2PA_Specification.html#_manifests) and media assets (audio, image or video files).
 
 Use the tool on a file in one of the [supported formats](https://github.com/contentauth/c2pa-rs/blob/main/docs/supported-formats.md) to:
