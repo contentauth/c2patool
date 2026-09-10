@@ -34,7 +34,7 @@ jobs:
           # `type` describes the nature of changes you are making. This project
           # requires the type to be one of these exact names:
           #
-          #    * feat (will cause a minor version bump)
+          #    * feat
           #    * fix
           #    * chore (will be omitted from changelog)
           #    * docs
