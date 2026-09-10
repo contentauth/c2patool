@@ -140,6 +140,12 @@ Two exemptions keep it practical: the `release-plz` release PR (labeled `release
 
 As a backstop to the proactive check above, a scheduled job, [`reconciliation.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/reconciliation.yml), runs `git cherry main <release-branch>`; anything present on the release branch but **not** on `main` means something originated on a release branch, violating upstream-first. The job opens (or updates) an issue so the change can be forward-ported. We deliberately do **not** auto-merge a release branch back into `main`.
 
+### c2pa-rs release bump
+
+[`c2pa-release-bump.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/c2pa-release-bump.yml) opens a PR against `stable` the moment c2pa-rs publishes a new version of the `c2pa` crate, rather than waiting for someone to notice or for a scheduled poll. c2pa-rs's own `release.yml`, right after a successful crates.io publish, dispatches this workflow cross-repo (`repository_dispatch`, authenticated with the `CROSS_ORG_PR_TOKEN` org token) with the new version. `RELEASE_PLZ_ORG_TOKEN` -- used everywhere else in this doc -- is not scoped for cross-repo calls (confirmed empirically: it gets a 403 against c2patool's dispatches endpoint), so this is the one piece of automation here that uses a different org token.
+
+Because `stable`'s `Cargo.toml` pins `c2pa` to a real crates.io version (unlike `main`, which tracks c2pa-rs's `main` branch -- see [Tracking c2pa-rs main](#tracking-c2pa-rs-main)), Cargo's pre-1.0 caret rules mean most new c2pa-rs releases already satisfy the existing `c2pa = "0.x.y"` requirement, so the workflow just needs `cargo update -p c2pa --precise <version>` and opens a PR if `Cargo.lock` changed. The PR is labeled `c2pa-bump`, which exempts it from the [upstream-first check](#upstream-first-check-proactive): `main` never carries an equivalent version-bump commit for `git cherry` to match, since it depends on c2pa-rs via git rather than a version. If the new version falls **outside** stable's requirement (a breaking c2pa-rs release), the job fails loudly instead of widening the requirement unattended -- that case is handled by the [breaking train](#track-2-the-breaking-train) instead.
+
 ### Patch-dependency guard
 
 [`check-no-patch-deps.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/check-no-patch-deps.yml) fails if a `[patch]` section or a git dependency is present. It runs on release-branch PRs and as a required prerequisite of `release.yml` -- note that `main`'s own `c2pa` git dependency (see [Tracking c2pa-rs main](#tracking-c2pa-rs-main)) is expected and fine there; this guard just makes sure it never reaches a release branch.
@@ -160,7 +166,30 @@ The first build (`-rc.1`) is cut automatically when the train is cut. A maintain
 * **Any PR targeting a release-line (`stable`, `v0.x`) or release-candidate (`*-rc*`) branch** must pass Tier 1A before it can merge. This includes **backport PRs**, RC bake bugfix PRs, and the `release-plz` release PR: anything headed for a published (or soon-to-be-published) artifact gets the same validation.
 * During a train's bake, Tier 1A also runs on every push to the `*-rc*` branch.
 
-Commit-lint enforcement of PR titles (as c2pa-rs does via `pr_title.yml`/`.commitlintrc.yml`) and a dedicated `docs/support-tiers.md` are not yet ported to this repo -- follow-up work, not covered here.
+See [`docs/support-tiers.md`](support-tiers.md) for the build configurations Tier 1A actually covers.
+
+## Commit lint used for PR title enforcement
+
+Because `release-plz` uses [Conventional Commit syntax](https://www.conventionalcommits.org/en/v1.0.0/#summary) to generate changelogs, all commits to long-lived branches must follow it. We [squash-merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/configuring-commit-squashing-for-pull-requests) PRs, and [`pr_title.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/pr_title.yml) checks that each PR title conforms, as configured by [`.commitlintrc.yml`](https://github.com/contentauth/c2patool/blob/main/.commitlintrc.yml) (the definitive specification).
+
+A quick, non-authoritative summary: the PR title must have this exact format:
+
+```
+type: description
+```
+
+The `type` must be one of (bold = preferred in most cases):
+
+* **`feat`**: a new feature. Use a `!` immediately before the `:` to signal an API breaking change (which queues for the next train).
+* **`fix`**: a bug fix.
+* **`chore`**: maintenance; does not trigger a release PR and is omitted from the changelog.
+* **`docs`**: documentation.
+* `build`, `ci`, `perf`, `refactor`, `revert`, `style`, `test`, `update` (the last used by Dependabot).
+
+Unlike c2pa-rs, `scope` is not allowed here: c2patool is a single crate, so `type(scope): description` would never carry information that `type: description` doesn't already. `description` is a short sentence, capitalized, no trailing period, preferably under 70 characters.
+
+> [!NOTE]
+> If these rules change, keep [`.github/workflows/pr_title.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/pr_title.yml) and [`.commitlintrc.yml`](https://github.com/contentauth/c2patool/blob/main/.commitlintrc.yml) in sync.
 
 ## Troubleshooting
 
