@@ -1,0 +1,127 @@
+name: c2pa-rs release bump
+
+# Opens a PR against `stable` the moment c2pa-rs publishes a new version of the
+# `c2pa` crate, instead of waiting for a scheduled poll. c2pa-rs's own
+# `release.yml`, right after a successful crates.io publish, dispatches this
+# workflow cross-repo (repository_dispatch, authenticated with the shared
+# `RELEASE_PLZ_ORG_TOKEN` org token) with the new version.
+#
+# `stable`'s `Cargo.toml` pins `c2pa` to a real crates.io version (unlike
+# `main`, which tracks c2pa-rs's `main` branch directly -- see
+# docs/release-process.md, "Tracking c2pa-rs main"). Cargo's pre-1.0 caret
+# rules mean an existing `c2pa = "0.x.y"` requirement already permits any
+# later `0.x.z`, so most new c2pa-rs releases just need `cargo update`. If the
+# new version falls outside that range (a breaking c2pa-rs release), this job
+# fails loudly rather than widening the requirement itself -- that kind of
+# bump belongs to the normal breaking-train process (see docs/release-process.md,
+# "Track 2: the breaking train"), not an unattended PR.
+#
+# Can also be run manually (workflow_dispatch) to backfill a missed dispatch or
+# test the flow.
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  repository_dispatch:
+    types: [c2pa-rs-release]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The newly published c2pa version (e.g. 0.90.21)'
+        required: true
+
+jobs:
+  bump:
+    name: Bump c2pa on stable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve the released version
+        id: version
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          DISPATCH_INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="${DISPATCH_VERSION:-$DISPATCH_INPUT_VERSION}"
+          if [ -z "$VERSION" ]; then
+            echo "::error::No version supplied (expected client_payload.version or inputs.version)."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout stable
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: stable
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLZ_ORG_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+
+      - name: Skip if a bump PR for this version is already open
+        id: exists
+        run: |
+          BRANCH="bump-c2pa/${{ steps.version.outputs.version }}"
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "Branch $BRANCH already exists; assuming a PR is already open."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # A failure here means the new version falls outside stable's existing
+      # `c2pa = "0.x.y"` requirement in Cargo.toml -- i.e. c2pa-rs shipped a
+      # breaking (minor, pre-1.0) release. That case is handled by the
+      # scheduled breaking train, not this workflow, so we fail loudly instead
+      # of widening the requirement unattended.
+      - name: Update c2pa to the released version
+        if: steps.exists.outputs.skip != 'true'
+        run: cargo update -p c2pa --precise "${{ steps.version.outputs.version }}"
+
+      - name: Check whether Cargo.lock changed
+        if: steps.exists.outputs.skip != 'true'
+        id: diff
+        run: |
+          if git diff --quiet -- Cargo.lock; then
+            echo "stable is already at c2pa ${{ steps.version.outputs.version }} (or newer); nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open bump PR
+        if: steps.exists.outputs.skip != 'true' && steps.diff.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLZ_ORG_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BRANCH: ${{ steps.exists.outputs.branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git commit -am "update: Bump c2pa to $VERSION"
+          git push origin "HEAD:$BRANCH"
+
+          # Written to a file rather than passed inline: nesting a heredoc
+          # inside a double-quoted `$(...)` trips bash's backquote-tracking
+          # when the body itself contains backticks (as this one does), so
+          # `--body-file` sidesteps the quoting hazard entirely.
+          BODY_FILE=$(mktemp)
+          cat > "$BODY_FILE" <<EOF
+          c2pa-rs published **$VERSION**. This bumps \`stable\`'s \`c2pa\`
+          dependency to pick it up, via \`cargo update -p c2pa --precise $VERSION\`.
+
+          Opened automatically by [c2pa-release-bump.yml](https://github.com/${{ github.repository }}/blob/main/.github/workflows/c2pa-release-bump.yml).
+          EOF
+
+          gh pr create \
+            --base stable \
+            --head "$BRANCH" \
+            --title "update: Bump c2pa to $VERSION" \
+            --label c2pa-bump \
+            --body-file "$BODY_FILE"

@@ -140,6 +140,12 @@ Two exemptions keep it practical: the `release-plz` release PR (labeled `release
 
 As a backstop to the proactive check above, a scheduled job, [`reconciliation.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/reconciliation.yml), runs `git cherry main <release-branch>`; anything present on the release branch but **not** on `main` means something originated on a release branch, violating upstream-first. The job opens (or updates) an issue so the change can be forward-ported. We deliberately do **not** auto-merge a release branch back into `main`.
 
+### c2pa-rs release bump
+
+[`c2pa-release-bump.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/c2pa-release-bump.yml) opens a PR against `stable` the moment c2pa-rs publishes a new version of the `c2pa` crate, rather than waiting for someone to notice or for a scheduled poll. c2pa-rs's own `release.yml`, right after a successful crates.io publish, dispatches this workflow cross-repo (`repository_dispatch`, authenticated with the shared `RELEASE_PLZ_ORG_TOKEN` org token) with the new version.
+
+Because `stable`'s `Cargo.toml` pins `c2pa` to a real crates.io version (unlike `main`, which tracks c2pa-rs's `main` branch -- see [Tracking c2pa-rs main](#tracking-c2pa-rs-main)), Cargo's pre-1.0 caret rules mean most new c2pa-rs releases already satisfy the existing `c2pa = "0.x.y"` requirement, so the workflow just needs `cargo update -p c2pa --precise <version>` and opens a PR if `Cargo.lock` changed. The PR is labeled `c2pa-bump`, which exempts it from the [upstream-first check](#upstream-first-check-proactive): `main` never carries an equivalent version-bump commit for `git cherry` to match, since it depends on c2pa-rs via git rather than a version. If the new version falls **outside** stable's requirement (a breaking c2pa-rs release), the job fails loudly instead of widening the requirement unattended -- that case is handled by the [breaking train](#track-2-the-breaking-train) instead.
+
 ### Patch-dependency guard
 
 [`check-no-patch-deps.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/check-no-patch-deps.yml) fails if a `[patch]` section or a git dependency is present. It runs on release-branch PRs and as a required prerequisite of `release.yml` -- note that `main`'s own `c2pa` git dependency (see [Tracking c2pa-rs main](#tracking-c2pa-rs-main)) is expected and fine there; this guard just makes sure it never reaches a release branch.
