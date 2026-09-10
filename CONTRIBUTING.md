@@ -73,22 +73,23 @@ For the full model, see the [release process](docs/release-process.md).
 
 ### Pull request titles
 
-Titles of pull requests that target a long-lived branch such as _main_ or a release-specific branch should follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#specification). The repository's [commit lint rules](https://github.com/contentauth/c2pa-rs/blob/main/.commitlintrc.yml) require that the first word of the pull request title must be one of the following:
+Titles of pull requests that target a long-lived branch such as _main_ or a release-specific branch should follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#specification). The repository's [commit lint rules](.commitlintrc.yml) require that the first word of the pull request title must be one of the following:
 
-- `fix`
 - `feat`
+- `fix`
 - `chore`
-- `update`
-- `doc`
+- `docs`
+- `build`, `ci`, `perf`, `refactor`, `revert`, `style`, `test`
+- `update` (used by Dependabot)
 
-Optionally, but preferred, a scope can be added in parentheses after the type. The scope should be the name of the module or component that the commit affects. For example, `feat(api): Introduce a new API to validate 1.0 claims`.
+Unlike [c2pa-rs](https://github.com/contentauth/c2pa-rs/blob/main/CONTRIBUTING.md), this repository does **not** allow a `(scope)` after the type: c2patool is a single crate, so a scope would never carry useful information. See [Commit lint used for PR title enforcement](docs/release-process.md#commit-lint-used-for-pr-title-enforcement) for the full rules.
 
 If more detail is warranted, add a blank line and then continue with sentences (these sentences should be punctuated as such) and paragraphs as needed to provide that detail. There is no need to word-wrap this message.
 
 For example:
 
 ```text
-feat(api): Introduce a new API to validate 1.0 claims
+feat: Introduce a new API to validate 1.0 claims
 
 Repurpose existing v2 API for 0.8 compatibility (read: no validation) mode.
 ```
