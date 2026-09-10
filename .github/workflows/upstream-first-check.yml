@@ -15,6 +15,11 @@ name: Upstream-first check
 # conclusive pass/fail rather than being skipped):
 #   * The release-plz release PR (labeled `release`) legitimately originates
 #     version-bump/changelog commits on the release branch.
+#   * A PR opened by c2pa-release-bump.yml (labeled `c2pa-bump`) legitimately
+#     originates a `c2pa` dependency-version commit on `stable`: `main` tracks
+#     c2pa-rs's `main` branch via a git dependency (see docs/release-process.md,
+#     "Tracking c2pa-rs main"), so it never carries an equivalent version-bump
+#     commit for `git cherry` to match.
 #   * If a cherry-pick had to be adapted to compile on the target branch (so its
 #     patch id no longer matches `main`), a maintainer can add the
 #     `upstream-first-verified` label to attest the change is already upstream.
@@ -46,8 +51,8 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
           LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: |
-          if echo "$LABELS" | grep -qE '"(release|upstream-first-verified)"'; then
-            echo "Exempt (release or upstream-first-verified label present); skipping check."
+          if echo "$LABELS" | grep -qE '"(release|c2pa-bump|upstream-first-verified)"'; then
+            echo "Exempt (release, c2pa-bump, or upstream-first-verified label present); skipping check."
             exit 0
           fi
 
