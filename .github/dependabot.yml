@@ -11,6 +11,13 @@ updates:
       prefix: "update"
     cooldown:
       default-days: 7
+    # `c2pa` has its own express lane instead: on `main` it's a git dependency
+    # tracked by track-c2pa-rs-main.yml, and on `stable` a new release is
+    # picked up immediately by c2pa-release-bump.yml (see
+    # docs/release-process.md). Dependabot wouldn't offer version updates for
+    # the git dependency anyway, but this makes the exclusion explicit.
+    ignore:
+      - dependency-name: "c2pa"
 
   - package-ecosystem: "github-actions"
     directory: "/"

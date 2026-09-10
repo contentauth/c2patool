@@ -1,0 +1,255 @@
+# Enforce Tier 1A support tier.
+
+# See beta-preflight.yml for the Rust-beta preflight variant.
+
+# Fork-PR trust is handled by GitHub, not by this workflow: the repository's
+# "Fork pull request workflows from outside collaborators" Actions setting holds
+# a fork PR's workflows until a maintainer approves them, so by the time this
+# suite runs it is already authorized. Same-repo branches (which require write
+# access to push) always run. Secrets are still never exposed to fork PRs, so
+# the Codecov upload step below additionally gates on the PR originating from
+# this repository.
+
+name: Tier 1A
+
+on:
+  workflow_dispatch:
+  # Daily full-suite run against main (nightly).
+  schedule:
+    - cron: '0 8 * * *'
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+  push:
+    branches:
+      - main
+      - stable
+      - 'v0.*'
+      - '*-rc*'
+
+jobs:
+  # c2patool ships a Mac/Linux/Windows binary as its core product (and has
+  # real per-OS code, e.g. the `cfg(windows)` windows-sys dependency), unlike
+  # the SDK crate this repo split from, where cross-platform testing is a
+  # separate, more-expensive Tier 1B/2 concern deliberately kept out of the
+  # fast per-PR gate. That trade-off doesn't apply here -- there's no other
+  # tier picking up cross-platform or MSRV coverage -- so both are in the
+  # required gate directly (matching how tier-1b.yml combines `os` and
+  # `rust_version: [stable, 1.88.0]` upstream). Coverage is collected on just
+  # the ubuntu+stable leg to avoid six redundant/conflicting Codecov uploads
+  # for the same run.
+  tests-cli:
+    name: Unit tests
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust_version: [stable, "1.88.0"] # keep in sync with Cargo.toml's rust-version
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: ${{ matrix.rust_version }}
+          components: llvm-tools-preview
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Run tests
+        if: matrix.os != 'ubuntu-latest' || matrix.rust_version != 'stable'
+        run: cargo test --bins --tests
+
+      - name: Install cargo-llvm-cov
+        if: matrix.os == 'ubuntu-latest' && matrix.rust_version == 'stable'
+        uses: taiki-e/install-action@4684b8405694ae9dd42c9f39ba901a70ae83f4a3 # v2.82.9
+        with:
+          tool: cargo-llvm-cov
+
+      - name: Generate code coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.rust_version == 'stable'
+        env:
+          RUST_BACKTRACE: "1"
+        run: cargo llvm-cov --bins --tests --lcov --output-path lcov.info
+
+      # Tokens aren't available for PRs originating from forks,
+      # so we don't attempt to upload code coverage in that case.
+      - name: Upload code coverage results
+        if: matrix.os == 'ubuntu-latest' && matrix.rust_version == 'stable' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+        with:
+          token: ${{ secrets.CODECOV_ORG_TOKEN }}
+          fail_ci_if_error: true
+          verbose: true
+          files: ./lcov.info
+
+  docs-private:
+    name: Internal docs build (private items, warnings denied)
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      # c2patool doesn't publish to docs.rs (it's a binary, no public-API
+      # surface), so this checks the internal docs contributors actually
+      # read locally -- including private items -- build cleanly instead.
+      - name: Build internal docs
+        env:
+          RUSTDOCFLAGS: -Dwarnings
+        run: cargo doc --document-private-items --no-deps
+
+  cargo-check:
+    name: Default features build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: "`cargo check` with default features"
+        run: cargo check
+
+  cargo-lock:
+    name: Cargo.lock is up to date
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+
+      - name: Check that Cargo.lock is up to date
+        run: cargo check --locked
+
+  tests-wasi:
+    name: Unit tests (WASI)
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+        # Nightly required for testing until this issue is resolved:
+        # wasip2 target should not conditionally feature gate stdlib APIs rust-lang/rust#130323 https://github.com/rust-lang/rust/issues/130323
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: nightly-2026-01-16
+
+      - name: Install wasmtime
+        run: |
+          # Pinned to v47.0.3: v48.0.0 sends malformed wasi-http requests that
+          # some servers (e.g. GitHub Pages) answer with 400 Bad Request instead
+          # of reaching the real response, breaking did:web resolution tests.
+          curl https://wasmtime.dev/install.sh -sSf | bash -s -- --version v47.0.3
+          echo "$HOME/.wasmtime/bin" >> $GITHUB_PATH
+
+      - name: Install clang
+        run: |
+          # The runner image ships with Microsoft's apt repositories, which
+          # intermittently serve an invalid InRelease file and make
+          # `apt-get update` fail. We don't need them here, so remove them first.
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list \
+                     /etc/apt/sources.list.d/azure-cli.list \
+                     /etc/apt/sources.list.d/azure-cli.sources
+          sudo apt-get update
+          sudo apt-get install -y clang
+
+      - name: Add wasm32-wasip2 target
+        run: rustup target add --toolchain nightly-2026-01-16 wasm32-wasip2
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Run WASI tests
+        env:
+          CARGO_TARGET_WASM32_WASIP2_RUNNER: "wasmtime -S cli -S http --dir . --env GITHUB_ACTIONS=${GITHUB_ACTIONS}"
+          CC: clang
+          RUST_MIN_STACK: 16777216
+        run: |
+          cargo +nightly-2026-01-16 test --target wasm32-wasip2 -- --no-capture
+
+  clippy_check:
+    name: Clippy
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+          components: clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2.9.1
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -Dwarnings
+
+  cargo_fmt:
+    name: Enforce Rust code format
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install nightly toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: nightly-2026-01-16
+          components: rustfmt
+
+      - name: Check format
+        run: cargo +nightly-2026-01-16 fmt --all -- --check
+
+  cargo-deny:
+    name: License / vulnerability audit
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Audit crate dependencies
+        uses: EmbarkStudios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe # v2.0.20
+        with:
+          command: check advisories bans licenses sources

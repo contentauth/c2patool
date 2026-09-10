@@ -12,8 +12,15 @@ documentation = "https://opensource.contentauthenticity.org/docs/c2patool"
 readme = "README.md"
 keywords = ["c2pa", "xmp", "metadata"]
 edition = "2018"
+rust-version = "1.88.0"
 homepage = "https://contentauthenticity.org"
-repository = "https://github.com/contentauth/c2pa-rs/tree/main/cli"
+repository = "https://github.com/contentauth/c2patool"
+# edition 2018 defaults to resolver "1", which unifies a dependency's
+# features across ALL targets in one pass -- the target-conditional `c2pa`
+# feature split below (openssl vs. rust_native_crypto, wasi vs. everything
+# else) needs "2" or later to actually resolve per-target instead of
+# enabling both backends at once.
+resolver = "3"
 
 [features]
 default = ["networking"]
@@ -24,13 +31,6 @@ networking = [
 [dependencies]
 anyhow = "1.0"
 atree = "0.5.4"
-c2pa = {version = "0.91.0-dev",  features = [
-    "openssl",
-    "fetch_remote_manifests",
-    "file_io",
-    "add_thumbnails",
-    "pdf",
-] }
 clap = { version = "4.6.1", features = ["derive", "env", "string"] }
 env_logger = "0.11.10"
 glob = "0.3.3"
@@ -40,11 +40,31 @@ serde_json = "1.0"
 toml = "1.1.2"
 tempfile = "3.27"
 treeline = "0.1.0"
-pem = "3.0.6"
+pem = "4.0.0"
 url = "2.5.8"
 etcetera = "0.11.0"
 
+# Tracks c2pa-rs's `main` branch directly (see docs/release-process.md,
+# "Tracking c2pa-rs main") so integration breaks against upstream's
+# in-development code surface immediately rather than only once a new
+# `c2pa` version publishes. A scheduled workflow keeps Cargo.lock fresh
+# against this branch. `stable` (and any `v0.*` line) uses a real crates.io
+# version instead -- crates.io requires every dependency to resolve to a
+# published version, so this branch is never itself published.
+#
+# The crypto backend feature is target-conditional, split below: `openssl`
+# doesn't compile for wasm32 (c2pa-rs's own openssl dependency is itself
+# gated to `not(target_arch = "wasm32")`), so the wasi target needs
+# `rust_native_crypto` instead. Keep the two feature lists (everything
+# except the backend name) in sync by hand.
 [target.'cfg(not(target_os = "wasi"))'.dependencies]
+c2pa = { git = "https://github.com/contentauth/c2pa-rs", branch = "main", features = [
+    "openssl",
+    "fetch_remote_manifests",
+    "file_io",
+    "add_thumbnails",
+    "pdf",
+] }
 reqwest = { version = "0.12.28", features = ["blocking"] }
 tokio = { version = "1.52.3", features = ["rt", "rt-multi-thread"] }
 
@@ -55,6 +75,13 @@ windows-sys = { version = "0.59", features = [
 ] }
 
 [target.'cfg(target_os = "wasi")'.dependencies]
+c2pa = { git = "https://github.com/contentauth/c2pa-rs", branch = "main", default-features = false, features = [
+    "rust_native_crypto",
+    "fetch_remote_manifests",
+    "file_io",
+    "add_thumbnails",
+    "pdf",
+] }
 wasi = "0.14"
 wstd = "0.5"
 
@@ -62,7 +89,7 @@ wstd = "0.5"
 development = ["mockall"]
 
 [dev-dependencies]
-mockall = "0.14.0"
+mockall = "0.15.0"
 
 [target.'cfg(not(target_os = "wasi"))'.dev-dependencies]
 assert_cmd = "2.2.2"

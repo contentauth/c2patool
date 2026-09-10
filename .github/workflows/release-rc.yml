@@ -1,0 +1,123 @@
+name: Cut release-candidate build
+
+# Cuts a numbered release-candidate BUILD (-rc.1, -rc.2, ...) from a release-
+# candidate BRANCH (e.g. `0.28.0-rc`). This is what lets downstream consumers
+# who depend on pre-built binaries validate a breaking train during its bake:
+# each RC build is tagged and gets a *prerelease* GitHub release with binaries
+# attached, but it is NEVER published to crates.io.
+#
+# How it fits together (see docs/release-process.md):
+#   * `release-train-cut.yml` creates the `0.N.0-rc` branch and invokes this
+#     workflow once to produce the first build, `-rc.1`.
+#   * A maintainer re-runs this workflow (workflow_dispatch on the RC branch)
+#     to cut `-rc.2`, `-rc.3`, ... after bugfixes have been cherry-picked onto
+#     the RC branch during the bake.
+#
+# This workflow only sets the version and pushes a tag. The tag then drives
+# the binary build in c2patool-release.yml, which marks `-rc.` tags as
+# prereleases.
+#
+# Publishing is gated by branch/tag names, not by this workflow: the tag
+# contains `-rc.` and never matches a crates.io publish trigger (release.yml
+# only runs on `stable` / `v0.*` branch pushes), so an RC build can never
+# reach crates.io by construction.
+
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cut-rc:
+    name: Cut release-candidate build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refuse to run outside a release-candidate branch
+        run: |
+          # An RC branch is named `<version>-rc` (no numeric suffix; the number
+          # lives on the build tag, not the branch). Guard against accidentally
+          # dispatching this against main / stable / a v0.x line.
+          case "${{ github.ref_name }}" in
+            *-rc) echo "Running on RC branch ${{ github.ref_name }}." ;;
+            *)
+              echo "::error::release-rc must be dispatched on a *-rc branch, not '${{ github.ref_name }}'."
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout RC branch
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PLZ_ORG_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master@2026-06-30
+        with:
+          toolchain: stable
+
+      - name: Install cargo-edit
+        uses: baptiste0928/cargo-install@f204293d9709061b7bc1756fec3ec4e2cd57dec0 # v3.4.0
+        with:
+          crate: cargo-edit
+          version: "0.13.6"
+
+      - name: Compute release-candidate version
+        id: ver
+        run: |
+          CUR=$(cargo metadata --format-version=1 --no-deps | jq -r '.packages[0].version')
+
+          # Strip any `-rc.N` or `-dev` prerelease suffix to get the base
+          # release version this branch is heading toward.
+          BASE="${CUR%-rc.*}"; BASE="${BASE%-dev}"
+
+          # On a freshly cut branch the version is still `-dev` (no `-rc.`),
+          # so we start at 1; otherwise we increment the current number.
+          if [[ "$CUR" == *-rc.* ]]; then
+            N=$(( ${CUR##*-rc.} + 1 ))
+          else
+            N=1
+          fi
+
+          RC="${BASE}-rc.${N}"
+          {
+            echo "rc=$RC"
+            echo "tag=v${RC}"
+          } >> "$GITHUB_OUTPUT"
+          echo "Cutting c2patool $RC (build #$N)."
+
+      - name: Fail if build tag already exists
+        run: |
+          if git ls-remote --exit-code --tags origin "${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "::error::Tag ${{ steps.ver.outputs.tag }} already exists; a build with this number was already cut."
+            exit 1
+          fi
+
+      - name: Set release-candidate version
+        run: cargo set-version "${{ steps.ver.outputs.rc }}"
+
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore: set ${{ github.ref_name }} to ${{ steps.ver.outputs.rc }}"
+          # Push the commit and the build tag. The tag triggers the binary
+          # build (c2patool-release.yml). Pushing with a PAT (RELEASE_PLZ_ORG_TOKEN)
+          # is required so that tag-triggered workflow actually runs -- pushes
+          # made with the default GITHUB_TOKEN do not cascade into other workflows.
+          git tag "${{ steps.ver.outputs.tag }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+          git push origin "${{ steps.ver.outputs.tag }}"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Release-candidate build cut"
+            echo ""
+            echo "- \`c2patool\`: **${{ steps.ver.outputs.rc }}** (tag \`${{ steps.ver.outputs.tag }}\`)"
+            echo ""
+            echo "A prerelease GitHub release with binaries is building for this tag."
+            echo "Nothing is published to crates.io."
+          } >> "$GITHUB_STEP_SUMMARY"
