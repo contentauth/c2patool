@@ -361,7 +361,7 @@ checksum = "cc97b8f16f944bba54f0433f07e30be199b6dc2bd25937444bbad560bcea29bd"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
- "brotli-decompressor",
+ "brotli-decompressor 4.0.3",
 ]
 
 [[package]]
@@ -369,6 +369,16 @@ name = "brotli-decompressor"
 version = "4.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a334ef7c9e23abf0ce748e8cd309037da93e606ad52eb372e4ce327a0dcfbdfd"
+dependencies = [
+ "alloc-no-stdlib",
+ "alloc-stdlib",
+]
+
+[[package]]
+name = "brotli-decompressor"
+version = "5.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a32acac15fe1967bc3986b2a6347dffc965602354ea6f450ad07e8bfd253583"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
@@ -462,14 +472,14 @@ dependencies = [
 
 [[package]]
 name = "c2pa"
-version = "0.91.0-dev"
-source = "git+https://github.com/contentauth/c2pa-rs?branch=main#7713867f4ddba630eca981fb77ede7b5172b6419"
+version = "0.92.0-dev"
+source = "git+https://github.com/contentauth/c2pa-rs?branch=main#bc8c7519511ae62b888a1f7065c5efaae8bdc96c"
 dependencies = [
  "asn1-rs",
  "async-generic",
  "async-trait",
  "atree",
- "base64 0.22.1",
+ "base64 0.23.1",
  "bcder",
  "brotli",
  "byteorder",
@@ -547,9 +557,9 @@ dependencies = [
 
 [[package]]
 name = "c2pa_cbor"
-version = "0.77.4"
+version = "0.78.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88380203853f999aa8e5bcdac2a0984d082c42994cc5a99d240aed180b2c2f3b"
+checksum = "b413817d7fcff304f37381bb36de9b5fa08c060b3bd4916de7fcbe0d0c874254"
 dependencies = [
  "half",
  "serde",
@@ -1268,7 +1278,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2208,12 +2218,13 @@ checksum = "f9f8bd3e56ce4dfc153cf470fffbfa98c7620958b312ca5c3a4b8d5181fd13c6"
 
 [[package]]
 name = "lopdf"
-version = "0.44.0"
+version = "0.45.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e2ec995d822e05cabc3f06d196ee43650af3fe4fe38012cacb35e0c3d113b68"
+checksum = "bfffda0fe1ab0157e1a13c14bebd3f28671f2fccb7922f0722ec53926e6922d3"
 dependencies = [
  "aes",
  "bitflags 2.13.1",
+ "brotli-decompressor 5.0.3",
  "cbc",
  "chrono",
  "ecb",
@@ -2222,7 +2233,6 @@ dependencies = [
  "getrandom 0.4.3",
  "indexmap 2.14.2",
  "itoa",
- "jiff",
  "log",
  "md-5",
  "nom 8.0.0",
@@ -2232,7 +2242,6 @@ dependencies = [
  "sha2 0.11.0",
  "stringprep",
  "thiserror 2.0.20",
- "time",
  "weezl 0.2.1",
 ]
 
@@ -2922,7 +2931,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3345,14 +3354,14 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
 name = "rustls"
-version = "0.23.44"
+version = "0.23.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6725596c3f2c3a0aef021139e145d4eafe314a6623e4680ca83852b2c67ab2ba"
+checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
 dependencies = [
  "log",
  "once_cell",
@@ -3928,7 +3937,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
