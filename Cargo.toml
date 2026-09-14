@@ -83,7 +83,7 @@ c2pa = { git = "https://github.com/contentauth/c2pa-rs", branch = "main", defaul
     "pdf",
 ] }
 wasi = "0.14"
-wstd = "0.5"
+wstd = "0.6"
 
 [package.metadata.cargo-udeps.ignore]
 development = ["mockall"]
