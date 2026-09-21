@@ -472,8 +472,8 @@ dependencies = [
 
 [[package]]
 name = "c2pa"
-version = "0.91.0-rc.3"
-source = "git+https://github.com/contentauth/c2pa-rs?branch=0.91.0-rc#298f16e1068ece3e9972d712a4200eff08d16839"
+version = "0.91.0-rc.4"
+source = "git+https://github.com/contentauth/c2pa-rs?rev=acefa1592b1fdfd5624be854125a8341a53d769d#acefa1592b1fdfd5624be854125a8341a53d769d"
 dependencies = [
  "asn1-rs",
  "async-generic",
