@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.0](https://github.com/contentauth/c2patool/compare/v0.27.20...v0.28.0)
+_22 September 2026_
+
+### Changed
+
+* Update the c2pa-rs dependency to 0.91.0.
+
+### Breaking changes
+
+* Signing now verifies the generated manifest by default; set `verify.verify_after_sign = false` in the settings file to retain the previous behavior.
+* Trust configuration now supports multiple named trust lists under `trust.anchors`; migrate configurations using the legacy `cawg_trust` or `trust.trust_anchors`, `trust.trust_config`, `trust.user_anchors`, and `trust.allowed_list` fields.
+* Remote manifest, OCSP, timestamp, and `did:web` fetches reject redirects to non-public hosts by default.
+* Validation follows the C2PA 2.4 rules, and the SVG handler no longer accepts generic XML documents.
+
 ## [0.27.20](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.19...c2patool-v0.27.20)
 _04 September 2026_
 
