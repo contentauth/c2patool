@@ -133,7 +133,17 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -am "chore: promote ${{ github.ref_name }} onto stable (reset to ${{ steps.ver.outputs.old_c2patool }} for release-plz)"
+
+          # The reset above is a no-op when the candidate branch's version was
+          # never bumped away from the last published version in the first
+          # place (e.g. release-rc.yml didn't run when the branch was cut), so
+          # there is nothing to commit here. That's fine -- the candidate's
+          # baked commits are still promoted by force-pushing HEAD below.
+          if git diff --quiet; then
+            echo "No version reset needed; promoting ${{ github.ref_name }}'s existing commits as-is."
+          else
+            git commit -am "chore: promote ${{ github.ref_name }} onto stable (reset to ${{ steps.ver.outputs.old_c2patool }} for release-plz)"
+          fi
 
           # Force-push rather than merge so stable's history becomes exactly the
           # coherent set of changes baked on the RC branch (see
