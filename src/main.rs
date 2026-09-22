@@ -1486,6 +1486,7 @@ pub mod tests {
         assert!(ms.contains("my_key"));
     }
 
+    #[cfg(not(target_os = "wasi"))]
     #[test]
     fn atomic_write_file_writes_and_replaces() {
         let tmp = tempdirectory().unwrap();
