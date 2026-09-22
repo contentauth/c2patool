@@ -1486,6 +1486,7 @@ pub mod tests {
         assert!(ms.contains("my_key"));
     }
 
+    #[cfg(not(target_os = "wasi"))]
     #[test]
     fn atomic_write_file_writes_and_replaces() {
         let tmp = tempdirectory().unwrap();
@@ -1548,7 +1549,7 @@ pub mod tests {
 
     #[test]
     fn apply_trust_sidecars_reads_official_pem() {
-        const SAMPLE_ANCHOR_PEM: &str = include_str!("../../cli/tests/fixtures/trust/anchors.pem");
+        const SAMPLE_ANCHOR_PEM: &str = include_str!("../tests/fixtures/trust/anchors.pem");
         let tmp = tempdirectory().unwrap();
         let settings_path = tmp.path().join("c2pa.toml");
         write(

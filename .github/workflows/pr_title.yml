@@ -1,0 +1,114 @@
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  title_cc_validation:
+    name: Conventional commits validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      # If changing this, please also see `.commitlintrc.yml`,
+      # `CONTRIBUTING.md`, and `docs/release-process.md`.
+
+      - name: Check PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # If this step fails, please expand this step for more information.
+          #
+          # You will need to revise this pull request's title to
+          # match the "summary" (first) line of a Conventional Commit message.
+          # This enables us to automatically generate a meaningful changelog.
+          #
+          # The summary line (and thus the PR title) must have this exact format
+          # (including punctuation):
+          #
+          #     type: description
+          #
+          # `type` describes the nature of changes you are making. This project
+          # requires the type to be one of these exact names:
+          #
+          #    * feat
+          #    * fix
+          #    * chore (will be omitted from changelog)
+          #    * docs
+          #    * build, ci, perf, refactor, revert, style, test
+          #    * update (used by Dependabot)
+          #
+          # NOTE: Conventional Commits also defines a `(scope)` parameter
+          # which can define a sub-area within the project where the change was
+          # made. This project is configured to disallow the use of `scope`,
+          # since c2patool is a single crate and a scope would never carry
+          # useful information.
+          #
+          # `description` is a short human-readable summary of the changes being made.
+          #
+          # This project enforces a few rules over and above the Conventional
+          # Commits definition of `description`:
+          #
+          #    * The `description` must be non-empty.
+          #    * The `description` must start with a capital letter or number.
+          #      (Do not start `description` with a lower-case word.)
+          #    * The `description` must not end with a period.
+          #
+          # This project does not currently enforce the following items, but
+          # we ask that you observe the following preferences in `description`:
+          #
+          #    * The entire description should be written and capitalized as
+          #      an English-language sentence, except (as noted earlier) that
+          #      the trailing period must be omitted.
+          #    * Any acronyms such as JSON or YAML should be capitalized as per
+          #      common usage in English-language sentences.
+          #
+          # After you edit the PR title, this task will run again and the
+          # warning should go away if you have made acceptable changes.
+          #
+          # For more information on Conventional Commits, please see:
+          #
+          #    https://www.conventionalcommits.org/en/v1.0.0/
+          #
+          # ------------ (end of message) ------------
+
+          if echo "$PR_TITLE" | grep -E '^chore: release '; then
+            echo "Exception / OK: chore release pattern"
+            exit 0;
+          fi
+
+          if echo "$PR_TITLE" | grep -E '^chore: release$'; then
+            echo "Exception / OK: chore release pattern"
+            exit 0;
+          fi
+
+          if echo "$PR_TITLE" | grep -E '^chore: bump '; then
+            echo "Exception / OK: Dependabot update pattern"
+            exit 0;
+          fi
+
+          if echo "$PR_TITLE" | grep -E '^update: update '; then
+            echo "Exception / OK: Dependabot update pattern"
+            exit 0;
+          fi
+
+          if echo "$PR_TITLE" | grep -E '^update: bump '; then
+            echo "Exception / OK: Dependabot update pattern"
+            exit 0;
+          fi
+
+          echo "Installing commitlint-rs. Please wait 30-40 seconds ..."
+          cargo install --quiet commitlint-rs
+          set -e
+
+          echo
+          echo
+          echo --- commitlint results for PR title \"$PR_TITLE\" ---
+          echo
+
+          echo "$PR_TITLE" | commitlint -g .commitlintrc.yml
+
+          echo "✅ PR title matches all enforced rules."
