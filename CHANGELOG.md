@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.27.21](https://github.com/contentauth/c2patool/compare/v0.27.20...v0.27.21)
+_22 September 2026_
+
+### Added
+
+* Backport remaining release infrastructure to stable ([#344](https://github.com/contentauth/c2patool/pull/344))
+
+### Fixed
+
+* Update release workflow for the standalone repo's bare v* tag scheme
+
+### Other
+
+* Backport stable CI parity updates ([#342](https://github.com/contentauth/c2patool/pull/342))
+
 ## [0.27.20](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.19...c2patool-v0.27.20)
 _04 September 2026_
 
