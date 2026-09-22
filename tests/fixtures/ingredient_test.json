@@ -29,7 +29,7 @@
                         }
                     },
                     {
-                        "action": "c2pa.opened",
+                        "action": "c2pa.edited",
                         "instanceId": "xmp.iid:9867c3b4-465e-42e4-8064-76c0c0fe3d16",
                         "parameters": {
                             "description": "import"
@@ -128,4 +128,3 @@
         "C.jpg", "ingredient/ingredient.json"
     ]
 }
-
