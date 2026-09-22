@@ -1561,9 +1561,11 @@ pub mod tests {
         assert!(apply_trust_sidecars(&mut settings, &settings_path).unwrap());
         let ta = settings
             .trust
-            .trust_anchors
+            .anchors
             .as_deref()
-            .expect("trust_anchors");
+            .and_then(|anchors| anchors.first())
+            .expect("anchors");
+        let ta = ta.trust_anchors.as_str();
         assert!(ta.contains("BEGIN CERTIFICATE"));
     }
 }
