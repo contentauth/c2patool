@@ -1593,8 +1593,13 @@ pub mod tests {
         .unwrap();
         let mut settings = Settings::default();
         assert!(apply_trust_sidecars(&mut settings, &settings_path).unwrap());
-        let ta = settings.trust.anchors.as_deref().expect("trust_anchors");
-        // will not be empty if the trust list is successfully read
-        assert!(!ta.is_empty());
+        let ta = settings
+            .trust
+            .anchors
+            .as_deref()
+            .and_then(|anchors| anchors.first())
+            .expect("anchors");
+        let ta = ta.trust_anchors.as_str();
+        assert!(ta.contains("BEGIN CERTIFICATE"));
     }
 }
