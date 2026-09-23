@@ -944,6 +944,14 @@ fn verify_fragmented(
                 println!("Verifying manifest: {p:?}");
                 let reader =
                     Reader::from_shared_context(context).with_fragmented_files(&p, &fragments)?;
+
+                if reader.validation_state() == ValidationState::Invalid {
+                    eprintln!("Failed to validate: {}", p.display());
+                    if let Some(results) = reader.validation_results() {
+                        eprintln!("{}", results.failure_summary());
+                    }
+                }
+
                 readers.push(reader);
 
                 count += 1;
