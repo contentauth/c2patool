@@ -473,7 +473,7 @@ dependencies = [
 [[package]]
 name = "c2pa"
 version = "0.92.0-dev"
-source = "git+https://github.com/contentauth/c2pa-rs?branch=main#6c92bc322196b9b30be3599e62a363a63ab76b55"
+source = "git+https://github.com/contentauth/c2pa-rs?branch=main#c8eb4e1c8326d6ce6fa2b057463962c5d6fcbe58"
 dependencies = [
  "asn1-rs",
  "async-generic",
@@ -1278,7 +1278,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -1940,9 +1940,9 @@ dependencies = [
 
 [[package]]
 name = "id3"
-version = "1.17.1"
+version = "1.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24993fcabcbc07c8ac076a8e62db8593d1a5c4dbe81d57e531d2b7cb7f737380"
+checksum = "ef8be496a46468ba3d43690775aa3a79102ce4daf7d99e8072589aae1a3cd955"
 dependencies = [
  "bitflags 2.13.1",
  "byteorder",
@@ -2931,7 +2931,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3354,7 +3354,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3937,7 +3937,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
