@@ -109,10 +109,12 @@ Cutting a release is mostly a CI action rather than manual toil. The pieces:
 
 ### release-plz
 
-We use [`release-plz`](https://release-plz.dev) (via the [GitHub Action wrapper](https://github.com/release-plz/action)), configured by [`release-plz.toml`](https://github.com/contentauth/c2patool/blob/main/release-plz.toml). Its two responsibilities are split across two workflows, both of which run on the **release-line and release-candidate branches**, never on `main`:
+We use [`release-plz`](https://release-plz.dev) (via the [GitHub Action wrapper](https://github.com/release-plz/action)), configured by [`release-plz.toml`](https://github.com/contentauth/c2patool/blob/main/release-plz.toml). Its two responsibilities are split across two workflows, both of which run only on **release-line branches** (`stable` and `v0.*`), never on `main` or release-candidate branches:
 
 * [`release-pr.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/release-pr.yml) runs `release-plz release-pr`: it inspects commits since the last tag and opens/updates a **release PR** that bumps the version and updates the changelog.
 * [`release.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/release.yml) runs `release-plz release`: when a release PR merges (a push to the release-line branch), it publishes to crates.io, creates a GitHub release, and tags it `v(version)`. That tag then drives the binary build ([`c2patool-release.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/c2patool-release.yml) on any `v*` tag): `release.yml` doesn't build binaries itself, which is what lets release-candidate builds produce the same binaries from the same tags (see [RC builds](#release-candidate-builds)). A push whose ref contains `-rc` never publishes to crates.io.
+
+`release-pr.yml` also supports manual dispatch for recovery or re-generation, but the selected ref must be `stable` or a `v0.*` line; dispatching it on `main` or an RC branch fails before release-plz runs. When a release PR is generated, cleanup is limited to closed release PR branches for that same base line, so activity on one line cannot delete another line's active release PR.
 
 Binary builds are therefore entirely **tag-driven**, independent of how a tag was created. A tag whose name contains `-rc.` yields a **prerelease** GitHub release; nothing publishes to crates.io in that case.
 
