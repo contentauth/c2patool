@@ -1438,7 +1438,7 @@ fn main() -> Result<()> {
         } else if failed > 0 {
             bail!("{validated} validated and {failed} failed validation");
         } else {
-            println!("{validated} validated and {failed} failed validation");
+            println!("{validated} Init manifests validated");
         }
     } else {
         let reader = reader_from_args(path, &args, &context)?;
