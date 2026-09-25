@@ -33,7 +33,7 @@ use c2pa::{
     settings::{Settings, TrustAnchor, TrustListKind},
     BoxedSigner, Builder, BuilderIntent, CallbackSigner, ClaimGeneratorInfo,
     Context as C2paContext, DigitalSourceType, Error, Ingredient, ManifestDefinition, Reader,
-    Signer, SigningAlg,
+    Signer, SigningAlg, ValidationState,
 };
 use clap::{Parser, Subcommand};
 use env_logger::Env;
@@ -943,11 +943,12 @@ fn verify_fragmented(
 
                 println!("Verifying manifest: {p:?}");
                 let reader =
-                    Reader::from_shared_context(context).with_fragmented_files(p, &fragments)?;
-                if let Some(vs) = reader.validation_status() {
-                    if let Some(e) = vs.iter().find(|v| !v.passed()) {
-                        eprintln!("Error validating segments: {e:?}");
-                        return Ok(readers);
+                    Reader::from_shared_context(context).with_fragmented_files(&p, &fragments)?;
+
+                if reader.validation_state() == ValidationState::Invalid {
+                    eprintln!("Failed to validate: {}", p.display());
+                    if let Some(results) = reader.validation_results() {
+                        eprintln!("{}", results.failure_summary());
                     }
                 }
 
@@ -1426,10 +1427,18 @@ fn main() -> Result<()> {
     }) = &args.command
     {
         let stores = verify_fragmented(path, fg, &context)?;
-        if stores.len() == 1 {
+        let failed = stores
+            .iter()
+            .filter(|reader| reader.validation_state() == ValidationState::Invalid)
+            .count();
+
+        let validated = stores.len() - failed;
+        if stores.len() == 1 && failed == 0 {
             println!("{}", stores[0]);
+        } else if failed > 0 {
+            bail!("{validated} validated and {failed} failed validation");
         } else {
-            println!("{} Init manifests validated", stores.len());
+            println!("{validated} Init manifests validated");
         }
     } else {
         let reader = reader_from_args(path, &args, &context)?;
