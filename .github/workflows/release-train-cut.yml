@@ -207,7 +207,7 @@ jobs:
                 '- Bake at least **3 business days**; hold longer if downstream validation needs it.',
                 '- Only **bugfixes** are accepted during the bake, upstream-first: fix on `main`, then cherry-pick onto the RC branch.',
                 `- To cut a fresh candidate build after fixes land, run the **Cut release-candidate build** workflow (\`release-rc.yml\`) on \`${branch}\` — it bumps to the next \`-rc.N\` and rebuilds the binary.`,
-                `- When green, **manually promote**: snapshot the outgoing \`stable\` as \`v0.<old>\` (for backports), then merge the RC branch into \`stable\`. release-plz then publishes \`${rel}\`.`,
+                `- When green, **manually promote**: dispatch \`promote.yml\` on \`${branch}\`. It snapshots the outgoing \`stable\` as \`v0.<old>\` (for backports) and force-pushes the baked train onto \`stable\`. The release workflow opens a reviewed \`${rel}\` release PR; merging that PR publishes it.`,
                 '- The previous line is retired once this train ships.',
               ].join('\n'),
             });
