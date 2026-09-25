@@ -15,7 +15,7 @@
 use std::{
     error::Error,
     fs::{self, create_dir_all},
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::Command,
 };
 
@@ -778,4 +778,55 @@ fn intent_update_adds_parent_and_opened_action() -> Result<(), Box<dyn Error>> {
         .stdout(str::contains("c2pa.opened"))
         .stdout(str::contains("parentOf"));
     Ok(())
+}
+
+fn copy_fragment_fixture(dir: &Path) {
+    create_dir_all(dir).unwrap();
+    fs::copy(fixture_path("dashinit.mp4"), dir.join("dashinit.mp4")).unwrap();
+    fs::copy(fixture_path("dash1.m4s"), dir.join("dash1.m4s")).unwrap();
+}
+
+#[test]
+fn tool_fragment_verify_valid() {
+    let temp_dir = tempdir().unwrap();
+    let init_dir = temp_dir.path().join("good_init");
+    copy_fragment_fixture(&init_dir);
+
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(init_dir.join("dashinit.mp4"))
+        .arg("fragment")
+        .arg("--fragments_glob")
+        .arg("dash1.m4s")
+        .assert()
+        .success()
+        .stdout(str::contains("\"validation_state\": \"Valid\""));
+}
+
+#[test]
+fn tool_fragment_reports_invalid_in_mixed_glob() {
+    let temp_dir = tempdir().unwrap();
+    let good_dir = temp_dir.path().join("good_init");
+    let bad_dir = temp_dir.path().join("bad_init");
+    copy_fragment_fixture(&good_dir);
+    copy_fragment_fixture(&bad_dir);
+
+    let bad_fragment = bad_dir.join("dash1.m4s");
+    let mut bytes = fs::read(&bad_fragment).unwrap();
+    let middle = bytes.len() / 2;
+    bytes[middle] ^= 0xFF;
+    fs::write(&bad_fragment, bytes).unwrap();
+
+    let init_glob = temp_dir.path().join("**").join("dashinit.mp4");
+
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(init_glob)
+        .arg("fragment")
+        .arg("--fragments_glob")
+        .arg("dash1.m4s")
+        .assert()
+        .failure()
+        .stderr(str::contains("1 validated and 1 failed validation"))
+        .stderr(str::contains("bad_init"))
+        .stderr(str::contains("bmffHash.mismatch"))
+        .stderr(str::contains("good_init").not());
 }
