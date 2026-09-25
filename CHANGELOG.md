@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.0-dev](https://github.com/contentauth/c2patool/compare/v0.28.0...v0.29.0-dev)
+_25 September 2026_
+
+### Added
+
+* Enable Dependabot version updates, excluding c2pa ([#317](https://github.com/contentauth/c2patool/pull/317))
+* Open an immediate PR on stable when c2pa-rs publishes a release ([#316](https://github.com/contentauth/c2patool/pull/316))
+* Restore full release infrastructure for stable + release-process.md ([#310](https://github.com/contentauth/c2patool/pull/310))
+* Auto-track c2pa-rs's main branch ([#309](https://github.com/contentauth/c2patool/pull/309))
+* [**breaking**] Update for C2PA 2.3 spec (contentauth/c2pa-rs#2545)
+
+### Documented
+
+* *(cli)* Document --trust_list_uri and init trust subcommand ([#303](https://github.com/contentauth/c2patool/pull/303))
+* Add support-tiers.md for c2patool ([#313](https://github.com/contentauth/c2patool/pull/313))
+* Add CI, crates.io, and codecov badges to README ([#312](https://github.com/contentauth/c2patool/pull/312))
+* Fix dangling contentauth/c2pa-rs links ([#307](https://github.com/contentauth/c2patool/pull/307))
+* Remove duplicate info, general edits, fix links, etc. (contentauth/c2pa-rs#2490)
+* Edit and cleanup pass (contentauth/c2pa-rs#2354)
+* Add experimental features policy (contentauth/c2pa-rs#2345)
+
+### Fixed
+
+* Report failed fragments rather than dropping them ([#336](https://github.com/contentauth/c2patool/pull/336))
+* Don't fail promote.yml when the RC version was never bumped ([#347](https://github.com/contentauth/c2patool/pull/347))
+* Use CROSS_ORG_PR_TOKEN for release-rc.yml workflow dispatch ([#327](https://github.com/contentauth/c2patool/pull/327))
+* Bump MSRV to 1.96.0 and fix release-binary paths ([#326](https://github.com/contentauth/c2patool/pull/326))
+* Update release workflow for the standalone repo's bare v* tag scheme
+* [**breaking**] C2PA 2.4 validation (contentauth/c2pa-rs#2578)
+* Run Tier 1A on all PRs regardless of target branch (contentauth/c2pa-rs#2574)
+* Consistently use xmp.iid: instead of xmp:iid: (contentauth/c2pa-rs#2563)
+* Correct tag, commit, and changelog for tag-driven binary releases (contentauth/c2pa-rs#2306)
+
+### Other
+
+* Skip atomic write replacement test on WASI ([#343](https://github.com/contentauth/c2patool/pull/343))
+* Strengthen trust sidecar anchor assertion ([#339](https://github.com/contentauth/c2patool/pull/339))
+* Add promote.yml workflow for release-candidate promotion ([#338](https://github.com/contentauth/c2patool/pull/338))
+* Version-control GitHub labels via labels.yml ([#311](https://github.com/contentauth/c2patool/pull/311))
+* Add commit-lint enforcement for PR titles ([#315](https://github.com/contentauth/c2patool/pull/315))
+* Restore full CI job set for the standalone repo ([#308](https://github.com/contentauth/c2patool/pull/308))
+* Replace `safe to test` trust logic with GitHub native fork-approval (contentauth/c2pa-rs#2420)
+* Trust same-repo PR branches instead of author_association (contentauth/c2pa-rs#2352)
+* Publish binaries for each release-candidate build (contentauth/c2pa-rs#2304)
+
+### Updated dependencies
+
+* Bump mockall from 0.14.0 to 0.15.0 (contentauth/c2pa-rs#2593)
+* Bump pem from 3.0.6 to 4.0.0 (contentauth/c2pa-rs#2496)
+
 ## [0.26.72](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.26.71...c2patool-v0.26.72)
 _13 July 2026_
 
