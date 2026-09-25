@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.1](https://github.com/contentauth/c2patool/compare/v0.28.0...v0.28.1)
+_25 September 2026_
+
+### Other
+
+* Sequence release publication and PR generation (backport #350) ([#353](https://github.com/contentauth/c2patool/pull/353))
+
 ## [0.28.0](https://github.com/contentauth/c2patool/compare/v0.27.20...v0.28.0)
 _22 September 2026_
 
