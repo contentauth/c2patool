@@ -830,3 +830,203 @@ fn tool_fragment_reports_invalid_in_mixed_glob() {
         .stderr(str::contains("bmffHash.mismatch"))
         .stderr(str::contains("good_init").not());
 }
+
+// -----------------------------------------------------------------------------
+// Regression tests for `--external-manifest` on the export / inspect paths.
+//
+// The `--external-manifest` option is documented to override the asset's embedded
+// or remote manifest. It was honored only on the default read path; the `--output`
+// report arm, the `--ingredient` arms, `--tree`, `--certs`, and `info` silently
+// fell back to the embedded store. The report/tree/certs paths now honor the
+// override; the ingredient/info paths reject the combination rather than silently
+// ignoring it.
+// -----------------------------------------------------------------------------
+
+/// Sign `earth_apollo17.jpg` and return the path to a `.c2pa` sidecar that
+/// describes the *signed* asset. This sidecar therefore does NOT match `C.jpg`.
+fn external_sidecar(name: &str) -> PathBuf {
+    let signed = temp_path(&format!("{name}.jpg"));
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("earth_apollo17.jpg"))
+        .arg("-m")
+        .arg(fixture_path("ingredient_test.json"))
+        .arg("--sidecar")
+        .arg("-o")
+        .arg(&signed)
+        .arg("-f")
+        .assert()
+        .success();
+    signed.with_extension("c2pa")
+}
+
+#[test]
+fn external_manifest_honored_in_folder_report() -> Result<(), Box<dyn Error>> {
+    let sidecar = external_sidecar("ext_report");
+    let out = temp_path("ext_report_out");
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("C.jpg"))
+        .arg("--external-manifest")
+        .arg(&sidecar)
+        .arg("-o")
+        .arg(&out)
+        .arg("-f")
+        .assert()
+        .success();
+    // The sidecar does not describe C.jpg, so the report must be Invalid. Before
+    // the fix this path silently validated C.jpg's embedded manifest as Valid.
+    let json: Value = serde_json::from_str(&fs::read_to_string(out.join("manifest_store.json"))?)?;
+    assert_eq!(
+        json.get("validation_state").and_then(|s| s.as_str()),
+        Some("Invalid"),
+    );
+    Ok(())
+}
+
+#[test]
+fn external_manifest_folder_report_accepts_matching_sidecar() -> Result<(), Box<dyn Error>> {
+    // Sign earth so that the sidecar matches the signed asset it describes.
+    let signed = temp_path("ext_match.jpg");
+    let sidecar = signed.with_extension("c2pa");
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("earth_apollo17.jpg"))
+        .arg("-m")
+        .arg(fixture_path("ingredient_test.json"))
+        .arg("--sidecar")
+        .arg("-o")
+        .arg(&signed)
+        .arg("-f")
+        .assert()
+        .success();
+
+    let out = temp_path("ext_match_out");
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(&signed)
+        .arg("--external-manifest")
+        .arg(&sidecar)
+        .arg("-o")
+        .arg(&out)
+        .arg("-f")
+        .assert()
+        .success();
+    let json: Value = serde_json::from_str(&fs::read_to_string(out.join("manifest_store.json"))?)?;
+    assert_eq!(
+        json.get("validation_state").and_then(|s| s.as_str()),
+        Some("Valid"),
+    );
+    Ok(())
+}
+
+#[test]
+fn external_manifest_honored_in_tree() {
+    let sidecar = external_sidecar("ext_tree");
+    // `cawg.training-mining` and the `earth_apollo17.jpg` ingredient come from the
+    // sidecar; C.jpg's embedded manifest contains neither.
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("C.jpg"))
+        .arg("--external-manifest")
+        .arg(&sidecar)
+        .arg("--tree")
+        .assert()
+        .success()
+        .stdout(str::contains("cawg.training-mining"))
+        .stdout(str::contains("earth_apollo17.jpg"));
+}
+
+#[test]
+fn external_manifest_honored_on_default_read() {
+    // earth_apollo17.jpg has no embedded manifest, so a Valid report can only come
+    // from the external manifest.
+    let sidecar = external_sidecar("ext_read_pos");
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("earth_apollo17.jpg"))
+        .assert()
+        .failure()
+        .stderr(str::contains("No claim found"));
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("earth_apollo17.jpg"))
+        .arg("--external-manifest")
+        .arg(&sidecar)
+        .assert()
+        .success()
+        .stdout(str::contains("\"validation_state\": \"Valid\""));
+}
+
+#[test]
+fn external_manifest_default_read_rejects_mismatch() {
+    // The sidecar does not describe C.jpg, so the report must be Invalid rather
+    // than substituting C.jpg's (Valid) embedded manifest.
+    let sidecar = external_sidecar("ext_read_neg");
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("C.jpg"))
+        .arg("--external-manifest")
+        .arg(&sidecar)
+        .assert()
+        .success()
+        .stdout(str::contains("\"validation_state\": \"Invalid\""));
+}
+
+#[test]
+fn external_manifest_honored_in_certs() {
+    // earth_apollo17.jpg has no embedded manifest, so a cert chain can only come
+    // from the external manifest.
+    let sidecar = external_sidecar("ext_certs");
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("earth_apollo17.jpg"))
+        .arg("--certs")
+        .assert()
+        .failure();
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("earth_apollo17.jpg"))
+        .arg("--external-manifest")
+        .arg(&sidecar)
+        .arg("--certs")
+        .assert()
+        .success()
+        .stdout(str::contains("BEGIN CERTIFICATE"));
+}
+
+#[test]
+fn external_manifest_rejected_with_ingredient_folder() {
+    let out = temp_path("ext_ing_folder_out");
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("C.jpg"))
+        .arg("--external-manifest")
+        .arg(fixture_path("C.jpg")) // any path: rejected before it is read
+        .arg("--ingredient")
+        .arg("-o")
+        .arg(&out)
+        .arg("-f")
+        .assert()
+        .failure()
+        .stderr(str::contains(
+            "--external-manifest is not supported with --ingredient",
+        ));
+}
+
+#[test]
+fn external_manifest_rejected_with_ingredient() {
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("C.jpg"))
+        .arg("--external-manifest")
+        .arg(fixture_path("C.jpg")) // any path: rejected before it is read
+        .arg("--ingredient")
+        .assert()
+        .failure()
+        .stderr(str::contains(
+            "--external-manifest is not supported with --ingredient",
+        ));
+}
+
+#[test]
+fn external_manifest_rejected_with_info() {
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path("C.jpg"))
+        .arg("--external-manifest")
+        .arg(fixture_path("C.jpg")) // any path: rejected before it is read
+        .arg("--info")
+        .assert()
+        .failure()
+        .stderr(str::contains(
+            "--external-manifest is not supported with the info command",
+        ));
+}

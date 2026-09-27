@@ -71,15 +71,22 @@ fn walk_tree(tree: &Arena<String>, token: &Token) -> Tree<String> {
     result
 }
 
-/// Prints tree view of manifest store
-pub fn tree<P: AsRef<Path>>(path: P) -> Result<String> {
+/// Prints tree view of manifest store.
+///
+/// When `external_manifest` is set it overrides the asset's embedded or remote
+/// manifest, matching the behavior of the ordinary read path.
+pub fn tree<P: AsRef<Path>>(path: P, external_manifest: Option<&Path>) -> Result<String> {
+    let path = path.as_ref();
     let os_filename = path
-        .as_ref()
         .file_name()
         .ok_or_else(|| crate::Error::BadParam("bad filename".to_string()))?;
     let asset_name = os_filename.to_string_lossy().into_owned();
 
-    let reader = Reader::default().with_file(path)?;
+    let reader = match external_manifest {
+        Some(_) => crate::read_asset(Reader::default(), path, external_manifest)
+            .map_err(|e| crate::Error::BadParam(e.to_string()))?,
+        None => Reader::default().with_file(path)?,
+    };
 
     // walk through the manifests and show the contents
     Ok(if let Some(manifest_label) = reader.active_label() {
@@ -99,7 +106,7 @@ mod tests {
 
     #[test]
     fn test_tree() -> Result<()> {
-        let result = tree("tests/fixtures/C.jpg")?;
+        let result = tree("tests/fixtures/C.jpg", None)?;
         assert!(result.contains("Tree View:"));
         assert!(result.contains("Assertion:c2pa.actions"));
         Ok(())
