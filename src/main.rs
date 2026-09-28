@@ -29,11 +29,9 @@ use std::{
 
 use anyhow::{anyhow, bail, Context, Result};
 use c2pa::{
-    create_signer, format_from_path,
-    settings::{Settings, TrustAnchor, TrustListKind},
-    BoxedSigner, Builder, BuilderIntent, CallbackSigner, ClaimGeneratorInfo,
-    Context as C2paContext, DigitalSourceType, Error, Ingredient, ManifestDefinition, Reader,
-    Signer, SigningAlg, ValidationState,
+    create_signer, format_from_path, settings::Settings, BoxedSigner, Builder, BuilderIntent,
+    CallbackSigner, ClaimGeneratorInfo, Context as C2paContext, DigitalSourceType, Error,
+    Ingredient, ManifestDefinition, Reader, Signer, SigningAlg, ValidationState,
 };
 use clap::{Parser, Subcommand};
 use env_logger::Env;
