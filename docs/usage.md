@@ -109,6 +109,8 @@ Use the `--external-manifest` option to validate an asset against a separate bin
 c2patool sample/image.jpg --external-manifest sample/image.c2pa
 ```
 
+The override also applies to the report written with `--output`, to `--certs`, and to `--tree`. It is not supported with `--ingredient` or the `info` command, which build their view from the asset's embedded manifest; combining `--external-manifest` with either returns an error rather than silently ignoring the sidecar.
+
 ### Displaying a tree diagram
 
 Use the `--tree` option to display a text tree diagram of the manifest store, showing the structure of assertions and nested ingredients. For example:
