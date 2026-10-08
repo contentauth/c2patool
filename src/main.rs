@@ -932,27 +932,39 @@ fn verify_fragmented(
     Ok(readers)
 }
 
+/// Build a reader for `asset_path`, honoring `--external-manifest` when set.
+///
+/// When an external manifest is supplied it overrides the asset's embedded or
+/// remote manifest (see `CliArgs::external_manifest`); otherwise the embedded
+/// store is used. `reader` must already be constructed with the desired context.
+pub(crate) fn read_asset(
+    reader: Reader,
+    asset_path: &Path,
+    external_manifest: Option<&Path>,
+) -> Result<Reader> {
+    match external_manifest {
+        Some(external_manifest) => {
+            let c2pa_data = fs::read(external_manifest)?;
+            let format = format_from_path(asset_path)
+                .ok_or_else(|| anyhow!("Format for {asset_path:?} is unrecognized"))?;
+            Ok(reader
+                .with_manifest_data_and_stream(&c2pa_data, &format, File::open(asset_path)?)
+                .map_err(special_errs)?)
+        }
+        None => Ok(reader.with_file(asset_path).map_err(special_errs)?),
+    }
+}
+
 fn reader_from_args(
     asset_path: &Path,
     args: &CliArgs,
     context: &Arc<C2paContext>,
 ) -> Result<Reader> {
-    if let Some(external_manifest) = &args.external_manifest {
-        let c2pa_data = fs::read(external_manifest)?;
-        let format = match c2pa::format_from_path(asset_path) {
-            Some(format) => format,
-            None => {
-                bail!("Format for {:?} is unrecognized", asset_path);
-            }
-        };
-        Ok(Reader::from_shared_context(context)
-            .with_manifest_data_and_stream(&c2pa_data, &format, File::open(asset_path)?)
-            .map_err(special_errs)?)
-    } else {
-        Ok(Reader::from_shared_context(context)
-            .with_file(asset_path)
-            .map_err(special_errs)?)
-    }
+    read_asset(
+        Reader::from_shared_context(context),
+        asset_path,
+        args.external_manifest.as_deref(),
+    )
 }
 
 // Utility to catch reader formatting errors and print the reader json or detailed json
@@ -1029,13 +1041,20 @@ fn main() -> Result<()> {
         .context("PATH to an asset is required (omit only for `init`)")?;
 
     if args.info {
+        // `info` builds an ingredient from the asset's embedded manifest and has no
+        // way to substitute an external one, so reject rather than silently ignore it.
+        if args.external_manifest.is_some() {
+            bail!("--external-manifest is not supported with the info command");
+        }
         return info(path);
     }
 
     if args.cert_chain {
-        let reader = Reader::from_context(C2paContext::new())
-            .with_file(path)
-            .map_err(special_errs)?;
+        let reader = read_asset(
+            Reader::from_context(C2paContext::new()),
+            path,
+            args.external_manifest.as_deref(),
+        )?;
         // todo: add cawg certs here??
         if let Some(manifest) = reader.active_manifest() {
             if let Some(si) = manifest.signature_info() {
@@ -1048,7 +1067,7 @@ fn main() -> Result<()> {
     }
 
     if args.tree {
-        println!("{}", tree::tree(path)?);
+        println!("{}", tree::tree(path, args.external_manifest.as_deref())?);
         return Ok(());
     }
 
@@ -1348,6 +1367,11 @@ fn main() -> Result<()> {
         }
         create_dir_all(&output)?;
         if args.ingredient {
+            // The ingredient is built from the asset's embedded manifest; there is no
+            // way to substitute an external one, so reject rather than silently ignore it.
+            if args.external_manifest.is_some() {
+                bail!("--external-manifest is not supported with --ingredient");
+            }
             let mut builder = Builder::from_shared_context(&context);
             let ingredient = builder
                 .add_ingredient_from_stream(
@@ -1365,9 +1389,11 @@ fn main() -> Result<()> {
             File::create(output.join("ingredient.json"))?.write_all(&report.into_bytes())?;
             println!("Ingredient report written to the directory {:?}", output);
         } else {
-            let reader = Reader::from_shared_context(&context)
-                .with_file(path)
-                .map_err(special_errs)?;
+            let reader = read_asset(
+                Reader::from_shared_context(&context),
+                path,
+                args.external_manifest.as_deref(),
+            )?;
             reader.to_folder(&output)?;
             let report = reader.to_string();
             if args.detailed {
@@ -1380,6 +1406,11 @@ fn main() -> Result<()> {
             println!("Manifest report written to the directory {:?}", output);
         }
     } else if args.ingredient {
+        // The ingredient is built from the asset's embedded manifest; there is no
+        // way to substitute an external one, so reject rather than silently ignore it.
+        if args.external_manifest.is_some() {
+            bail!("--external-manifest is not supported with --ingredient");
+        }
         let mut builder = Builder::from_shared_context(&context);
         let ingredient = builder.add_ingredient_from_stream(
             r#"{"relationship":"component-of"}"#,
