@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.2](https://github.com/contentauth/c2patool/compare/v0.28.1...v0.28.2)
+_08 October 2026_
+
+### Fixed
+
+* Honor --external-manifest option on export and inspect paths ([#355](https://github.com/contentauth/c2patool/pull/355)) ([#356](https://github.com/contentauth/c2patool/pull/356))
+* Resolve yoke-derive yanked crate error (backport #357) ([#362](https://github.com/contentauth/c2patool/pull/362))
+
+### Other
+
+* Update sample manifest for c2pa v2 ([#359](https://github.com/contentauth/c2patool/pull/359)) ([#360](https://github.com/contentauth/c2patool/pull/360))
+
+### Updated dependencies
+
+* Bump c2pa to 0.91.2 ([#358](https://github.com/contentauth/c2patool/pull/358))
+
 ## [0.28.1](https://github.com/contentauth/c2patool/compare/v0.28.0...v0.28.1)
 _28 September 2026_
 
