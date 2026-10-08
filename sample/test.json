@@ -1,5 +1,5 @@
 {
-  "claim_version": 1,
+  "claim_version": 2,
   "ta_url": "http://timestamp.digicert.com",
   "claim_generator_info":[{
     "name": "TestApp",
@@ -12,7 +12,7 @@
       "data": {
         "actions": [
           {
-            "action": "c2pa.opened"
+            "action": "c2pa.edited"
           }
         ],
         "metadata": {
