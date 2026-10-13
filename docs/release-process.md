@@ -132,6 +132,8 @@ The set of commit types that trigger a release is configured by `release_commits
 
 To bring a merged `main` PR onto a release line, add a `backport-<branch>` label to it (e.g. `backport-stable`). On merge, [`backport.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/backport.yml) (using [`korthout/backport-action`](https://github.com/korthout/backport-action)) cherry-picks the change and opens a PR against that branch. Because that PR targets a release-line branch, it must pass the full Tier 1A suite before it can merge (see [validation gating](#validation-gating)).
 
+Release lines legitimately diverge from `main` (they carry a subset of the workflows, older dependency pins, and their own changelog), so a conflicting cherry-pick is routine. When that happens the bot commits the first conflict and opens the backport PR as a **draft**: resolve the conflict markers on that branch, confirm it compiles and passes tests, then mark it ready for review. Auto-merge is deliberately not armed on draft backports. The workflow run is also marked **failed** in that case, so a conflicted backport is visible in the Actions list rather than only in a comment on the source PR.
+
 ### Upstream-first check: proactive
 
 [`upstream-first-check.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/upstream-first-check.yml) runs on every PR targeting a release-line or release-candidate branch and **blocks the merge** if the PR introduces a commit whose change is not already on `main` (compared by patch id via `git cherry`). Combined with [branch protection](#branch-protection) that requires PRs on these branches, it makes "nothing originates on a release branch" enforceable.
