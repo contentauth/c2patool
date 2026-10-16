@@ -1,0 +1,51 @@
+# If updating this file, please also review `docs/release-process.md`,
+# `CONTRIBUTING.md`, and `.github/workflows/pr_title.yml` and update the
+# summary of these rules in those files accordingly.
+
+rules:
+  # Body may be empty
+  body-empty:
+    level: ignore
+
+  # Description must not be empty
+  description-empty:
+    level: error
+
+  # Description must start with a capital letter and must not end with a period or space
+  description-format:
+    level: error
+    format: ^[A-Z0-9].*[^. ]$
+
+  # Description should be <70 chars
+  description-max-length:
+    level: warning
+    length: 70
+
+  # Scope is not allowed. Unlike c2pa-rs (a monorepo with several crates
+  # to disambiguate), c2patool is a single crate, so a scope would never
+  # carry useful information.
+  scope:
+    level: error
+    optional: false
+    options: []
+
+  # Subject line should exist
+  subject-empty:
+    level: error
+
+  # Type must be one of these options
+  type:
+    level: error
+    options:
+      - build
+      - chore
+      - ci
+      - docs
+      - feat
+      - fix
+      - perf
+      - refactor
+      - revert
+      - style
+      - test
+      - update

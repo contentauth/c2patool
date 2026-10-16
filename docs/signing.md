@@ -132,7 +132,7 @@ tsa_url = "https://timestamp.digicert.com"
 
 Alternatively, put `sign_cert`, `private_key`, and (optionally) `alg` as fields in the manifest JSON, or set the `C2PA_SIGN_CERT` and `C2PA_PRIVATE_KEY` environment variables.
 
-If no signer is configured at all, C2PA Tool uses a built-in test certificate and key from the [`cli/sample` folder](https://github.com/contentauth/c2pa-rs/tree/main/cli/sample). This is only suitable for development.
+If no signer is configured at all, C2PA Tool uses a built-in test certificate and key from the [`cli/sample` folder](https://github.com/contentauth/c2patool/tree/main/sample). This is only suitable for development.
 
 ### CAWG identity assertion
 
@@ -154,7 +154,7 @@ roles = ["creator"]
 
 If `[cawg_x509_signer]` is absent, no CAWG identity assertion is generated.
 
-An example settings file is in the [`cli/tests/fixtures` folder](https://github.com/contentauth/c2pa-rs/tree/main/cli/tests/fixtures/trust/cawg_sign_settings.toml).
+An example settings file is in the [`cli/tests/fixtures` folder](https://github.com/contentauth/c2patool/tree/main/tests/fixtures/trust/cawg_sign_settings.toml).
 
 ## Writing your own signer
 

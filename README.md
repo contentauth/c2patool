@@ -1,5 +1,7 @@
 # C2PA command line tool
 
+[![CI](https://github.com/contentauth/c2patool/actions/workflows/ci.yml/badge.svg)](https://github.com/contentauth/c2patool/actions/workflows/ci.yml) [![Latest Version](https://img.shields.io/crates/v/c2patool.svg)](https://crates.io/crates/c2patool) [![codecov](https://codecov.io/gh/contentauth/c2patool/graph/badge.svg?token=L9XKK0W9VE)](https://codecov.io/gh/contentauth/c2patool)
+
 C2PA Tool, `c2patool`, is a command line tool for working with C2PA [manifests](https://c2pa.org/specifications/specifications/1.4/specs/C2PA_Specification.html#_manifests) and media assets (audio, image or video files).
 
 Use the tool on a file in one of the [supported formats](https://github.com/contentauth/c2pa-rs/blob/main/docs/supported-formats.md) to:
@@ -81,6 +83,9 @@ If you don't want to use a package manager, install a prebuilt binary of C2PA To
 3. Download and extract the archive file.
 4. Copy the `c2patool` executable file to a location on your `PATH`.
 
+> [!NOTE]
+> Looking for an older version? `c2patool` used to be part of the `c2pa-rs` monorepo. Releases `v0.27.15` and earlier live on [c2pa-rs's Releases page](https://github.com/contentauth/c2pa-rs/releases) instead, tagged `c2patool-vX.Y.Z`.
+
 
 After installing, confirm that you can run the tool by entering a command such as:
 ```
@@ -89,11 +94,11 @@ c2patool -h
 
 When running a prebuilt binary, you may need to set execution permission for the tool on your system. For macOS, see [If you want to open an app that hasn’t been notarized or is from an unidentified developer](https://support.apple.com/en-us/102445#openanyway).
 
-NOTE: You also may want to get some of the example files provided in the repository `sample` directory.   To do so, clone the repository with `git clone https://github.com/contentauth/c2pa-rs.git`.
+NOTE: You also may want to get some of the example files provided in the repository `sample` directory.   To do so, clone the repository with `git clone https://github.com/contentauth/c2patool.git`.
 
 ### Installing from source
 
-Instead of installing a prebuilt binary, you can [build the project from source](https://github.com/contentauth/c2pa-rs/blob/main/cli/docs/project-contributions.md#building-from-source).
+Instead of installing a prebuilt binary, you can [build the project from source](https://github.com/contentauth/c2patool/blob/main/docs/project-contributions.md#building-from-source).
 
 ### Upgrading
 
