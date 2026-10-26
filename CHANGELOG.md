@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.4](https://github.com/contentauth/c2patool/compare/v0.28.3...v0.28.4)
+_26 October 2026_
+
+### Fixed
+
+* Update stable SDK dependency to c2pa 0.91.7 ([#367](https://github.com/contentauth/c2patool/pull/367))
+
 ### Updated dependencies
 
 * Bump c2pa to 0.91.7, including the eMudhra TLS distrust dependency minimums.
