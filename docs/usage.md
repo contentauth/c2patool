@@ -330,6 +330,18 @@ c2patool sample/C.jpg trust \
   --trust_config https://server.com/store.cfg
 ```
 
+### HTTPS trust stores
+
+The manifest trust lists described here are separate from HTTPS server trust.
+Native builds use the platform TLS backend for CLI trust-list downloads:
+Secure Transport on macOS, SChannel on Windows, and OpenSSL's configured CA
+store on Linux. Keep operating-system security updates and CA packages current,
+including inside containers. The SDK's Rustls HTTP paths use a separately
+bundled root store; updating that store does not update the platform store.
+WASI builds delegate HTTP and TLS to the host runtime, which must also be kept
+current. An SDK upgrade alone does not establish that these external stores
+reject the [compromised eMudhra intermediates](https://emudhra.we-have-a-problem.com/).
+
 ### Using the official C2PA trust list
 
 To specify the [official C2PA trust list](https://github.com/c2pa-org/conformance-public/blob/main/trust-list/C2PA-TRUST-LIST.pem) use the `--trust_anchors` option as follows:
@@ -412,4 +424,3 @@ You can run the Wasm binary created for `wasm32-wasip2` directly with [wasmtime]
 ```
 wasmtime -S cli -S http --dir . c2patool.wasm [OPTIONS] <ASSET_PATH> [COMMAND]
 ```
-
