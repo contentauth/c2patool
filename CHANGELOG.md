@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Updated dependencies
+
+* Bump c2pa to 0.91.7, including the eMudhra TLS distrust dependency minimums.
+
 ## [0.28.3](https://github.com/contentauth/c2patool/compare/v0.28.2...v0.28.3)
 _24 October 2026_
 
