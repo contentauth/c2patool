@@ -14,7 +14,7 @@ We will follow this checklist when evaluating vulnerability tickets.
 
 Tickets that match the following characteristics will generally be **rejected**:
 
-* **Issues with the C2PA technical specification itself.** This library is only an implementation of the spec as written. Any suspected vulnerabilities within the spec can be reported [here](https://github.com/c2pa-org/specifications/issues).
+* **Issues with the C2PA technical specification itself.** This library is only an implementation of the spec as written. Report suspected vulnerabilities within the spec in the [C2PA specification repository](https://github.com/c2pa-org/specifications/issues).
 * **Denial-of-service attacks.** For example, out-of-memory conditions caused by sending large input data. It’s the responsibility of the host application to enforce size limits on raw input data based on configuration information specific to the host. **EXCEPTION:** When a “reasonably small” input generates an unreasonably large memory allocation, such as an input file of 1MB causing a 200MB memory allocation (i.e. the c2pa-rs allocation is a very large multiple of the original input), that ticket will generally be accepted.
 * **Use of non-default configuration settings to bypass security requirements** provided the consequences of those settings are sufficiently documented in our [documentation on settings](docs/context-settings.md).
 * **Generation of invalid C2PA manifests from valid inputs or credentials.** In these scenarios, the inputs were not maliciously altered, but due to a bug in the SDK a malformed manifest has been produced. These are welcome as ordinary bug reports, but are not security vulnerabilities.
