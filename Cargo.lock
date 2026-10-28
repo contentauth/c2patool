@@ -473,7 +473,7 @@ dependencies = [
 [[package]]
 name = "c2pa"
 version = "0.92.0-dev"
-source = "git+https://github.com/contentauth/c2pa-rs?branch=main#ec26aff2b91129944ab77584d1ce31f4829a47a3"
+source = "git+https://github.com/contentauth/c2pa-rs?branch=main#3831f85bd05c41debd437561c7bef0ff8433af49"
 dependencies = [
  "asn1-rs",
  "async-generic",
@@ -489,7 +489,6 @@ dependencies = [
  "c2pa_raw_crypto",
  "chrono",
  "console_log",
- "const-hex",
  "coset",
  "der 0.8.2",
  "ed25519-dalek 2.2.0",
@@ -534,7 +533,6 @@ dependencies = [
  "serde-transcode",
  "serde-wasm-bindgen",
  "serde_bytes",
- "serde_derive",
  "serde_json",
  "serde_with",
  "sha1 0.11.0",
@@ -1348,7 +1346,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3060,7 +3058,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3483,7 +3481,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4107,7 +4105,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
