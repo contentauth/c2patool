@@ -53,6 +53,7 @@ The following manifest properties are specific to C2PA Tool and used for signing
 - `private_key`: Private key to use. Default: `es256_private.key`
 - `sign_cert`: Signing certificate to use. Default: `es256_certs.pem`
 - `ta_url`:  Time Authority URL for getting a time-stamp (for example, `http://timestamp.digicert.com`). A time-stamp provides a way to confirm that the manifest was signed when the certificate was valid, even if the certificate has since expired. However, the Time Authority URL requires a live online connection for confirmation, which may not always be available.
+- `ta_headers`: HTTP headers to send with Time Authority requests, as an object of header names to values (for example, `{"X-Tenant": "acme"}`). Applies to the claim and ingredient time-stamps, whichever signer is used. Don't put secrets here. Use the `C2PA_TA_HEADERS` environment variable instead, one `Name: value` per line (for example, `Authorization: Bearer <token>`). Headers from both are sent. `Content-Type` is set by the tool and can't be overridden.
 
 ## Example
 
