@@ -1257,6 +1257,7 @@ fn main() -> Result<()> {
         } else {
             sign_config.signer()?
         };
+        let c2pa_signer = signer::with_ta_headers(c2pa_signer, sign_config.ta_headers()?);
 
         // Step 2: optionally wrap with a CAWG identity callback signer.
         let signer: Box<dyn Signer> = if let Some(ref identity_cmd) = args.identity_signer_path {
