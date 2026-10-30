@@ -1030,3 +1030,104 @@ fn external_manifest_rejected_with_info() {
             "--external-manifest is not supported with the info command",
         ));
 }
+
+/// Writes a minimal manifest definition pointing at `ta_url` and returns its path.
+fn ta_manifest(name: &str, ta_url: &str, ta_headers: Value) -> PathBuf {
+    let path = temp_path(name);
+    let manifest = serde_json::json!({
+        "ta_url": ta_url,
+        "ta_headers": ta_headers,
+        "claim_generator_info": [{ "name": "c2patool test", "version": "1.0.0" }],
+        "title": "TSA headers",
+    });
+    fs::write(&path, manifest.to_string()).unwrap();
+    path
+}
+
+#[test]
+fn tool_sign_sends_ta_headers() -> Result<(), Box<dyn Error>> {
+    let server = MockServer::start();
+    // Only answers when both the manifest and env headers are present. The
+    // response isn't a valid time stamp, so signing still fails afterwards.
+    let tsa = server.mock(|when, then| {
+        when.method(POST)
+            .path("/tsa")
+            .header("content-type", "application/timestamp-query")
+            .header("x-tenant", "acme")
+            .header("authorization", "Bearer abc123");
+        then.status(500);
+    });
+    let manifest = ta_manifest(
+        "ta_headers.json",
+        &server.url("/tsa"),
+        serde_json::json!({ "X-Tenant": "acme" }),
+    );
+    let settings = temp_path("ta_headers_no_settings.toml");
+
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path(TEST_IMAGE))
+        .arg("-m")
+        .arg(&manifest)
+        .arg("-o")
+        .arg(temp_path("ta_headers_out.jpg"))
+        .arg("-f")
+        .arg("--settings")
+        .arg(&settings)
+        .env("C2PA_TA_HEADERS", "Authorization: Bearer abc123")
+        .assert()
+        .failure();
+
+    assert!(
+        tsa.calls() > 0,
+        "TSA request didn't carry the configured headers"
+    );
+    Ok(())
+}
+
+#[test]
+fn tool_sign_rejects_ta_content_type_header() -> Result<(), Box<dyn Error>> {
+    let manifest = ta_manifest(
+        "ta_headers_content_type.json",
+        "http://localhost:1/tsa",
+        serde_json::json!({ "Content-Type": "text/plain" }),
+    );
+
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path(TEST_IMAGE))
+        .arg("-m")
+        .arg(&manifest)
+        .arg("-o")
+        .arg(temp_path("ta_headers_content_type_out.jpg"))
+        .arg("-f")
+        .arg("--settings")
+        .arg(temp_path("ta_headers_no_settings.toml"))
+        .assert()
+        .failure()
+        .stderr(str::contains("`Content-Type` header"));
+    Ok(())
+}
+
+#[test]
+fn tool_sign_rejects_malformed_ta_headers_env_without_echoing() -> Result<(), Box<dyn Error>> {
+    let manifest = ta_manifest(
+        "ta_headers_bad_env.json",
+        "http://localhost:1/tsa",
+        Value::Null,
+    );
+
+    Command::new(cargo::cargo_bin!("c2patool"))
+        .arg(fixture_path(TEST_IMAGE))
+        .arg("-m")
+        .arg(&manifest)
+        .arg("-o")
+        .arg(temp_path("ta_headers_bad_env_out.jpg"))
+        .arg("-f")
+        .arg("--settings")
+        .arg(temp_path("ta_headers_no_settings.toml"))
+        .env("C2PA_TA_HEADERS", "Bearer super-secret-token")
+        .assert()
+        .failure()
+        .stderr(str::contains("C2PA_TA_HEADERS"))
+        .stderr(str::contains("super-secret-token").not());
+    Ok(())
+}
