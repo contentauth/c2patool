@@ -20,6 +20,7 @@
 /// the claim will be added to any existing claims.
 use std::{
     env,
+    ffi::OsStr,
     fs::{self, copy, create_dir_all, remove_dir_all, remove_file, File},
     io::Write,
     path::{Path, PathBuf},
@@ -487,6 +488,18 @@ fn ext_normal(path: &Path) -> String {
         "tiff" => "tif".to_string(),
         _ => ext,
     }
+}
+
+/// Returns the path for writing resource `id` into `dir`, rejecting ids that
+/// are not a single plain file name.
+///
+/// Resource ids can come from unsigned asset metadata (e.g. `xmpMM:InstanceID`),
+/// so they are untrusted.
+fn resource_output_path(dir: &Path, id: &str) -> Result<PathBuf> {
+    if Path::new(id).file_name() != Some(OsStr::new(id)) {
+        bail!("refusing to write resource with unsafe identifier {id:?}");
+    }
+    Ok(dir.join(id))
 }
 
 // adds an ingredient, from a file, folder or json definition
@@ -1415,9 +1428,14 @@ fn main() -> Result<()> {
                     &mut File::open(path)?,
                 )
                 .map_err(special_errs)?;
-            // write resources to the output folder explicitly
-            for (id, data) in ingredient.resources().resources() {
-                std::fs::write(output.join(id), data)?;
+            let resources = ingredient
+                .resources()
+                .resources()
+                .iter()
+                .map(|(id, data)| Ok((resource_output_path(&output, id)?, data)))
+                .collect::<Result<Vec<_>>>()?;
+            for (resource_path, data) in resources {
+                std::fs::write(resource_path, data)?;
             }
             let report = ingredient.to_string();
 
@@ -1532,6 +1550,39 @@ pub mod tests {
         let f = tmp.path().join("report.json");
         write(&f, b"{}").unwrap();
         assert!(!folder_mode_output_path_ok(&f));
+    }
+
+    #[test]
+    fn resource_output_path_accepts_plain_file_names() {
+        let dir = Path::new("out");
+        for id in [
+            "xmp.iid-41ec7772-3bbc-4de3-b44e-4483d9ccc38d.jpg",
+            "manifest_data.c2pa",
+            "..jpg",
+        ] {
+            assert_eq!(resource_output_path(dir, id).unwrap(), dir.join(id));
+        }
+    }
+
+    #[test]
+    fn resource_output_path_rejects_unsafe_ids() {
+        let mut unsafe_ids = vec!["", ".", "..", "../evil.jpg", "/etc/evil", "sub/evil.jpg"];
+        if cfg!(windows) {
+            unsafe_ids.extend([
+                r"..\..\evil.jpg",
+                r"sub\evil.jpg",
+                r"\evil.jpg",
+                r"\\server\share\evil.jpg",
+                "C:evil.jpg",
+                r"C:\evil.jpg",
+            ]);
+        }
+        for id in unsafe_ids {
+            assert!(
+                resource_output_path(Path::new("out"), id).is_err(),
+                "{id:?}"
+            );
+        }
     }
 
     #[allow(deprecated)]
