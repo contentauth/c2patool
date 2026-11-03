@@ -1580,7 +1580,8 @@ pub mod tests {
         for id in unsafe_ids {
             assert!(
                 resource_output_path(Path::new("out"), id).is_err(),
-                "{id:?}"
+                "{}",
+                id
             );
         }
     }
