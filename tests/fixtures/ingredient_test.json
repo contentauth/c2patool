@@ -21,9 +21,9 @@
                 "actions": [
                     {
                         "action": "c2pa.opened",
-                        "instanceId": "xmp.iid:9867c3b4-465e-42e4-8064-76c0c0fe3d16",
                         "parameters": {
-                            "description": "import"
+                            "description": "import",
+                            "ingredientIds": ["xmp.iid:9867c3b4-465e-42e4-8064-76c0c0fe3d16"]
                         },
                         "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/algorithmicMedia",
                         "softwareAgent": {
@@ -119,4 +119,3 @@
         "C.jpg", "ingredient/ingredient.json"
     ]
 }
-
