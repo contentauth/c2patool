@@ -1534,13 +1534,15 @@ pub mod tests {
         assert!(!folder_mode_output_path_ok(&f));
     }
 
-    #[allow(deprecated)]
     #[test]
     fn test_manifest_config() {
         const SOURCE_PATH: &str = "tests/fixtures/earth_apollo17.jpg";
         let tempdir = tempdirectory().unwrap();
         let output_path = tempdir.path().join("unit_out.jpg");
-        let mut builder = Builder::from_json(CONFIG).expect("from_json");
+        let context = Arc::new(C2paContext::new());
+        let mut builder = Builder::from_shared_context(&context)
+            .with_definition(CONFIG)
+            .expect("with_definition");
         builder.set_intent(BuilderIntent::Create(DigitalSourceType::Empty));
 
         let signer = SignConfig::from_json(CONFIG)
@@ -1553,8 +1555,9 @@ pub mod tests {
             .sign_file(signer.as_ref(), SOURCE_PATH, &output_path)
             .expect("embed");
 
-        let ms = Reader::from_file(output_path)
-            .expect("from_file")
+        let ms = Reader::from_shared_context(&context)
+            .with_file(output_path)
+            .expect("with_file")
             .to_string();
         println!("{ms}");
         //let ms = report_from_path(&OUTPUT_PATH, false).expect("report_from_path");
