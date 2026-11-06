@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.6](https://github.com/contentauth/c2patool/compare/v0.28.5...v0.28.6)
+_06 November 2026_
+
+### Fixed
+
+* Filter paths when writing resources to folder ([#371](https://github.com/contentauth/c2patool/pull/371)) ([#377](https://github.com/contentauth/c2patool/pull/377))
+
 ## [0.28.5](https://github.com/contentauth/c2patool/compare/v0.28.4...v0.28.5)
 _06 November 2026_
 
