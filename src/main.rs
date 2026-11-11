@@ -197,7 +197,12 @@ struct CliArgs {
 }
 
 fn default_settings_path() -> PathBuf {
-    let strategy = etcetera::choose_base_strategy().unwrap();
+    // In chroots and containers, the home directory may be unavailable.
+    // An empty path skips configuration-file loading, allowing the SDK to
+    // use its built-in defaults instead.
+    let Ok(strategy) = etcetera::choose_base_strategy() else {
+        return PathBuf::new();
+    };
     let mut path = strategy.config_dir();
     path.push("c2pa");
     path.push("c2pa.toml");
@@ -682,6 +687,9 @@ fn atomic_write_file(dest: &Path, contents: &[u8]) -> Result<()> {
 /// Load trust PEM/config sidecars from the same directory as `--settings`, if present.
 /// Returns whether any trust material was applied (for enabling `verify_trust`).
 fn apply_trust_sidecars(settings: &mut Settings, settings_path: &Path) -> Result<bool> {
+    if settings_path.as_os_str().is_empty() {
+        return Ok(false);
+    }
     let Some(dir) = settings_path.parent() else {
         return Ok(false);
     };
@@ -1068,6 +1076,10 @@ fn main() -> Result<()> {
     env_logger::Builder::from_env(Env::default().default_filter_or("error")).init();
 
     if let Some(Commands::Init { cmd }) = &args.command {
+        if args.settings.as_os_str().is_empty() {
+            bail!("Cannot determine settings directory; use --settings or set HOME");
+        }
+
         return match cmd {
             InitCmd::Trust { legacy } => run_trust_init(*legacy, &args.settings),
         };
