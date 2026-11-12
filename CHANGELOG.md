@@ -7,6 +7,201 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.29.0](https://github.com/contentauth/c2patool/compare/v0.28.6...v0.29.0)
+_12 November 2026_
+
+### Added
+
+* Enable Dependabot version updates, excluding c2pa ([#317](https://github.com/contentauth/c2patool/pull/317))
+* Open an immediate PR on stable when c2pa-rs publishes a release ([#316](https://github.com/contentauth/c2patool/pull/316))
+* Restore full release infrastructure for stable + release-process.md ([#310](https://github.com/contentauth/c2patool/pull/310))
+* Auto-track c2pa-rs's main branch ([#309](https://github.com/contentauth/c2patool/pull/309))
+* [**breaking**] Update for C2PA 2.3 spec (contentauth/c2pa-rs#2545)
+
+### Documented
+
+* Update security reporting ([#366](https://github.com/contentauth/c2patool/pull/366))
+* *(cli)* Document --trust_list_uri and init trust subcommand ([#303](https://github.com/contentauth/c2patool/pull/303))
+* Add support-tiers.md for c2patool ([#313](https://github.com/contentauth/c2patool/pull/313))
+* Add CI, crates.io, and codecov badges to README ([#312](https://github.com/contentauth/c2patool/pull/312))
+* Fix dangling contentauth/c2pa-rs links ([#307](https://github.com/contentauth/c2patool/pull/307))
+* Remove duplicate info, general edits, fix links, etc. (contentauth/c2pa-rs#2490)
+* Edit and cleanup pass (contentauth/c2pa-rs#2354)
+* Add experimental features policy (contentauth/c2pa-rs#2345)
+
+### Fixed
+
+* Isolate release lines and make retired releases manual ([#382](https://github.com/contentauth/c2patool/pull/382))
+* Lints and errors on main ([#373](https://github.com/contentauth/c2patool/pull/373))
+* Don't fail promote.yml when the RC version was never bumped ([#347](https://github.com/contentauth/c2patool/pull/347))
+* Use CROSS_ORG_PR_TOKEN for release-rc.yml workflow dispatch ([#327](https://github.com/contentauth/c2patool/pull/327))
+* Bump MSRV to 1.96.0 and fix release-binary paths ([#326](https://github.com/contentauth/c2patool/pull/326))
+* Update release workflow for the standalone repo's bare v* tag scheme
+* [**breaking**] C2PA 2.4 validation (contentauth/c2pa-rs#2578)
+* Run Tier 1A on all PRs regardless of target branch (contentauth/c2pa-rs#2574)
+* Consistently use xmp.iid: instead of xmp:iid: (contentauth/c2pa-rs#2563)
+* Correct tag, commit, and changelog for tag-driven binary releases (contentauth/c2pa-rs#2306)
+
+### Other
+
+* Restore release-plz release-commit filtering ([#385](https://github.com/contentauth/c2patool/pull/385))
+* Skip atomic write replacement test on WASI ([#343](https://github.com/contentauth/c2patool/pull/343))
+* Strengthen trust sidecar anchor assertion ([#339](https://github.com/contentauth/c2patool/pull/339))
+* Add promote.yml workflow for release-candidate promotion ([#338](https://github.com/contentauth/c2patool/pull/338))
+* Version-control GitHub labels via labels.yml ([#311](https://github.com/contentauth/c2patool/pull/311))
+* Add commit-lint enforcement for PR titles ([#315](https://github.com/contentauth/c2patool/pull/315))
+* Restore full CI job set for the standalone repo ([#308](https://github.com/contentauth/c2patool/pull/308))
+* Replace `safe to test` trust logic with GitHub native fork-approval (contentauth/c2pa-rs#2420)
+* Trust same-repo PR branches instead of author_association (contentauth/c2pa-rs#2352)
+* Publish binaries for each release-candidate build (contentauth/c2pa-rs#2304)
+
+### Updated dependencies
+
+* Bump mockall from 0.14.0 to 0.15.0 (contentauth/c2pa-rs#2593)
+* Bump pem from 3.0.6 to 4.0.0 (contentauth/c2pa-rs#2496)
+
+## [0.28.6](https://github.com/contentauth/c2patool/compare/v0.28.5...v0.28.6)
+_06 November 2026_
+
+### Fixed
+
+* Filter paths when writing resources to folder (backport #371) ([#377](https://github.com/contentauth/c2patool/pull/377))
+
+## [0.28.5](https://github.com/contentauth/c2patool/compare/v0.28.4...v0.28.5)
+_06 November 2026_
+
+### Updated dependencies
+
+* Bump c2pa to 0.91.11 ([#376](https://github.com/contentauth/c2patool/pull/376))
+
+## [0.28.4](https://github.com/contentauth/c2patool/compare/v0.28.3...v0.28.4)
+_26 October 2026_
+
+### Fixed
+
+* Update stable SDK dependency to c2pa 0.91.7 ([#367](https://github.com/contentauth/c2patool/pull/367))
+
+## [0.28.3](https://github.com/contentauth/c2patool/compare/v0.28.2...v0.28.3)
+_24 October 2026_
+
+### Updated dependencies
+
+* Bump c2pa to 0.91.6 ([#364](https://github.com/contentauth/c2patool/pull/364))
+
+## [0.28.2](https://github.com/contentauth/c2patool/compare/v0.28.1...v0.28.2)
+_08 October 2026_
+
+### Added
+
+* Bump c2pa to 0.91.2 ([#358](https://github.com/contentauth/c2patool/pull/358))
+
+### Fixed
+
+* Update sample manifest for c2pa v2 (backport #359) ([#360](https://github.com/contentauth/c2patool/pull/360))
+* Resolve yoke-derive yanked crate error (backport #357) ([#362](https://github.com/contentauth/c2patool/pull/362))
+* Honor --external-manifest option on export and inspect paths (backport #355) ([#356](https://github.com/contentauth/c2patool/pull/356))
+
+## [0.28.1](https://github.com/contentauth/c2patool/compare/v0.28.0...v0.28.1)
+_28 September 2026_
+
+### Fixed
+
+* Report failed fragments rather than dropping them (backport #336) ([#351](https://github.com/contentauth/c2patool/pull/351))
+
+### Other
+
+* Sequence release publication and PR generation (backport #350) ([#353](https://github.com/contentauth/c2patool/pull/353))
+
+## [0.28.0](https://github.com/contentauth/c2patool/compare/v0.27.20...v0.28.0)
+_22 September 2026_
+
+### Added
+
+* Backport remaining release infrastructure to stable ([#344](https://github.com/contentauth/c2patool/pull/344))
+
+### Updated dependencies
+
+* Bump c2pa dependency to 0.91.0 on stable ([#340](https://github.com/contentauth/c2patool/pull/340))
+
+### Other
+
+* Backport stable CI parity updates ([#342](https://github.com/contentauth/c2patool/pull/342))
+* Add promote.yml workflow for release-candidate promotion ([#346](https://github.com/contentauth/c2patool/pull/346))
+
+### Breaking changes
+
+* Signing now verifies the generated manifest by default; set `verify.verify_after_sign = false` in the settings file to retain the previous behavior.
+* Trust configuration now supports multiple named trust lists under `trust.anchors`; migrate configurations using the legacy `cawg_trust` or `trust.trust_anchors`, `trust.trust_config`, `trust.user_anchors`, and `trust.allowed_list` fields.
+* Remote manifest, OCSP, timestamp, and `did:web` fetches reject redirects to non-public hosts by default.
+* Validation follows the C2PA 2.4 rules, and the SVG handler no longer accepts generic XML documents.
+
+## [0.27.20](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.19...c2patool-v0.27.20)
+_04 September 2026_
+
+## [0.27.19](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.18...c2patool-v0.27.19)
+_04 September 2026_
+
+## [0.27.18](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.17...c2patool-v0.27.18)
+_04 September 2026_
+
+## [0.27.17](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.16...c2patool-v0.27.17)
+_03 September 2026_
+
+## [0.27.16](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.15...c2patool-v0.27.16)
+_27 August 2026_
+
+## [0.27.15](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.14...c2patool-v0.27.15)
+_13 August 2026_
+
+## [0.27.14](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.13...c2patool-v0.27.14)
+_13 August 2026_
+
+## [0.27.13](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.12...c2patool-v0.27.13)
+_13 August 2026_
+
+## [0.27.12](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.11...c2patool-v0.27.12)
+_12 August 2026_
+
+## [0.27.11](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.10...c2patool-v0.27.11)
+_12 August 2026_
+
+## [0.27.10](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.9...c2patool-v0.27.10)
+_10 August 2026_
+
+## [0.27.9](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.8...c2patool-v0.27.9)
+_10 August 2026_
+
+## [0.27.8](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.7...c2patool-v0.27.8)
+_07 August 2026_
+
+## [0.27.7](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.6...c2patool-v0.27.7)
+_07 August 2026_
+
+## [0.27.6](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.5...c2patool-v0.27.6)
+_06 August 2026_
+
+## [0.27.5](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.4...c2patool-v0.27.5)
+_05 August 2026_
+
+## [0.27.4](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.3...c2patool-v0.27.4)
+_04 August 2026_
+
+## [0.27.3](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.2...c2patool-v0.27.3)
+_24 July 2026_
+
+## [0.27.2](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.1...c2patool-v0.27.2)
+_23 July 2026_
+
+## [0.27.1](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.27.0...c2patool-v0.27.1)
+_21 July 2026_
+
+## [0.27.0](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.26.72...c2patool-v0.27.0)
+_16 July 2026_
+
+### Changed
+
+* Transition release onto the new scheduled breaking-change release train (see [release process](https://github.com/contentauth/c2pa-rs/blob/main/docs/release-process.md)). This is a version-only bump: there are no `c2patool` code changes since 0.26.72 ([#2250](https://github.com/contentauth/c2pa-rs/pull/2250)).
+
 ## [0.26.72](https://github.com/contentauth/c2pa-rs/compare/c2patool-v0.26.71...c2patool-v0.26.72)
 _13 July 2026_
 
