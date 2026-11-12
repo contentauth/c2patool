@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.28.7](https://github.com/contentauth/c2patool/compare/v0.28.6...v0.28.7)
+_12 November 2026_
+
+### Fixed
+
+* Isolate release lines and make retired releases manual ([#382](https://github.com/contentauth/c2patool/pull/382)) ([#383](https://github.com/contentauth/c2patool/pull/383))
+
 ## [0.28.6](https://github.com/contentauth/c2patool/compare/v0.28.5...v0.28.6)
 _06 November 2026_
 
