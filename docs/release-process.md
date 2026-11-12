@@ -36,7 +36,7 @@ Most changes never wait for the train: anything additive ships fairly quickly by
 | `v0.x` (e.g. `v0.27`) | A long-lived branch for a **retired** release line, snapshotted from `stable` when that line is retired. A potential target if a security or other critical bug fix is made to a retired line. | Yes (rare backports) |
 | `0.(x+1).0-rc` (release-candidate branch) | A transient breaking candidate, cut from `main`, that bakes before promotion. Its name ends in `-rc` so it is validated by CI but **never** matches a crates.io publish trigger. Individual **builds** cut from it (`-rc.1`, `-rc.2`, …) are tagged and get *prerelease* GitHub releases with binaries, but are never published to crates.io. | crates.io: **No**; GitHub-release binaries: **yes** |
 
-The branch-name conventions are also the crates.io publish guard: the publish workflow only ever runs on `stable` and `v0.*`, and the `-rc`-named candidate branch matches neither, so a candidate can never be published to crates.io by construction.
+The branch-name conventions are also the crates.io publish guard: the publish workflow runs automatically only on `stable`; `v0.*` lines require manual dispatch. Both release workflows reject dispatches on `main`, tags, and release-candidate refs, so a candidate cannot be published to crates.io.
 
 Two rules keep this coherent:
 
@@ -72,7 +72,7 @@ Breaking changes and larger refactors are batched onto a scheduled train:
 
 1. On the scheduled date, a release-candidate branch `0.(x+1).0-rc` is cut from `main`, and its first build `0.(x+1).0-rc.1` is cut immediately (version set, tagged, prerelease binary built). **RC branches are not published to crates.io** (their name keeps them off every crates.io publish trigger), but each build **does** get a prerelease GitHub release with binaries so downstream consumers that depend on pre-built binaries can validate during the bake. See [RC builds](#release-candidate-builds).
 2. **Bake period: minimum three business days.** Only bug fixes are accepted during the bake, and they follow upstream-first (fix on `main`, cherry-pick to the candidate). After fixes land, cut a fresh build (`-rc.2`, `-rc.3`, …) so downstream has updated binaries to test.
-3. **Promote** (a deliberate, manual step): first snapshot the outgoing `stable` as `v0.<old>` so the retiring line is available for backports, then force-push the candidate onto `stable`. We force-push rather than merge so that `stable`'s history becomes exactly the coherent set of changes made on `main`, superseding whatever adaptations were needed while manually backporting Track 1 fixes onto the old `stable` line. `release-plz` then opens the `0.(x+1).0` version/changelog PR on `stable`; merging it publishes the breaking release.
+3. **Promote** (a deliberate, manual step): first snapshot the outgoing `stable` as `v0.<old>` so the retiring line is available for backports, then force-push the candidate onto `stable`. We force-push rather than merge so that `stable`'s history becomes exactly the coherent set of changes made on `main`, superseding whatever adaptations were needed while manually backporting Track 1 fixes onto the old `stable` line. The release-PR job in `release.yml` then opens the `0.(x+1).0` version/changelog PR on `stable`; merging it publishes the breaking release.
 
 ### Cadence: scheduled, but not forced
 
@@ -109,10 +109,56 @@ Cutting a release is mostly a CI action rather than manual toil. The pieces:
 
 ### release-plz
 
-We use [`release-plz`](https://release-plz.dev) (via the [GitHub Action wrapper](https://github.com/release-plz/action)), configured by [`release-plz.toml`](https://github.com/contentauth/c2patool/blob/main/release-plz.toml). Its two responsibilities are split across two workflows, both of which run on the **release-line and release-candidate branches**, never on `main`:
+We use [`release-plz`](https://release-plz.dev) (via the [GitHub Action wrapper](https://github.com/release-plz/action)), configured by [`release-plz.toml`](https://github.com/contentauth/c2patool/blob/main/release-plz.toml). On each push to `stable`, its two responsibilities run automatically as ordered jobs in [`release.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/release.yml), never on `main` or release-candidate branches:
 
-* [`release-pr.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/release-pr.yml) runs `release-plz release-pr`: it inspects commits since the last tag and opens/updates a **release PR** that bumps the version and updates the changelog.
-* [`release.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/release.yml) runs `release-plz release`: when a release PR merges (a push to the release-line branch), it publishes to crates.io, creates a GitHub release, and tags it `v(version)`. That tag then drives the binary build ([`c2patool-release.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/c2patool-release.yml) on any `v*` tag): `release.yml` doesn't build binaries itself, which is what lets release-candidate builds produce the same binaries from the same tags (see [RC builds](#release-candidate-builds)). A push whose ref contains `-rc` never publishes to crates.io.
+* The publish job runs `release-plz release`: when a release PR merges (a push to `stable`), it publishes to crates.io, creates a GitHub release, and tags it `v(version)`.
+* After publishing completes, the release-PR job runs `release-plz release-pr` from a fresh checkout with full tag history, then opens/updates a **release PR** that bumps the version and updates the changelog. This ordering ensures the version calculation sees any tag created by the publish job, rather than calculating against the previous release and generating an incorrect release PR.
+
+Both commands use a generated configuration with a branch-specific
+`pr_branch_prefix`: `stable-release-plz-` on `stable`, `v0.27-release-plz-` on
+`v0.27`, and so on. The tracked configuration is unchanged; the generated copy
+lives in the runner's temporary directory. Release-plz only manages PRs matching
+this prefix. This prevents a stable run from adopting a retired line's PR and
+carrying that line's history into a new release PR after a failed rebase.
+
+When migrating from the shared `release-plz-` prefix, close outstanding old-prefix
+release PRs and regenerate them from their intended release-line branches.
+Do not merge a PR whose history includes unrelated maintenance-line commits;
+changing the workflow does not repair an already-contaminated PR.
+These workflow and script changes must also be backported to `stable` and any
+retired line that will be released; merging them into `main` alone does not
+update those branches' workflows.
+
+#### Retired release lines: manual-only
+
+Pushes and pull request events on retired `v0.*` lines do not prepare release PRs
+or publish crates. To release a backport, manually dispatch these workflows on
+the target line (replace `v0.27` with the branch being released):
+
+1. Run `gh workflow run release-pr.yml --repo contentauth/c2patool --ref v0.27`.
+2. Review and merge the generated release PR.
+3. Run `gh workflow run release.yml --repo contentauth/c2patool --ref v0.27`.
+4. Wait for publication and tag-driven binary builds before preparing another release.
+
+The separate [`release-pr.yml`](../.github/workflows/release-pr.yml) workflow runs
+only `release-plz release-pr`, using `RELEASE_PLZ_ORG_TOKEN` with no crates.io
+publishing token. A manual dispatch of `release.yml` runs only the publishing
+job, using `RELEASE_PLZ_ORG_TOKEN` and `CRATES_IO_ORG_TOKEN`; it does not prepare
+another release PR. Both workflows share a per-ref concurrency group without
+cancelling in-progress releases, and neither deletes release branches.
+Manual dispatches on `stable` are also available, but its normal push-triggered
+publish-then-prepare sequence remains automatic.
+
+> [!IMPORTANT]
+> Do not rerun release-PR preparation between merging and publishing a retired
+> line's release. Release-plz compares against the latest registry release, which
+> may belong to a newer line, and can incorrectly bump an unpublished maintenance
+> version again. Manual-only triggers prevent automatic reruns; they do not fix
+> the upstream comparison.
+
+#### Release artifacts and version selection
+
+The tag then drives the binary build ([`c2patool-release.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/c2patool-release.yml) on any `v*` tag): `release.yml` does not build binaries itself, which is what lets release-candidate builds produce the same binaries from the same tags (see [RC builds](#release-candidate-builds)). A push whose ref contains `-rc` never publishes to crates.io.
 
 Binary builds are therefore entirely **tag-driven**, independent of how a tag was created. A tag whose name contains `-rc.` yields a **prerelease** GitHub release; nothing publishes to crates.io in that case.
 
@@ -148,7 +194,7 @@ Because `stable`'s `Cargo.toml` pins `c2pa` to a real crates.io version (unlike 
 
 ### Patch-dependency guard
 
-[`check-no-patch-deps.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/check-no-patch-deps.yml) fails if a `[patch]` section or a git dependency is present. It runs on release-branch PRs and as a required prerequisite of `release.yml` -- note that `main`'s own `c2pa` git dependency (see [Tracking c2pa-rs main](#tracking-c2pa-rs-main)) is expected and fine there; this guard just makes sure it never reaches a release branch.
+[`check-no-patch-deps.yml`](https://github.com/contentauth/c2patool/blob/main/.github/workflows/check-no-patch-deps.yml) fails if a `[patch]` section or a git dependency is present. It runs on release-branch PRs and as a required prerequisite of both `release.yml` and `release-pr.yml` -- note that `main`'s own `c2pa` git dependency (see [Tracking c2pa-rs main](#tracking-c2pa-rs-main)) is expected and fine there; this guard just makes sure it never reaches a release branch.
 
 ### Release-train cut
 
@@ -200,7 +246,7 @@ Keep the core mental model in mind (see [`release-plz`](#release-plz)). The foll
 * **Read the logs** in the [Actions tab](https://github.com/contentauth/c2patool/actions/workflows/release.yml). (`cargo publish` uses a subtly different compilation environment than a normal build, which is a common root cause.)
 * **Resolve the underlying issue.**
 * **If the failure happened partway through, manually revert `Cargo.toml` and `CHANGELOG.md`** on the release-line branch. `release-plz` only generates a new release PR when `Cargo.toml`'s version exactly matches crates.io; delete the failed `CHANGELOG.md` section too, or `release-plz` will error on the next PR.
-* **Wait for `release-plz` to open a fresh release PR** with the desired result, and otherwise **avoid manually editing `Cargo.toml`**: pushing `release-plz` outside its normal process tends to create more problems.
+* **Wait for `release-plz` to open a fresh release PR on `stable`**, or manually dispatch `release-pr.yml` on a retired line, with the desired result, and otherwise **avoid manually editing `Cargo.toml`**: pushing `release-plz` outside its normal process tends to create more problems.
 
 ## Branch protection
 

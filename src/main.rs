@@ -20,6 +20,7 @@
 /// the claim will be added to any existing claims.
 use std::{
     env,
+    ffi::OsStr,
     fs::{self, copy, create_dir_all, remove_dir_all, remove_file, File},
     io::Write,
     path::{Path, PathBuf},
@@ -33,7 +34,7 @@ use c2pa::{
     settings::{Settings, TrustAnchor, TrustListKind},
     BoxedSigner, Builder, BuilderIntent, CallbackSigner, ClaimGeneratorInfo,
     Context as C2paContext, DigitalSourceType, Error, Ingredient, ManifestDefinition, Reader,
-    Signer, SigningAlg,
+    Signer, SigningAlg, ValidationState,
 };
 use clap::{Parser, Subcommand};
 use env_logger::Env;
@@ -487,6 +488,18 @@ fn ext_normal(path: &Path) -> String {
         "tiff" => "tif".to_string(),
         _ => ext,
     }
+}
+
+/// Returns the path for writing resource `id` into `dir`, rejecting ids that
+/// are not a single plain file name.
+///
+/// Resource ids can come from unsigned asset metadata (e.g. `xmpMM:InstanceID`),
+/// so they are untrusted.
+fn resource_output_path(dir: &Path, id: &str) -> Result<PathBuf> {
+    if Path::new(id).file_name() != Some(OsStr::new(id)) {
+        bail!("refusing to write resource with unsafe identifier {id:?}");
+    }
+    Ok(dir.join(id))
 }
 
 // adds an ingredient, from a file, folder or json definition
@@ -943,11 +956,12 @@ fn verify_fragmented(
 
                 println!("Verifying manifest: {p:?}");
                 let reader =
-                    Reader::from_shared_context(context).with_fragmented_files(p, &fragments)?;
-                if let Some(vs) = reader.validation_status() {
-                    if let Some(e) = vs.iter().find(|v| !v.passed()) {
-                        eprintln!("Error validating segments: {e:?}");
-                        return Ok(readers);
+                    Reader::from_shared_context(context).with_fragmented_files(&p, &fragments)?;
+
+                if reader.validation_state() == ValidationState::Invalid {
+                    eprintln!("Failed to validate: {}", p.display());
+                    if let Some(results) = reader.validation_results() {
+                        eprintln!("{}", results.failure_summary());
                     }
                 }
 
@@ -966,27 +980,39 @@ fn verify_fragmented(
     Ok(readers)
 }
 
+/// Build a reader for `asset_path`, honoring `--external-manifest` when set.
+///
+/// When an external manifest is supplied it overrides the asset's embedded or
+/// remote manifest (see `CliArgs::external_manifest`); otherwise the embedded
+/// store is used. `reader` must already be constructed with the desired context.
+pub(crate) fn read_asset(
+    reader: Reader,
+    asset_path: &Path,
+    external_manifest: Option<&Path>,
+) -> Result<Reader> {
+    match external_manifest {
+        Some(external_manifest) => {
+            let c2pa_data = fs::read(external_manifest)?;
+            let format = format_from_path(asset_path)
+                .ok_or_else(|| anyhow!("Format for {asset_path:?} is unrecognized"))?;
+            Ok(reader
+                .with_manifest_data_and_stream(&c2pa_data, &format, File::open(asset_path)?)
+                .map_err(special_errs)?)
+        }
+        None => Ok(reader.with_file(asset_path).map_err(special_errs)?),
+    }
+}
+
 fn reader_from_args(
     asset_path: &Path,
     args: &CliArgs,
     context: &Arc<C2paContext>,
 ) -> Result<Reader> {
-    if let Some(external_manifest) = &args.external_manifest {
-        let c2pa_data = fs::read(external_manifest)?;
-        let format = match c2pa::format_from_path(asset_path) {
-            Some(format) => format,
-            None => {
-                bail!("Format for {:?} is unrecognized", asset_path);
-            }
-        };
-        Ok(Reader::from_shared_context(context)
-            .with_manifest_data_and_stream(&c2pa_data, &format, File::open(asset_path)?)
-            .map_err(special_errs)?)
-    } else {
-        Ok(Reader::from_shared_context(context)
-            .with_file(asset_path)
-            .map_err(special_errs)?)
-    }
+    read_asset(
+        Reader::from_shared_context(context),
+        asset_path,
+        args.external_manifest.as_deref(),
+    )
 }
 
 // Utility to catch reader formatting errors and print the reader json or detailed json
@@ -1063,13 +1089,20 @@ fn main() -> Result<()> {
         .context("PATH to an asset is required (omit only for `init`)")?;
 
     if args.info {
+        // `info` builds an ingredient from the asset's embedded manifest and has no
+        // way to substitute an external one, so reject rather than silently ignore it.
+        if args.external_manifest.is_some() {
+            bail!("--external-manifest is not supported with the info command");
+        }
         return info(path);
     }
 
     if args.cert_chain {
-        let reader = Reader::from_context(C2paContext::new())
-            .with_file(path)
-            .map_err(special_errs)?;
+        let reader = read_asset(
+            Reader::from_context(C2paContext::new()),
+            path,
+            args.external_manifest.as_deref(),
+        )?;
         // todo: add cawg certs here??
         if let Some(manifest) = reader.active_manifest() {
             if let Some(si) = manifest.signature_info() {
@@ -1082,7 +1115,7 @@ fn main() -> Result<()> {
     }
 
     if args.tree {
-        println!("{}", tree::tree(path)?);
+        println!("{}", tree::tree(path, args.external_manifest.as_deref())?);
         return Ok(());
     }
 
@@ -1382,6 +1415,11 @@ fn main() -> Result<()> {
         }
         create_dir_all(&output)?;
         if args.ingredient {
+            // The ingredient is built from the asset's embedded manifest; there is no
+            // way to substitute an external one, so reject rather than silently ignore it.
+            if args.external_manifest.is_some() {
+                bail!("--external-manifest is not supported with --ingredient");
+            }
             let mut builder = Builder::from_shared_context(&context);
             let ingredient = builder
                 .add_ingredient_from_stream(
@@ -1390,18 +1428,25 @@ fn main() -> Result<()> {
                     &mut File::open(path)?,
                 )
                 .map_err(special_errs)?;
-            // write resources to the output folder explicitly
-            for (id, data) in ingredient.resources().resources() {
-                std::fs::write(output.join(id), data)?;
+            let resources = ingredient
+                .resources()
+                .resources()
+                .iter()
+                .map(|(id, data)| Ok((resource_output_path(&output, id)?, data)))
+                .collect::<Result<Vec<_>>>()?;
+            for (resource_path, data) in resources {
+                std::fs::write(resource_path, data)?;
             }
             let report = ingredient.to_string();
 
             File::create(output.join("ingredient.json"))?.write_all(&report.into_bytes())?;
             println!("Ingredient report written to the directory {:?}", output);
         } else {
-            let reader = Reader::from_shared_context(&context)
-                .with_file(path)
-                .map_err(special_errs)?;
+            let reader = read_asset(
+                Reader::from_shared_context(&context),
+                path,
+                args.external_manifest.as_deref(),
+            )?;
             reader.to_folder(&output)?;
             let report = reader.to_string();
             if args.detailed {
@@ -1414,6 +1459,11 @@ fn main() -> Result<()> {
             println!("Manifest report written to the directory {:?}", output);
         }
     } else if args.ingredient {
+        // The ingredient is built from the asset's embedded manifest; there is no
+        // way to substitute an external one, so reject rather than silently ignore it.
+        if args.external_manifest.is_some() {
+            bail!("--external-manifest is not supported with --ingredient");
+        }
         let mut builder = Builder::from_shared_context(&context);
         let ingredient = builder.add_ingredient_from_stream(
             r#"{"relationship":"component-of"}"#,
@@ -1426,10 +1476,18 @@ fn main() -> Result<()> {
     }) = &args.command
     {
         let stores = verify_fragmented(path, fg, &context)?;
-        if stores.len() == 1 {
+        let failed = stores
+            .iter()
+            .filter(|reader| reader.validation_state() == ValidationState::Invalid)
+            .count();
+
+        let validated = stores.len() - failed;
+        if stores.len() == 1 && failed == 0 {
             println!("{}", stores[0]);
+        } else if failed > 0 {
+            bail!("{validated} validated and {failed} failed validation");
         } else {
-            println!("{} Init manifests validated", stores.len());
+            println!("{validated} Init manifests validated");
         }
     } else {
         let reader = reader_from_args(path, &args, &context)?;
@@ -1494,13 +1552,50 @@ pub mod tests {
         assert!(!folder_mode_output_path_ok(&f));
     }
 
+    #[test]
+    fn resource_output_path_accepts_plain_file_names() {
+        let dir = Path::new("out");
+        for id in [
+            "xmp.iid-41ec7772-3bbc-4de3-b44e-4483d9ccc38d.jpg",
+            "manifest_data.c2pa",
+            "..jpg",
+        ] {
+            assert_eq!(resource_output_path(dir, id).unwrap(), dir.join(id));
+        }
+    }
+
+    #[test]
+    fn resource_output_path_rejects_unsafe_ids() {
+        let mut unsafe_ids = vec!["", ".", "..", "../evil.jpg", "/etc/evil", "sub/evil.jpg"];
+        if cfg!(windows) {
+            unsafe_ids.extend([
+                r"..\..\evil.jpg",
+                r"sub\evil.jpg",
+                r"\evil.jpg",
+                r"\\server\share\evil.jpg",
+                "C:evil.jpg",
+                r"C:\evil.jpg",
+            ]);
+        }
+        for id in unsafe_ids {
+            assert!(
+                resource_output_path(Path::new("out"), id).is_err(),
+                "{}",
+                id
+            );
+        }
+    }
+
     #[allow(deprecated)]
     #[test]
     fn test_manifest_config() {
         const SOURCE_PATH: &str = "tests/fixtures/earth_apollo17.jpg";
         let tempdir = tempdirectory().unwrap();
         let output_path = tempdir.path().join("unit_out.jpg");
-        let mut builder = Builder::from_json(CONFIG).expect("from_json");
+        let context = Arc::new(C2paContext::new());
+        let mut builder = Builder::from_shared_context(&context)
+            .with_definition(CONFIG)
+            .expect("with_definition");
         builder.set_intent(BuilderIntent::Create(DigitalSourceType::Empty));
 
         let signer = SignConfig::from_json(CONFIG)
@@ -1513,14 +1608,16 @@ pub mod tests {
             .sign_file(signer.as_ref(), SOURCE_PATH, &output_path)
             .expect("embed");
 
-        let ms = Reader::from_file(output_path)
-            .expect("from_file")
+        let ms = Reader::from_shared_context(&context)
+            .with_file(output_path)
+            .expect("with_file")
             .to_string();
         println!("{ms}");
         //let ms = report_from_path(&OUTPUT_PATH, false).expect("report_from_path");
         assert!(ms.contains("my_key"));
     }
 
+    #[cfg(not(target_os = "wasi"))]
     #[test]
     fn atomic_write_file_writes_and_replaces() {
         let tmp = tempdirectory().unwrap();
@@ -1593,8 +1690,13 @@ pub mod tests {
         .unwrap();
         let mut settings = Settings::default();
         assert!(apply_trust_sidecars(&mut settings, &settings_path).unwrap());
-        let ta = settings.trust.anchors.as_deref().expect("trust_anchors");
-        // will not be empty if the trust list is successfully read
-        assert!(!ta.is_empty());
+        let ta = settings
+            .trust
+            .anchors
+            .as_deref()
+            .and_then(|anchors| anchors.first())
+            .expect("anchors");
+        let ta = ta.trust_anchors.as_str();
+        assert!(ta.contains("BEGIN CERTIFICATE"));
     }
 }

@@ -15,7 +15,7 @@ A _build configuration_ will specify:
   * Unless otherwise specified this is executed on the `(platform)-latest` runner image [provided by GitHub](https://github.com/actions/runner-images).
 * A Rust version specifier, which will be one of:
   * `stable` ([the most recent "stable" release](https://blog.rust-lang.org/releases/latest))
-  * `MSRV` (the oldest release supported by this project, currently `1.88.0`, tracked in `Cargo.toml`'s `rust-version` field)
+  * `MSRV` (the oldest release supported by this project, currently `1.96.0`, tracked in `Cargo.toml`'s `rust-version` field)
 * A feature flag set. c2patool currently ships one meaningful choice here: the default (`networking`) feature, which pulls in `c2pa`'s remote-manifest-fetching support.
 * A crypto library, which is not independently selectable the way it is in c2pa-rs: c2patool's `Cargo.toml` pins `openssl` on every native target and `rust_native_crypto` on `wasm32-wasip2` (openssl doesn't build for wasm).
 * On platforms where relevant, a C library identifier (i.e. `glibc` or `musl`). c2patool only tests against `glibc`.
