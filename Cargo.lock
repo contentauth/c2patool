@@ -473,7 +473,7 @@ dependencies = [
 [[package]]
 name = "c2pa"
 version = "0.93.0-dev"
-source = "git+https://github.com/contentauth/c2pa-rs?branch=main#9091af16b82219a9a294aea5c73ee130e44b9334"
+source = "git+https://github.com/contentauth/c2pa-rs?branch=main#0e92435c6d621c02c9bde2a8d82346295ed1f509"
 dependencies = [
  "asn1-rs",
  "async-generic",
@@ -1347,7 +1347,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3059,7 +3059,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3482,7 +3482,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4106,7 +4106,7 @@ dependencies = [
  "getrandom 0.4.3",
  "once_cell",
  "rustix",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
