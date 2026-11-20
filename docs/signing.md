@@ -156,6 +156,18 @@ If `[cawg_x509_signer]` is absent, no CAWG identity assertion is generated.
 
 An example settings file is in the [`cli/tests/fixtures` folder](https://github.com/contentauth/c2patool/tree/main/tests/fixtures/trust/cawg_sign_settings.toml).
 
+## Time-stamping
+
+Set the timestamp authority URL with `ta_url` in the manifest JSON, `tsa_url` in the settings file or `--signer-info` response, or the `C2PA_TA_URL` environment variable. `C2PA_TA_URL` is used only when no URL is set elsewhere.
+
+If the timestamp authority requires authentication, set the `C2PA_TA_HEADERS` environment variable to one `Name: value` header per line:
+
+```sh
+export C2PA_TA_HEADERS="Authorization: Bearer <token>"
+```
+
+C2PA Tool sends these headers with the claim and ingredient timestamp requests, for every signer type. Non-secret headers can also go in `ta_headers` in the [manifest definition file](manifest.md), and headers from both are sent. Keep secrets in the environment variable, not the manifest. `Content-Type` is set by C2PA Tool and can't be overridden.
+
 ## Writing your own signer
 
 A signer is any executable that implements the two-operation protocol described above. It does not need to be written in Rust or have any knowledge of C2PA internals.

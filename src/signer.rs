@@ -12,12 +12,13 @@
 // each license.
 
 use std::{
+    collections::BTreeMap,
     env,
     path::{Path, PathBuf},
 };
 
-use anyhow::{Context, Result};
-use c2pa::{create_signer, BoxedSigner, SigningAlg};
+use anyhow::{bail, Context, Result};
+use c2pa::{create_signer, dynamic_assertion::DynamicAssertion, BoxedSigner, Signer, SigningAlg};
 use serde::Deserialize;
 
 const DEFAULT_CERTS: &[u8] = include_bytes!("../sample/es256_certs.pem");
@@ -25,6 +26,102 @@ const DEFAULT_KEY: &[u8] = include_bytes!("../sample/es256_private.key");
 
 pub fn get_ta_url() -> Option<String> {
     std::env::var("C2PA_TA_URL").ok()
+}
+
+/// Time Authority request headers from `C2PA_TA_HEADERS`, one `Name: value` per line.
+pub fn get_ta_headers() -> Result<Vec<(String, String)>> {
+    let Ok(lines) = env::var("C2PA_TA_HEADERS") else {
+        return Ok(Vec::new());
+    };
+
+    lines
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(|line| {
+            // Don't echo the line in the error, it's likely a secret.
+            let (name, value) = line
+                .split_once(':')
+                .context("C2PA_TA_HEADERS: each line must be `Name: value`")?;
+            Ok((name.trim().to_owned(), value.trim().to_owned()))
+        })
+        .collect()
+}
+
+fn validate_ta_header_name(name: &str) -> Result<()> {
+    if name.is_empty() || name.contains(char::is_whitespace) {
+        bail!("Invalid Time Authority header name: {name:?}");
+    }
+    if name.eq_ignore_ascii_case("content-type") {
+        bail!("The Time Authority `Content-Type` header is set by c2pa and can't be overridden");
+    }
+    Ok(())
+}
+
+/// Wraps `signer` so its Time Authority requests also send `headers`.
+pub fn with_ta_headers(signer: BoxedSigner, headers: Vec<(String, String)>) -> BoxedSigner {
+    if headers.is_empty() {
+        return signer;
+    }
+    Box::new(TaHeadersSigner { signer, headers })
+}
+
+/// Adds headers to a signer's Time Authority requests.
+///
+/// Forwards everything to the wrapped signer except `send_timestamp_request`.
+/// The trait default builds the request from this wrapper's
+/// `timestamp_request_headers`, and forwarding would drop the added headers.
+struct TaHeadersSigner {
+    signer: BoxedSigner,
+    headers: Vec<(String, String)>,
+}
+
+impl Signer for TaHeadersSigner {
+    fn sign(&self, data: &[u8]) -> c2pa::Result<Vec<u8>> {
+        self.signer.sign(data)
+    }
+
+    fn alg(&self) -> SigningAlg {
+        self.signer.alg()
+    }
+
+    fn certs(&self) -> c2pa::Result<Vec<Vec<u8>>> {
+        self.signer.certs()
+    }
+
+    fn reserve_size(&self) -> usize {
+        self.signer.reserve_size()
+    }
+
+    fn time_authority_url(&self) -> Option<String> {
+        self.signer.time_authority_url()
+    }
+
+    fn timestamp_request_headers(&self) -> Option<Vec<(String, String)>> {
+        let mut headers = self.signer.timestamp_request_headers().unwrap_or_default();
+        headers.extend(self.headers.iter().cloned());
+        Some(headers)
+    }
+
+    fn timestamp_request_body(&self, message: &[u8]) -> c2pa::Result<Vec<u8>> {
+        self.signer.timestamp_request_body(message)
+    }
+
+    fn ocsp_val(&self) -> Option<Vec<u8>> {
+        self.signer.ocsp_val()
+    }
+
+    fn ocsp_vals(&self) -> Vec<Vec<u8>> {
+        self.signer.ocsp_vals()
+    }
+
+    fn direct_cose_handling(&self) -> bool {
+        self.signer.direct_cose_handling()
+    }
+
+    fn dynamic_assertions(&self) -> Vec<Box<dyn DynamicAssertion>> {
+        self.signer.dynamic_assertions()
+    }
 }
 
 /// Output signer info JSON for the `sign-mode --signer-info` subcommand.
@@ -105,6 +202,8 @@ pub struct SignConfig {
     pub sign_cert: Option<PathBuf>,
     /// A Url to a Time Authority to use when signing the manifest
     pub ta_url: Option<String>,
+    /// HTTP headers to send with Time Authority requests
+    pub ta_headers: Option<BTreeMap<String, String>>,
 }
 
 impl SignConfig {
@@ -125,6 +224,22 @@ impl SignConfig {
             }
         }
         self
+    }
+
+    /// Time Authority request headers from `ta_headers`, then `C2PA_TA_HEADERS`.
+    pub fn ta_headers(&self) -> Result<Vec<(String, String)>> {
+        let mut headers: Vec<(String, String)> = self
+            .ta_headers
+            .iter()
+            .flatten()
+            .map(|(name, value)| (name.clone(), value.clone()))
+            .collect();
+        headers.extend(get_ta_headers()?);
+
+        for (name, _) in &headers {
+            validate_ta_header_name(name)?;
+        }
+        Ok(headers)
     }
 
     pub fn signer(&self) -> Result<BoxedSigner> {
