@@ -22,6 +22,21 @@ repository = "https://github.com/contentauth/c2patool"
 # enabling both backends at once.
 resolver = "3"
 
+[package.metadata.binstall]
+bin-dir = "c2patool/{ bin }{ binary-ext }"
+
+[package.metadata.binstall.overrides.'cfg(target_os = "macos")']
+pkg-url = "{ repo }/releases/download/v{ version }/v{ version }-universal-apple-darwin.zip"
+pkg-fmt = "zip"
+
+[package.metadata.binstall.overrides.'cfg(all(target_os = "linux", target_arch = "x86_64", target_env = "gnu"))']
+pkg-url = "{ repo }/releases/download/v{ version }/v{ version }-x86_64-unknown-linux-gnu.tar.gz"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.'cfg(all(target_os = "windows", target_arch = "x86_64", target_env = "msvc"))']
+pkg-url = "{ repo }/releases/download/v{ version }/v{ version }-x86_64-pc-windows-msvc.zip"
+pkg-fmt = "zip"
+
 [features]
 default = ["networking"]
 networking = [
