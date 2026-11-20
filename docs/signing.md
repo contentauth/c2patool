@@ -61,6 +61,16 @@ C2PA Tool must reserve space in the asset file for the signature before calling 
 > [!WARNING]
 > Deprecated: When cert and algorithm are supplied via settings rather than `--signer-info`, C2PA Tool passes `--alg` and `--reserve-size` to the subprocess for backwards compatibility. This behavior will be removed in a future release.
 
+### Timestamp authority headers
+
+Some timestamp authorities authenticate clients, usually with an API key header. To send headers with the timestamp request, set one environment variable per header, prefixed with `C2PATOOL_TSA_HEADER_`. Underscores in the rest of the name become hyphens, and header names are case-insensitive:
+
+```shell
+export C2PATOOL_TSA_HEADER_X_API_KEY=<your API key>   # sent as X-API-KEY
+```
+
+Using the environment keeps secrets off the command line and out of the manifest definition. This applies to `--signer-path` and `--identity-signer-path`.
+
 ## Signing with a subprocess signer
 
 ### C2PA claim signing
