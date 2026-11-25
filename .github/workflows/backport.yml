@@ -11,6 +11,11 @@ name: Backport
 # beta-preflight suite on a risky backport, add the `check-release` label to
 # the backport PR.
 #
+# When the cherry-pick conflicts, the backport PR is opened as a *draft* with
+# the conflict markers committed; resolve them on the branch, then mark it
+# ready for review. The workflow run is also marked failed so the conflict is
+# visible without reading the source PR's comments.
+#
 # Engine: korthout/backport-action (self-contained GitHub Action; no external
 # service). Mergify is a documented alternative if richer conflict handling or
 # merge queues are ever needed -- see docs/release-process.md.
@@ -44,6 +49,14 @@ jobs:
         with:
           github_token: ${{ secrets.RELEASE_PLZ_ORG_TOKEN }}
           comment_style: summary
+          # Release-line branches legitimately diverge from `main` (they carry
+          # a subset of the workflows, older dependency pins, and their own
+          # changelog), so conflicting cherry-picks are routine. Failing them
+          # outright produced *nothing* -- no branch, no PR -- while the
+          # workflow still reported success, so broken backports were
+          # invisible. Commit the first conflict instead and open a draft PR
+          # that a human finishes resolving.
+          conflict_resolution: draft_commit_conflicts
           # Labels look like `backport-<branch>`; the captured group is the
           # target branch name.
           label_pattern: '^backport-(?<target>.+)$'
@@ -52,8 +65,10 @@ jobs:
             Automated backport of #${pull_number} to `${target_branch}`.
 
             Upstream-first: this change already merged to `main`. If the
-            cherry-pick did not apply cleanly, adapt it so it compiles and
-            passes tests on this branch.
+            cherry-pick did not apply cleanly, this PR is a draft containing
+            committed conflict markers -- resolve them, make sure the result
+            compiles and passes tests on this branch, then mark it ready for
+            review.
 
       # Arm GitHub's native auto-merge on each backport PR that was opened. The
       # actual merge only fires once the target branch's protection rules are
@@ -68,6 +83,27 @@ jobs:
           CREATED_PRS: ${{ steps.backport.outputs.created_pull_numbers }}
         run: |
           for pr in $CREATED_PRS; do
+            # Conflicted backports are opened as drafts; GitHub refuses
+            # auto-merge on a draft, and they need a human anyway.
+            if [ "$(gh pr view "$pr" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = "true" ]; then
+              echo "Backport PR #$pr is a draft (cherry-pick conflict); skipping auto-merge"
+              continue
+            fi
             echo "Enabling auto-merge (squash) on backport PR #$pr"
             gh pr merge "$pr" --auto --squash --repo "$GITHUB_REPOSITORY"
           done
+
+      # The backport action reports success even when it produces no pull
+      # request at all, which let silently-failed backports look green in the
+      # Actions list. Make any unsuccessful target turn the run red.
+      - name: Fail the run if any backport target was unsuccessful
+        if: steps.backport.outputs.was_successful != 'true'
+        env:
+          BY_TARGET: ${{ steps.backport.outputs.was_successful_by_target }}
+          CREATED_PRS: ${{ steps.backport.outputs.created_pull_numbers }}
+        run: |
+          echo "::error::One or more backport targets were unsuccessful."
+          echo "Per-target result: ${BY_TARGET:-(none reported)}"
+          echo "Pull requests created: ${CREATED_PRS:-(none)}"
+          echo "See the summary comment on the source pull request for details."
+          exit 1
