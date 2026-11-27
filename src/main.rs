@@ -427,7 +427,68 @@ fn make_subprocess_signer(
         signer = signer.set_tsa_url(url);
     }
 
-    Ok(Box::new(signer))
+    // vars_os: std::env::vars() panics on any non-UTF-8 variable; those are skipped instead.
+    let env = std::env::vars_os()
+        .filter_map(|(k, v)| Some((k.into_string().ok()?, v.into_string().ok()?)));
+    match tsa_headers_from(env) {
+        Some(headers) => Ok(Box::new(WithTsaHeaders {
+            inner: signer,
+            headers,
+        })),
+        None => Ok(Box::new(signer)),
+    }
+}
+
+const TSA_HEADER_PREFIX: &str = "C2PATOOL_TSA_HEADER_";
+
+/// Headers for the time stamp authority request, for TSAs that authenticate clients
+/// (an API key, for example). `C2PATOOL_TSA_HEADER_X_API_KEY=secret` becomes the header
+/// `X-API-KEY: secret` (underscores become hyphens; header names are case-insensitive).
+/// Read from the environment so secrets stay off the command line and out of the manifest.
+fn tsa_headers_from(vars: impl Iterator<Item = (String, String)>) -> Option<Vec<(String, String)>> {
+    let mut headers: Vec<(String, String)> = vars
+        .filter_map(|(key, value)| {
+            let name = key.strip_prefix(TSA_HEADER_PREFIX)?;
+            if name.is_empty() || value.is_empty() {
+                return None;
+            }
+            Some((name.replace('_', "-"), value))
+        })
+        .collect();
+    headers.sort();
+    (!headers.is_empty()).then_some(headers)
+}
+
+/// Adds TSA request headers to a signer that has no way to carry them (`CallbackSigner`).
+struct WithTsaHeaders<S: Signer> {
+    inner: S,
+    headers: Vec<(String, String)>,
+}
+
+impl<S: Signer> Signer for WithTsaHeaders<S> {
+    fn sign(&self, data: &[u8]) -> c2pa::Result<Vec<u8>> {
+        self.inner.sign(data)
+    }
+
+    fn alg(&self) -> SigningAlg {
+        self.inner.alg()
+    }
+
+    fn certs(&self) -> c2pa::Result<Vec<Vec<u8>>> {
+        self.inner.certs()
+    }
+
+    fn reserve_size(&self) -> usize {
+        self.inner.reserve_size()
+    }
+
+    fn time_authority_url(&self) -> Option<String> {
+        self.inner.time_authority_url()
+    }
+
+    fn timestamp_request_headers(&self) -> Option<Vec<(String, String)>> {
+        Some(self.headers.clone())
+    }
 }
 
 /// Cert/alg and assertion metadata extracted from `cawg_x509_signer` settings.
@@ -1507,6 +1568,23 @@ pub mod tests {
     use tempfile::TempDir;
 
     use super::*;
+
+    #[test]
+    fn tsa_headers_come_from_prefixed_environment_variables() {
+        let vars = vec![
+            (
+                "C2PATOOL_TSA_HEADER_X_API_KEY".to_string(),
+                "secret".to_string(),
+            ),
+            ("C2PATOOL_TSA_HEADER_EMPTY".to_string(), "".to_string()),
+            ("PATH".to_string(), "/usr/bin".to_string()),
+        ];
+        assert_eq!(
+            tsa_headers_from(vars.into_iter()),
+            Some(vec![("X-API-KEY".to_string(), "secret".to_string())])
+        );
+        assert_eq!(tsa_headers_from(std::iter::empty()), None);
+    }
 
     const CONFIG: &str = r#"{
         "alg": "es256",
